@@ -22,7 +22,6 @@
 
 import GameEngine
 
-import View
 from View import *
 import Menu
 
@@ -112,7 +111,7 @@ class CharacterCreator(Layer):
         if 18 <= i <= 26:
           button = self.engine.drawImage(self.textbuttonactive, coord= (218 + (36*(i-18)) , 344), scale = (32,32))
         if flag == True:
-          self.name.append(self.capletters[i])
+          self.name.append(self.letters[i])
 
       if i <= 8:
         buttonfont = GameEngine.renderFont("default.ttf", str(choice), (218 + (36*i) , 272), size = 24)
@@ -183,6 +182,19 @@ class CharacterCreator(Layer):
       name = string.join(self.name, '')
       namefont = GameEngine.renderFont("default.ttf", name, (380, 130), size = 32)
 
+      GameEngine.renderFont("default.ttf", "Create A Character", (170, 70), size = 24)
+
+      button = self.engine.drawImage(self.menubutton, coord= (540, 420), scale = (150,45))
+      active, flag = self.engine.mousecol(button)
+      if active == True:
+        button = self.engine.drawImage(self.menubuttonactive, coord= (540, 420), scale = (150,45))
+        if flag == True:
+          #self.saveini(name)
+          pass
+
+      namefont = GameEngine.renderFont("default.ttf", "Confirm", (540, 420))
+
+
       button = self.engine.drawImage(self.menubutton, coord= (90, 190), scale = (150,45))
       active, flag = self.engine.mousecol(button)
       if active == True:
@@ -212,4 +224,5 @@ class CharacterCreator(Layer):
       GameEngine.renderFont("default.ttf", self.spd, (280, 368), size = 24)
       GameEngine.renderFont("default.ttf", self.evd, (280, 400), size = 24)
       GameEngine.renderFont("default.ttf", self.mag, (280, 432), size = 24)
+
 
