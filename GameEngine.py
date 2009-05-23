@@ -32,6 +32,9 @@ w, h = 640, 480
 screen = None
 player = None
 
+mousepos = (0, 0)
+clicks = []
+
 class Drawing(pygame.sprite.Sprite):
 
   def loadImage(self, ImgData):
@@ -74,15 +77,18 @@ def renderFont(font, text, coord = (w/2,h/2), size = 12):
   screen.blit(renderedfont, (coord[0] - width/2, coord[1]-height/2))
 
 def mousecol(rect): #for use in a scene's update command
-  pygame.event.pump()
-  mouseinput = pygame.mouse.get_pressed()
-  mouseposx, mouseposy = pygame.mouse.get_pos()
 
-  active = False
-  flag = False
-  if rect.collidepoint(mouseposx, mouseposy) == True:
-    active = True
-    if mouseinput[0] == 1:
-      flag = True
+  active = rect.collidepoint(*mousepos)
+  flag = any(rect.collidepoint(clickx, clicky) for clickx, clicky in clicks)
 
   return active, flag
+
+def processMouseMove(newpos):
+  global mousepos
+  mousepos = newpos
+
+def processClick():
+  clicks.append(mousepos)
+
+def resetClick():
+  clicks[:] = []

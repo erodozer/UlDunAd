@@ -30,6 +30,8 @@ import View
 import os
 import gc
 
+FPS = 60
+
 def main():
   #video_flags = DOUBLEBUF|OPENGL
   gc.enable()
@@ -41,16 +43,34 @@ def main():
 
   View.startup()
 
+  fpsClock = pygame.time.Clock()
+
   Done = False
   while not Done:
-    pygame.event.pump()
-    keyinput = pygame.key.get_pressed()
-    if keyinput[K_ESCAPE] or pygame.event.peek(QUIT):
-      break
+    # main event loop
+    while True:
+      event = pygame.event.poll()
+      if event.type == NOEVENT:
+        break  # no more events this frame
+      elif event.type == QUIT:
+        Done = True
+        break
+      elif event.type == KEYDOWN:
+        if event.key == K_ESCAPE:
+          Done = True
+          break
+      elif event.type == MOUSEMOTION:
+        GameEngine.processMouseMove(event.pos)
+      elif event.type == MOUSEBUTTONDOWN:
+        if event.button == 1:
+          GameEngine.processClick()
 
     View.update()
-    
+
     pygame.display.update()
+    GameEngine.resetClick()
+
+    fpsClock.tick(FPS)
 
   return
 
