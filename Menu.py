@@ -40,9 +40,9 @@ def drawMainMenu(scene, choices, buttonimg, activebuttonimg):
       button = GameEngine.drawImage(activebuttonimg, coord= (220, 200+(60*i)), scale = (150,45))
       if flag == True:
         if i == 0:
-          from Maplist import Maplist
+          from CharacterCreator import CharacterCreator
           View.removescene(scene)
-          View.addscene(Maplist())
+          View.addscene(CharacterCreator())
         if i == 1:
           playerpath = os.path.join("Data", "Players")
           players = []
