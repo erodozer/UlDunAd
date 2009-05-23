@@ -47,7 +47,7 @@ class Drawing(pygame.sprite.Sprite):
     pygame.sprite.Sprite.__init__(self)
 
     if scale != None:
-      image = pygame.transform.scale(image, (int(scale[0]), int(scale[1])))
+      image = pygame.transform.smoothscale(image, (int(scale[0]), int(scale[1])))
     width,height = image.get_size()
     rect = image.get_rect(topleft=(coord[0] - width/2, coord[1]-height/2))
 

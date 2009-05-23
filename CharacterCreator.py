@@ -61,6 +61,10 @@ class CharacterCreator(Layer):
     self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "menubuttonactive.png"))
 
     self.typingname = False
+    self.racechooser = False
+
+    self.racebutton = self.engine.loadImage(os.path.join("Data", "mapmenubuttonactive.png"))
+    self.racebuttonactive = self.engine.loadImage(os.path.join("Data", "mapmenubutton.png"))
 
   def TypeName(self):
     self.engine.drawImage(os.path.join(self.background), scale = (640,480))
@@ -135,24 +139,77 @@ class CharacterCreator(Layer):
             self.typingname = False     
       buttonfont = GameEngine.renderFont("default.ttf", str(choice), (90, 186 + (76*i)), size = 24)
 
-     
+
+  def drawRaceMenu(self):
+
+    racepath = os.path.join("Data", "Races")
+    self.races = []
+    allraces = os.listdir(racepath)
+    for name in allraces:
+      if os.path.splitext(name)[1].lower() == ".ini":
+        self.races.append(os.path.splitext(name)[0])
+
+    button = self.races
+    buttonfont = self.races
+
+    for i, choice in enumerate(self.races):
+      button[i] = GameEngine.drawImage(self.racebutton, coord= (320, 64+(48*i)), scale = (200,32))
+      active, flag = GameEngine.mousecol(button[i])
+      if active == True:
+        button[i] = GameEngine.drawImage(self.racebuttonactive, coord= (320, 64+(48*i)), scale = (200,32))
+      if flag == True:
+        self.race = choice
+        self.racechooser = False
+      buttonfont[i] = GameEngine.renderFont("menu.ttf", str(choice), (320, 64+(48*i)), size = 24)  
+   
   def update(self):
     self.engine.drawImage(os.path.join(self.background), scale = (640,480))
 
     if self.typingname == True:
       self.TypeName()
-
+    elif self.racechooser == True:
+      self.drawRaceMenu()
     else:
       button = self.engine.drawImage(self.menubutton, coord= (90, 130), scale = (150,45))
-      buttonfont = GameEngine.renderFont("default.ttf", "Change Name", (90, 130))
       active, flag = self.engine.mousecol(button)
       if active == True:
         button = self.engine.drawImage(self.menubuttonactive, coord= (90, 130), scale = (150,45))
         if flag == True:
           self.typingname = True
+      buttonfont = GameEngine.renderFont("default.ttf", "Change Name", (90, 130))
 
       otherfont = GameEngine.renderFont("default.ttf", "Name", (200, 130), size = 24)
 
       name = string.join(self.name, '')
       namefont = GameEngine.renderFont("default.ttf", name, (380, 130), size = 32)
+
+      button = self.engine.drawImage(self.menubutton, coord= (90, 190), scale = (150,45))
+      active, flag = self.engine.mousecol(button)
+      if active == True:
+        button = self.engine.drawImage(self.menubuttonactive, coord= (90, 190), scale = (150,45))
+        if flag == True:
+          self.racechooser = True
+
+      buttonfont = GameEngine.renderFont("default.ttf", "Change Race", (90, 190))
+      otherfont = GameEngine.renderFont("default.ttf", "Race", (200, 190), size = 24)
+
+      name = self.race.split(".")
+      namefont = GameEngine.renderFont("default.ttf", name[0], (380, 190), size = 32)
+
+      GameEngine.renderFont("default.ttf", "HP", (100, 240), size = 24)
+      GameEngine.renderFont("default.ttf", "SP", (100, 272), size = 24)
+      GameEngine.renderFont("default.ttf", "ATK", (100, 304), size = 24)
+      GameEngine.renderFont("default.ttf", "DEF", (100, 336), size = 24)
+      GameEngine.renderFont("default.ttf", "SPD", (100, 368), size = 24)
+      GameEngine.renderFont("default.ttf", "EVD", (100, 400), size = 24)
+      GameEngine.renderFont("default.ttf", "MAG", (100, 432), size = 24)
+
+
+      GameEngine.renderFont("default.ttf", self.hp, (280, 240), size = 24)
+      GameEngine.renderFont("default.ttf", self.sp, (280, 272), size = 24)
+      GameEngine.renderFont("default.ttf", self.atk, (280, 304), size = 24)
+      GameEngine.renderFont("default.ttf", self.defn, (280, 336), size = 24)
+      GameEngine.renderFont("default.ttf", self.spd, (280, 368), size = 24)
+      GameEngine.renderFont("default.ttf", self.evd, (280, 400), size = 24)
+      GameEngine.renderFont("default.ttf", self.mag, (280, 432), size = 24)
 
