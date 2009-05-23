@@ -28,13 +28,17 @@ import Config
 player = GameEngine.player
 playerini = Config.Configuration(os.path.join("Data", "Players", player)).player
 
+race = playerini.race
+raceini = Config.Configuration(os.path.join("Data", "Races", race)).race
+levelcurve = raceini.levelcurve.split(",")
 lvl = playerini.lvl
-hp = playerini.hp
-sp = playerini.sp
-atk = playerini.atk
-defn = playerini.defn
-spd = playerini.spd
-mag = playerini.mag
+hp = raceini.hp + (levelcurve[0]*lvl)
+sp = raceini.sp + (levelcurve[1]*lvl)
+atk = raceini.atk + (levelcurve[2]*lvl)
+defn = raceini.defn + (levelcurve[3]*lvl)
+spd = raceini.spd + (levelcurve[4]*lvl)
+mag = raceini.mag + (levelcurve[5]*lvl)
+evd = raceini.evd + (levelcurve[6]*lvl)
 weapon = playerini.weapon
 armor = playerini.armor
 
