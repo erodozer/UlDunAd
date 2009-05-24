@@ -45,19 +45,18 @@ def main():
 
   fpsClock = pygame.time.Clock()
 
-  Done = False
-  while not Done:
+  while not GameEngine.finished:
     # main event loop
     while True:
       event = pygame.event.poll()
       if event.type == NOEVENT:
         break  # no more events this frame
       elif event.type == QUIT:
-        Done = True
+        GameEngine.finished = True
         break
       elif event.type == KEYDOWN:
         if event.key == K_ESCAPE:
-          Done = True
+          GameEngine.finished = True
           break
       elif event.type == MOUSEMOTION:
         GameEngine.processMouseMove(event.pos)

@@ -57,7 +57,7 @@ def drawMainMenu(scene, choices, buttonimg, activebuttonimg):
             View.addscene(Playerlist())
 
         elif i == 2:
-           break
+           GameEngine.finished = True
     buttonfont = GameEngine.renderFont("default.ttf", str(choice), (220, 200+(60*i)))
 
 def drawPlayerMenu(scene, choices, buttonimg, activebuttonimg):
