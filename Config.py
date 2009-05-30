@@ -21,34 +21,68 @@
 #####################################################################
 
 from ConfigParser import SafeConfigParser
+from StringIO import StringIO
 
 class Configuration:
     def __init__ (self, fileName):
-        cp = SafeConfigParser()
-        cp.read(fileName)
-        self.__parser = cp
+        self.parser = SafeConfigParser()
         self.fileName = fileName
-        
+        self.revert()
+
     def __getattr__ (self, name):
-        if name in self.__parser.sections():
-            return Section(name, self.__parser)
+        return Section(name, self.parser)
+
+    def __delattr__ (self, name):
+        if self.parser.has_section(name):
+            self.parser.remove_section(name)
         else:
-            return None
-            
+            raise AttributeError, 'No section "%s".' % name
+
+    def __repr__ (self):
+        return '<Configuration from %s>' % self.fileName
+
     def __str__ (self):
-        p = self.__parser
-        result = []
-        result.append('<Configuration from %s>' % self.fileName)
-        for s in p.sections():
-            result.append('[%s]' % s)
-            for o in p.options(s):
-                result.append('%s=%s' % (o, p.get(s, o)))
-        return '\n'.join(result)
+        result = '; <Configuration from %s>\n' % self.fileName
+        sio = StringIO()
+        self.parser.write(sio)
+        result += sio.getvalue()
+        sio.close()
+        return result
+
+    def save (self):
+        self.parser.write(open(self.fileName, 'w'))
+
+    def revert (self):
+        for section in self.parser.sections():
+            self.parser.remove_section(section)
+        self.parser.read(self.fileName)
+
 
 class Section:
     def __init__ (self, name, parser):
         self.name = name
-        self.__parser = parser
-    def __getattr__ (self, name):
-        return self.__parser.get(self.name, name)
+        self.parser = parser
 
+    def __getattr__ (self, name):
+        if not self.parser.has_section(self.name):
+            raise AttributeError, 'No section "%s".' % self.name
+        if self.parser.has_option(self.name, name):
+            return self.parser.get(self.name, name)
+        else:
+            raise AttributeError, 'No option "%s" in section "%s".' % (name, self.name)
+
+    def __setattr__ (self, name, value):
+        if name in ('name', 'parser') or name.startswith('__'):
+            self.__dict__[name] = value
+            return
+        if not self.parser.has_section(self.name):
+            self.parser.add_section(self.name)
+        self.parser.set(self.name, name, value)
+
+    def __delattr__ (self, name):
+        if not self.parser.has_section(self.name):
+            raise AttributeError, 'No section "%s".' % self.name
+        if self.parser.has_option(self.name, name):
+            self.parser.remove_option(self.name, name)
+        else:
+            raise AttributeError, 'No option "%s" in section "%s".' % (name, self.name)
