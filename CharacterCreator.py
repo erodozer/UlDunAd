@@ -153,17 +153,6 @@ class CharacterCreator(Layer):
 
       self.engine.renderFont("default.ttf", "Create A Character", (170, 70), size = 24)
 
-      button = self.engine.drawImage(self.menubutton, coord= (540, 420), scale = (150,45))
-      active, flag = self.engine.mousecol(button)
-      if active == True:
-        button = self.engine.drawImage(self.menubuttonactive, coord= (540, 420), scale = (150,45))
-        if flag == True:
-          #self.saveini(name)
-          pass
-
-      namefont = self.engine.renderFont("default.ttf", "Confirm", (540, 420))
-
-
       button = self.engine.drawImage(self.menubutton, coord= (90, 190), scale = (150,45))
       active, flag = self.engine.mousecol(button)
       if active == True:
@@ -181,4 +170,20 @@ class CharacterCreator(Layer):
         self.engine.renderFont("default.ttf", self.stattitle[i], (100, 240 + (i*32)), size = 24)
 
         self.engine.renderFont("default.ttf", str(stat), (280, 240 + (i*32)), size = 24)
+
+      name = string.join(self.name, '')
+      button = self.engine.drawImage(self.menubutton, coord= (470, 420), scale = (150,45))
+      active, flag = self.engine.mousecol(button)
+      if active == True:
+        button = self.engine.drawImage(self.menubuttonactive, coord= (470, 420), scale = (150,45))
+        if flag == True:
+          if name != "":
+            Config.Configuration(os.path.join("Data", "Players", name + ".ini")).save()
+            newconf = Config.Configuration(os.path.join("Data", "Players", name + ".ini"))
+            newconf.player.lvl = str(1)
+            newconf.player.race = str('"'+self.race+'"')
+            newconf.player.weapon = "None"
+            newconf.player.armor = "None"
+            newconf.save()            
+      buttonfont = self.engine.renderFont("default.ttf", "Create", (470, 420))
 
