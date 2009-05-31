@@ -39,6 +39,7 @@ class MainMenu:
   def update(self):
     self.engine.drawImage(self.background)
     self.menu = Menu.drawMainMenu(self, self.choices, self.button, self.buttonactive)
+    self.engine.renderMultipleFont("default.ttf", ("Welcome to", "Ultimate Dungeon Adventure"), coord = (320, 100), size = 24)
 
   def clearscene(self):
     del self.menu, self.background, self.button, self.buttonactive, self.engine, self.choices

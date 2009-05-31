@@ -34,6 +34,8 @@ class Maplist(Layer):
     #self.audio = self.engine.loadAudio("mapmenu.mp3")
 
     self.button, self.buttonactive = Menu.initMenu(os.path.join("Data", "mapmenubutton.png"), os.path.join("Data", "mapmenubuttonactive.png"))
+    self.menubutton = self.engine.loadImage(os.path.join("Data", "menubutton.png"))
+    self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "menubuttonactive.png"))
 
   def update(self):
     self.engine.drawImage(self.background)
@@ -48,6 +50,18 @@ class Maplist(Layer):
         self.maps.append(name)
 
     self.menu = Menu.drawMapMenu(self, self.maps, self.button, self.buttonactive)
+
+    #activate beta battlescene
+    button = self.engine.drawImage(self.menubutton, coord= (530, 425), scale = (150,45))
+    active, flag = self.engine.mousecol(button)
+    if active == True:
+      button = self.engine.drawImage(self.menubuttonactive, coord= (530, 425), scale = (150,45))
+      if flag == True:
+        View.removescene(self)
+        from BattleScene import BattleScene
+        View.addscene(BattleScene())
+    buttonfont = self.engine.renderFont("default.ttf", "Random Battle", (530, 425))
+
 
   def clearscene(self):
     

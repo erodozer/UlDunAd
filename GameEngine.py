@@ -77,6 +77,13 @@ def renderFont(font, text, coord = (w/2,h/2), size = 12):
   renderedfont = textfont.render(text, True, (255,255,255))
   screen.blit(renderedfont, (coord[0] - width/2, coord[1]-height/2))
 
+def renderMultipleFont(font, text, coord = (w/2,h/2), size = 12):
+  textfont = pygame.font.Font(os.path.join("Data", font), size)
+  for i, textline in enumerate(text):
+    width, height = textfont.size(textline)
+    renderedfont = textfont.render(textline, True, (255,255,255))
+    screen.blit(renderedfont, (coord[0] - width/2, coord[1]-height/2+((size+3)*i)))
+
 def mousecol(rect): #for use in a scene's update command
 
   active = rect.collidepoint(*mousepos)

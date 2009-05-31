@@ -35,7 +35,6 @@ class Playerlist(Layer):
     self.background2 = self.engine.loadImage(os.path.join("Data", "mapmenu.png"))
 
     self.button, self.buttonactive = Menu.initMenu(os.path.join("Data", "mapmenubutton.png"), os.path.join("Data", "mapmenubuttonactive.png"))
-
   def update(self):
     self.engine.drawImage(self.background)
     self.engine.drawImage(self.background2)
@@ -48,8 +47,43 @@ class Playerlist(Layer):
       if os.path.splitext(name)[1].lower() == ".ini":
         self.players.append(os.path.splitext(name)[0])
 
-    self.menu = Menu.drawPlayerMenu(self, self.players, self.button, self.buttonactive)
+    button = self.players
+    buttonfont = self.players
+
+    index = 0
+    if index < 0:
+      index = 0
+    if index > len(self.players):
+      index = len(self.players) - 7
+
+    for i,choice in enumerate(self.players):
+      button[i] = self.engine.drawImage(self.button, coord= (320, 64+(48*(i+1))), scale = (200,32))
+      active, flag = self.engine.mousecol(button[i])
+      if active == True:
+        button[i] = self.engine.drawImage(self.buttonactive, coord= (320, 64+(48*(i+1))), scale = (200,32))
+        if flag == True:
+          from Maplist import Maplist
+          View.removescene(self)
+          View.addscene(Maplist())
+          GameEngine.player = str(choice+".ini")  
+      buttonfont[i] = self.engine.renderFont("menu.ttf", choice, (320, 64+(48*(i+1))), size = 24)
+
+    button = self.engine.drawImage(self.button, coord= (320, 64), scale = (200,32))
+    active, flag = self.engine.mousecol(button)
+    if active == True:
+      button = self.engine.drawImage(self.buttonactive, coord= (320, 64), scale = (200,32))
+      if flag == True:
+        index = index - 7
+    buttonfont[i] = self.engine.renderFont("menu.ttf", "-UP-", (320, 64), size = 24)
+
+    button = self.engine.drawImage(self.button, coord= (320, 432), scale = (200,32))
+    active, flag = self.engine.mousecol(button)
+    if active == True:
+      button = self.engine.drawImage(self.buttonactive, coord= (320, 432), scale = (200,32))
+      if flag == True:
+        index = index - 7
+    buttonfont[i] = self.engine.renderFont("menu.ttf", "-DOWN-", (320, 432), size = 24)
 
   def clearscene(self):
-    del  self.menu, self.background, self.background2, self.engine, self.players
+    del  self.background, self.background2, self.engine, self.players
 

@@ -181,12 +181,12 @@ class CharacterCreator(Layer):
             Config.Configuration(os.path.join("Data", "Players", name + ".ini")).save()
             newconf = Config.Configuration(os.path.join("Data", "Players", name + ".ini"))
             newconf.player.lvl = str(1)
-            newconf.player.race = str('"'+self.race+'"')
+            newconf.player.race = str(self.race)
             newconf.player.weapon = "None"
             newconf.player.armor = "None"
             newconf.save()
             View.removescene(self)
-            GameEngine.player = newconf
+            GameEngine.player = str(name+".ini")
             from Maplist import Maplist
             View.addscene(Maplist())
             
