@@ -44,11 +44,14 @@ class Drawing(pygame.sprite.Sprite):
     image = pygame.image.load(ImgData).convert_alpha()
     return image
     
-  def drawImage(self, image, coord = (640/2, 480/2), scale = None):
+  def drawImage(self, image, coord = (640/2, 480/2), scale = None, rot = None):
     pygame.sprite.Sprite.__init__(self)
 
     if scale != None:
-      image = pygame.transform.smoothscale(image, (int(scale[0]), int(scale[1])))
+      image = pygame.transform.smoothscale(image, (scale[0], scale[1]))
+      print scale
+    if rot != None:
+      image = pygame.transform.rotate(image, rot)
     width,height = image.get_size()
     rect = image.get_rect(topleft=(coord[0] - width/2, coord[1]-height/2))
 
@@ -60,8 +63,8 @@ def loadImage(ImgData):
   image = Drawing().loadImage(ImgData)
   return image
 
-def drawImage(ImgData, coord = (640/2, 480/2), scale = None):
-  rect = Drawing().drawImage(ImgData, coord, scale)
+def drawImage(ImgData, coord = (640/2, 480/2), scale = None, rot = None):
+  rect = Drawing().drawImage(ImgData, coord, scale, rot)
   return rect
        
 def loadAudio(AudioFile):
@@ -83,6 +86,13 @@ def renderMultipleFont(font, text, coord = (w/2,h/2), size = 12):
     width, height = textfont.size(textline)
     renderedfont = textfont.render(textline, True, (255,255,255))
     screen.blit(renderedfont, (coord[0] - width/2, coord[1]-height/2+((size+3)*i)))
+
+def screenfade(color):
+  surface = pygame.Surface((w, h))
+  surface.set_colorkey((color[0],color[1],color[2]))
+  surface.set_alpha(color[3])
+
+  screen.blit(surface,(0,0))
 
 def mousecol(rect): #for use in a scene's update command
 

@@ -32,6 +32,7 @@ import math
 import random
 
 from Config import *
+import pygame
 
 class BattleScene(Layer):
   def __init__(self, enemy = "default", terrain = "grasslands.jpg"):
@@ -59,6 +60,8 @@ class BattleScene(Layer):
     self.hpbar = self.engine.loadImage(os.path.join("Data", "hpbar.png"))
 
     self.hud = self.engine.loadImage(os.path.join("Data", "battlehud.png"))
+    self.attackcb = self.engine.loadImage(os.path.join("Data", "battlecirclebottom.png"))
+    self.attackct = self.engine.loadImage(os.path.join("Data", "battlecircletop.png"))
 
     self.battle = False
 
@@ -67,16 +70,32 @@ class BattleScene(Layer):
 
     self.displaydamage = False
     self.turnstep = 0
+    self.timer = 0.0
+    self.rolled = False
+    self.fade = False
+
   def fight(self, playercommand, enemycommand, roll):
-    self.turnstep = self.turnstep + 1
     if roll == 0:
       if self.enemycommand == 1:
         self.attack(0)
 
     if roll == 1:
       if self.playercommand == 1:
-        self.attack(1)
-    
+        self.renderbattlecircle()
+        #self.attack(1)
+  
+  def renderbattlecircle(self):
+    var = 60
+    self.timer = self.timer + var
+    time = math.radians(self.timer/3)
+    rotate = (self.timer/3)*(Enemy.evd/Player.spd)
+    self.engine.drawImage(self.attackcb, (int(self.enemycoord[0]), int(self.enemycoord[1])), scale = (200*(.25*math.sin(time+.5)+1),200*(.25*math.sin(time+.5)+1)))
+    self.engine.drawImage(self.attackct, (int(self.enemycoord[0]), int(self.enemycoord[1])), scale = (200*(.25*math.sin(time+.5)+1),200*(.25*math.sin(time+.5)+1)), rot = -rotate)
+
+    timer = 1800 - self.timer 
+    if timer <= 0:
+      self.attack(1)
+
   def attack(self, who):
     if who == 0:
       damage = (Enemy.atk*3)/Player.defn
@@ -87,11 +106,11 @@ class BattleScene(Layer):
 
     self.displaydamage = True
     self.displayturn(damage, who)
-    if self.turnstep < 2:
-      self.fight(self.playercommand, self.enemycommand, 1-who)
-    else:
-      self.battle = False
-      self.turnstep = 0
+#    if self.turnstep < 2:
+#    self.fight(self.playercommand, self.enemycommand, 1-who)
+#    else:
+    self.battle = False
+    self.turnstep = 0
 
   def displayturn(self,damage, who):
     if who == 0:
@@ -107,8 +126,10 @@ class BattleScene(Layer):
       self.enemycurrenthp = 0
 
     self.engine.drawImage(self.background, scale = (640,480))
+    if self.fade == True:
+      self.engine.screenfade((150,150,150,175))
     self.engine.drawImage(self.hud, (150, 380))
-    self.engine.drawImage(self.hpbar, (200, 360), scale = ((self.playercurrenthp/self.playermaxhp)*300,10))
+    self.engine.drawImage(self.hpbar, (200, 360), scale = ((float(self.playercurrenthp)/float(self.playermaxhp))*300,10))
     self.engine.drawImage(self.enemysprite, (int(self.enemycoord[0]), int(self.enemycoord[1])))
 
     self.engine.renderFont("default.ttf", str(self.playercurrenthp) + "/" + str(self.playermaxhp), (200, 350), size = 24)
@@ -119,6 +140,7 @@ class BattleScene(Layer):
 
     commands = ["Attack", "Defend", "Skills", "Item"]
     if self.battle == False:
+      self.fade = False
       for i, choice in enumerate(commands):
         button = self.engine.drawImage(self.button, coord= (550 - (20*i), 350 + (30*i)), scale = (150,25))
         active, flag = self.engine.mousecol(button)
@@ -127,8 +149,8 @@ class BattleScene(Layer):
           if flag == True:
             self.playercommand = 1
             self.battle = True
-            roll = random.randint(0,1)
-            self.fight(self.playercommand, self.enemycommand, roll)
+            self.rolled = False
+            self.timer = 0
         buttonfont = self.engine.renderFont("default.ttf", choice, (550 - (20*i), 350 + (30*i)))
 
       button = self.engine.drawImage(self.button, coord= (100, 445), scale = (150,25))
@@ -137,9 +159,12 @@ class BattleScene(Layer):
         button = self.engine.drawImage(self.buttonactive, coord= (100, 445), scale = (150,25))
         if flag == True:
           self.battle = True
-
-          self.attack(roll)
       buttonfont = self.engine.renderFont("default.ttf", "Flee", (100, 445))
 
-    if self.displaydamage == True:
-      pass
+    else:
+      self.fade = True
+      if self.rolled == False:
+        roll = random.randint(0,1)
+        self.rolled = True
+      self.fight(self.playercommand, self.enemycommand, 1)
+
