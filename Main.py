@@ -55,9 +55,7 @@ def main():
         GameEngine.finished = True
         break
       elif event.type == KEYDOWN:
-        if event.key == K_ESCAPE:
-          GameEngine.finished = True
-          break
+        GameEngine.processKeyPress(event)
       elif event.type == MOUSEMOTION:
         GameEngine.processMouseMove(event.pos)
       elif event.type == MOUSEBUTTONDOWN:

@@ -28,6 +28,7 @@ import Menu
 import Config
 
 import string
+from pygame.locals import *
 
 class CharacterCreator(Layer):
 
@@ -64,6 +65,8 @@ class CharacterCreator(Layer):
 
     self.racebutton = self.engine.loadImage(os.path.join("Data", "mapmenubutton.png"))
     self.racebuttonactive = self.engine.loadImage(os.path.join("Data", "mapmenubuttonactive.png"))
+
+    GameEngine.resetKeyPresses()
 
   def TypeName(self):
     self.engine.drawImage(os.path.join(self.background), scale = (640,480))
@@ -107,6 +110,14 @@ class CharacterCreator(Layer):
             self.typingname = False     
       buttonfont = self.engine.renderFont("default.ttf", str(choice), (90, 186 + (76*i)), size = 24)
 
+    for key, char in GameEngine.getKeyPresses():
+      if (char >= 'a' and char <= 'z') or (char >= 'A' and char <= 'Z'):
+        self.name.append(char)
+      elif key == K_RETURN:
+        self.typingname = False
+      elif key == K_BACKSPACE:
+        if len(self.name) > 0:
+          del self.name[-1]
 
   def drawRaceMenu(self):
 

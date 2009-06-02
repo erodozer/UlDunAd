@@ -35,6 +35,7 @@ finished = False
 
 mousepos = (0, 0)
 clicks = []
+keypresses = []
 
 class Drawing(pygame.sprite.Sprite):
 
@@ -110,3 +111,17 @@ def processClick():
 
 def resetClick():
   clicks[:] = []
+
+def processKeyPress(press):
+  global finished
+  if press.key == K_ESCAPE:
+    finished = True
+    return
+  keypresses.append((press.key, press.unicode))
+
+def getKeyPresses():
+  while len(keypresses):
+    yield keypresses.pop(0)
+
+def resetKeyPresses():
+  keypresses[:] = []
