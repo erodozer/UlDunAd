@@ -195,6 +195,7 @@ class CharacterCreator(Layer):
             newconf.player.race = str(self.race)
             newconf.player.weapon = "None"
             newconf.player.armor = "None"
+            newconf.player.exp = str(0)
             newconf.save()
             View.removescene(self)
             GameEngine.player = str(name+".ini")
@@ -202,4 +203,5 @@ class CharacterCreator(Layer):
             View.addscene(Maplist())
             
       buttonfont = self.engine.renderFont("default.ttf", "Create", (470, 420))
+
 

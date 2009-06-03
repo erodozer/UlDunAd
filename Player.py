@@ -28,14 +28,14 @@ import os
 import math
 
 player = GameEngine.player
-playerini = Configuration(os.path.join("Data", "Players", player)).player
+playerini = Configuration(os.path.join("Data", "Players", player))
 
 name = player.split(".ini")[0]
-raceini = Configuration(os.path.join("Data", "Races", str(playerini.race))).race
+raceini = Configuration(os.path.join("Data", "Races", str(playerini.player.race))).race
 levelcurve = raceini.__getattr__("levelcurve").split(",")
 for i, num in enumerate(levelcurve):
   levelcurve[i] = float(num)
-lvl = playerini.__getattr__("lvl", "int")
+lvl = playerini.player.__getattr__("lvl", "int")
 hp = raceini.__getattr__("hp", "int") + int(levelcurve[0]*lvl)
 sp = raceini.__getattr__("sp", "int") + int(levelcurve[1]*lvl)
 atk = raceini.__getattr__("atk", "int") + int(levelcurve[2]*lvl)
@@ -43,6 +43,8 @@ defn = raceini.__getattr__("defn", "int") + int(levelcurve[3]*lvl)
 spd = raceini.__getattr__("spd", "int") + int(levelcurve[4]*lvl)
 mag = raceini.__getattr__("mag", "int") + int(levelcurve[5]*lvl)
 evd = raceini.__getattr__("evd", "int") + int(levelcurve[6]*lvl)
-weapon = playerini.weapon
-armor = playerini.armor
+weapon = playerini.player.weapon
+armor = playerini.player.armor
+exp = playerini.player.__getattr__("exp", "int")
+explvl = 15*int(lvl*lvl)
 

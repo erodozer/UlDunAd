@@ -39,4 +39,6 @@ spd = enemyini.__getattr__("spd", "int")
 mag = enemyini.__getattr__("mag", "int")
 evd = enemyini.__getattr__("evd", "int")
 coord = enemyini.__getattr__("coord").split(",")
+exp = enemyini.__getattr__("exp", "int")
+lvl = enemyini.__getattr__("lvl", "int")
 

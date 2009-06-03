@@ -50,7 +50,6 @@ class Drawing(pygame.sprite.Sprite):
 
     if scale != None:
       image = pygame.transform.smoothscale(image, (scale[0], scale[1]))
-      print scale
     if rot != None:
       image = pygame.transform.rotate(image, rot)
     width,height = image.get_size()
@@ -60,12 +59,30 @@ class Drawing(pygame.sprite.Sprite):
 
     return rect
 
+  def drawBar(self, image, coord = (640/2, 480/2), scale = None, rot = None):
+    pygame.sprite.Sprite.__init__(self)
+
+    if scale != None:
+      image = pygame.transform.smoothscale(image, (scale[0], scale[1]))
+    if rot != None:
+      image = pygame.transform.rotate(image, rot)
+    width,height = image.get_size()
+    rect = image.get_rect(topleft=(coord[0], coord[1]-height/2))
+
+    screen.blit(image, (coord[0], coord[1]-height/2))
+
+    return rect
+
 def loadImage(ImgData):
   image = Drawing().loadImage(ImgData)
   return image
 
 def drawImage(ImgData, coord = (640/2, 480/2), scale = None, rot = None):
   rect = Drawing().drawImage(ImgData, coord, scale, rot)
+  return rect
+
+def drawBar(ImgData, coord = (640/2, 480/2), scale = None, rot = None):
+  rect = Drawing().drawBar(ImgData, coord, scale, rot)
   return rect
        
 def loadAudio(AudioFile):
@@ -91,7 +108,12 @@ def renderMultipleFont(font, text, coord = (w/2,h/2), size = 12):
 def screenfade(color):
   surface = pygame.Surface((w, h))
   surface.set_colorkey((color[0],color[1],color[2]))
-  surface.set_alpha(color[3])
+  alpha = color[3]
+  if color[3] < 0:
+    alpha = 0
+  elif color[3] > 255:
+    alpha = 255
+  surface.set_alpha(alpha)
 
   screen.blit(surface,(0,0))
 
@@ -125,3 +147,4 @@ def getKeyPresses():
 
 def resetKeyPresses():
   keypresses[:] = []
+
