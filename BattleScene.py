@@ -94,6 +94,7 @@ class BattleScene(Layer):
   def renderbattlecircle(self):
     if self.stop == False:
       var = 60
+      self.engine.renderFont("default.ttf", "Press Space to Stop", (320, 64), size = 24) 
     else:
       var = 0
     self.timer = self.timer + var
@@ -101,7 +102,7 @@ class BattleScene(Layer):
     rotate = self.rotatestart + ((self.timer/5))
     rotcount = int(rotate/360)
     rotwatch = rotate - (360*rotcount)
-    timer = 3200 - self.timer 
+    timer = 3200 - self.timer
     if timer <= 0 or self.spacehit == True:
       self.stop = True
       if not rotwatch in range(46,314):
