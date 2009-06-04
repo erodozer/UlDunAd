@@ -31,6 +31,7 @@ import math
 w, h = 640, 480
 screen = None
 player = None
+enemy = None
 finished = False
 
 mousepos = (0, 0)

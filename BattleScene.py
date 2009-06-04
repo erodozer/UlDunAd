@@ -23,11 +23,17 @@
 import GameEngine
 
 import Player
-import Enemy
 
 from View import *
 import os
-import sys
+
+from sys import *
+
+try:
+  reload(Enemy)
+except:
+  import Enemy
+
 import math
 import random
 
@@ -35,7 +41,7 @@ from Config import *
 import pygame
 
 class BattleScene(Layer):
-  def __init__(self, enemy = "default", terrain = "grasslands.jpg"):
+  def __init__(self, terrain = "grasslands.jpg"):
 
     self.engine = GameEngine
     try:
@@ -45,9 +51,8 @@ class BattleScene(Layer):
 
     self.background = self.engine.loadImage(os.path.join("Data", "Terrains", terrain))
 
-    Enemy.enemy = enemy
-    self.enemy = enemy
-    self.enemysprite = self.engine.loadImage(os.path.join("Data",  "Enemies", enemy+".png"))
+    reload(Enemy)
+    self.enemysprite = self.engine.loadImage(os.path.join("Data",  "Enemies", Enemy.image))
     self.enemycurrenthp = Enemy.hp
     self.enemymaxhp = Enemy.hp
     self.enemycoord = Enemy.coord
@@ -159,10 +164,10 @@ class BattleScene(Layer):
     self.engine.drawImage(self.background, scale = (640,480))
     if self.fade == True:
       self.engine.screenfade((150,150,150,175))
+    self.engine.drawImage(self.enemysprite, (int(self.enemycoord[0]), int(self.enemycoord[1])))
     self.engine.drawImage(self.hud, (150, 380))
     self.engine.drawBar(self.barback, (65, 365), scale = (260,10))
     self.engine.drawBar(self.hpbar, (60, 360), scale = ((float(self.playercurrenthp)/float(self.playermaxhp))*260,10))
-    self.engine.drawImage(self.enemysprite, (int(self.enemycoord[0]), int(self.enemycoord[1])))
 
     self.engine.renderFont("default.ttf", str(self.playercurrenthp) + "/" + str(self.playermaxhp), (200, 350), size = 24)
     self.engine.renderFont("default.ttf", "HP", (30, 350), size = 24)
@@ -198,11 +203,13 @@ class BattleScene(Layer):
         if active == True:
           button = self.engine.drawImage(self.buttonactive, coord= (100, 445), scale = (150,25))
           if flag == True:
-            self.battle = True
+            from Maplist import Maplist
+            View.removescene(self)
+            View.addscene(Maplist())
         buttonfont = self.engine.renderFont("default.ttf", "Flee", (100, 445))
       else:
         View.removescene(self)
-        View.addscene(VictoryScene(self.enemy))
+        View.addscene(VictoryScene())
 
     else:
       self.fade = True
@@ -220,7 +227,7 @@ class BattleScene(Layer):
     del self.displaydamage, self.turnstep, self.timer, self.rotatestart, self.rolled, self.fade, self.stop, self.spacehit
     del self.barback, self.hud, self.attackcb, self.attackct, self.battle, self.playercommand, self.enemycommand
     del self.enemycoord, self.playercurrenthp, self.playermaxhp, self.button, self.buttonactive, self.hpbar
-    del self.background, self.enemy, self.enemysprite, self.enemycurrenthp, self.enemymaxhp
+    del self.background, self.enemysprite, self.enemycurrenthp, self.enemymaxhp
     self.engine.stopmusic()
     try:
       del self.audio
@@ -229,7 +236,7 @@ class BattleScene(Layer):
     del self.engine
 
 class VictoryScene(Layer):
-  def __init__(self, enemy):
+  def __init__(self):
 
     self.engine = GameEngine
 
@@ -238,7 +245,6 @@ class VictoryScene(Layer):
 
     self.background = self.engine.loadImage(os.path.join("Data", "characterbackground.png"))
 
-    Enemy.enemy = enemy
     self.enemyexp = Enemy.exp
     self.enemylvl = Enemy.lvl
 
@@ -272,7 +278,7 @@ class VictoryScene(Layer):
     self.engine.renderFont("default.ttf", str(self.exp) + "/" + str(self.exptonextlvl), (280, 150), size = 24)
     self.engine.renderFont("default.ttf", str(self.enemyexp), (100, 150), size = 24)
 
-    self.engine.drawBar(self.barback, (280, 190), scale = (260,10))
+    self.engine.drawBar(self.barback, (285, 195), scale = (260,10))
     self.engine.drawBar(self.expbar, (280, 190), scale = ((float(self.exp)/float(self.exptonextlvl))*260,10))
 
     if self.countdownexp == True:

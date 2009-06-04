@@ -27,8 +27,8 @@ from Config import *
 import os
 import math
 
-enemy = "default"
-enemyini = Configuration(os.path.join("Data", "Enemies", enemy+".ini")).enemy
+enemy = GameEngine.enemy
+enemyini = Configuration(os.path.join("Data", "Enemies", enemy)).enemy
 
 name = enemy.split(".ini")[0]
 hp = enemyini.__getattr__("hp", "int")
@@ -41,4 +41,5 @@ evd = enemyini.__getattr__("evd", "int")
 coord = enemyini.__getattr__("coord").split(",")
 exp = enemyini.__getattr__("exp", "int")
 lvl = enemyini.__getattr__("lvl", "int")
+image = enemyini.__getattr__("image")
 

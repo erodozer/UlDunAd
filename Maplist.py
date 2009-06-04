@@ -25,6 +25,7 @@ import View
 from View import *
 
 import Menu
+import random
 
 class Maplist(Layer):
   def __init__(self):
@@ -43,7 +44,6 @@ class Maplist(Layer):
 
     mappath = os.path.join("Data", "Towns")
     self.maps = []
-    defaultTheme = None
     allmaps = os.listdir(mappath)
     for name in allmaps:
       if os.path.exists(os.path.join(mappath,name,"town.ini")):
@@ -51,15 +51,23 @@ class Maplist(Layer):
 
     self.menu = Menu.drawMapMenu(self, self.maps, self.button, self.buttonactive)
 
+    enemypath = os.path.join("Data", "Enemies")
+    self.enemies = []
+    allenemies = os.listdir(enemypath)
+    for name in allenemies:
+      if os.path.splitext(name)[1].lower() == ".ini":
+        self.enemies.append(name)
+
     #activate beta battlescene
     button = self.engine.drawImage(self.menubutton, coord= (530, 425), scale = (150,45))
     active, flag = self.engine.mousecol(button)
     if active == True:
       button = self.engine.drawImage(self.menubuttonactive, coord= (530, 425), scale = (150,45))
       if flag == True:
+        GameEngine.enemy = str(random.choice(self.enemies))
         View.removescene(self)
-        from BattleScene import BattleScene
-        View.addscene(BattleScene())
+        import BattleScene
+        View.addscene(BattleScene.BattleScene())
     buttonfont = self.engine.renderFont("default.ttf", "Random Battle", (530, 425))
 
 
