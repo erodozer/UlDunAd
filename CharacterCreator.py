@@ -110,9 +110,20 @@ class CharacterCreator(Layer):
             self.typingname = False     
       buttonfont = self.engine.renderFont("default.ttf", str(choice), (90, 186 + (76*i)), size = 24)
 
+    for i in range(0,2):
+      button = self.engine.drawImage(self.textbutton, coord= (218+(36*8), 236 + (108*i)), scale = (32,32))
+      active, flag = self.engine.mousecol(button)
+      if active == True:
+        button = self.engine.drawImage(self.textbuttonactive, coord= (218+(36*8), 236 + (108*i)), scale = (32,32))
+        if flag == True:
+          self.name.append(" ")
+      buttonfont = self.engine.renderFont("default.ttf", "_", (218+(36*8), 236 + (108*i)), size = 24)
+
     for key, char in GameEngine.getKeyPresses():
       if (char >= 'a' and char <= 'z') or (char >= 'A' and char <= 'Z'):
         self.name.append(char)
+      elif key == K_SPACE:
+        self.name.append(" ")
       elif key == K_RETURN:
         self.typingname = False
       elif key == K_BACKSPACE:
@@ -126,7 +137,7 @@ class CharacterCreator(Layer):
     allraces = os.listdir(racepath)
     for name in allraces:
       if os.path.splitext(name)[1].lower() == ".ini":
-        self.races.append(os.path.splitext(name)[0])
+        self.races.append(name)
 
     button = self.races
     buttonfont = self.races
@@ -139,7 +150,7 @@ class CharacterCreator(Layer):
       if flag == True:
         self.race = choice
         self.racechooser = False
-      buttonfont[i] = self.engine.renderFont("menu.ttf", str(choice), (320, 64+(48*i)), size = 24)  
+      buttonfont[i] = self.engine.renderFont("menu.ttf", str(choice.split(".ini")[0]), (320, 64+(48*i)), size = 24)  
    
   def update(self):
     self.engine.drawImage(os.path.join(self.background), scale = (640,480))
