@@ -93,9 +93,12 @@ def loadAudio(AudioFile):
 def stopmusic():
   pygame.mixer.music.stop()
 
-def renderFont(font, text, coord = (w/2,h/2), size = 12):
+def renderFont(font, text, coord = (w/2,h/2), size = 12, flags = None):
   textfont = pygame.font.Font(os.path.join("Data", font), size)
   width, height = textfont.size(text)
+  if flags == "Shadow":
+    renderedfont = textfont.render(text, True, (0,0,0))
+    screen.blit(renderedfont, ((coord[0] - width/2)+2, (coord[1]-height/2)+2))
   renderedfont = textfont.render(text, True, (255,255,255))
   screen.blit(renderedfont, (coord[0] - width/2, coord[1]-height/2))
 

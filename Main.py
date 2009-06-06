@@ -37,6 +37,9 @@ def main():
   gc.enable()
   video_flags = 0
   pygame.init()
+
+  os.environ['SDL_VIDEO_WINDOW_POS'] = 'center'
+
   window = pygame.display.set_mode((640,480), video_flags)
 
   GameEngine.screen = window

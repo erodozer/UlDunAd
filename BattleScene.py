@@ -29,10 +29,7 @@ import os
 
 from sys import *
 
-try:
-  reload(Enemy)
-except:
-  import Enemy
+import Enemy
 
 import math
 import random
@@ -83,6 +80,7 @@ class BattleScene(Layer):
     self.fade = False
     self.stop = False
     self.spacehit = False
+    self.defend = False
 
     GameEngine.resetKeyPresses()
 
@@ -92,14 +90,18 @@ class BattleScene(Layer):
         self.attack(0)
 
     if roll == 1:
-      if self.playercommand == 1:
+      if self.playercommand == 1 or self.playercommand == 2:
         self.renderbattlecircle()
         #self.attack(1)
-  
+
   def renderbattlecircle(self):
     if self.stop == False:
       var = 60
-      self.engine.renderFont("default.ttf", "Press Space to Stop", (320, 64), size = 24) 
+      self.engine.renderFont("default.ttf", "Press Space to Stop", (320, 64), size = 24)
+      if self.playercommand == 1: 
+        self.engine.renderFont("default.ttf", "Attack", (320, 96), size = 24) 
+      elif self.playercommand == 2:
+        self.engine.renderFont("default.ttf", "Defend", (320, 96), size = 24) 
     else:
       var = 0
     self.timer = self.timer + var
@@ -111,7 +113,12 @@ class BattleScene(Layer):
     if timer <= 0 or self.spacehit == True:
       self.stop = True
       if not rotwatch in range(46,314):
-        self.attack(1)
+        if self.playercommand == 1:
+          self.attack(1)
+        else:
+          self.defend = True
+          self.turnstep = 2
+          self.spacehit = False
       else:
         self.displayturn("Miss", 1)
     else:
@@ -120,7 +127,10 @@ class BattleScene(Layer):
 
   def attack(self, who):
     if who == 0:
-      damage = (Enemy.atk*3)/Player.defn
+      if self.defend == True:
+        damage = (Enemy.atk*3)/(Player.defn*2)
+      else:
+        damage = (Enemy.atk*3)/Player.defn
     elif who == 1:
       damage = (Player.atk*3)/Enemy.defn
 
@@ -130,9 +140,9 @@ class BattleScene(Layer):
     self.displaydamage = self.displaydamage + 20
     if who == 1:
       self.engine.screenfade((255,255,255,255-(self.displaydamage*5)))
-      self.engine.renderFont("default.ttf", str(damage), (int(self.enemycoord[0]) - (self.displaydamage/20), int(self.enemycoord[1])), size = 24)
+      self.engine.renderFont("default.ttf", str(damage), (int(self.enemycoord[0]) - (self.displaydamage/20), int(self.enemycoord[1])), size = 24, flags = "Shadow")
     else:
-      self.engine.renderFont("default.ttf", str(damage), (290 + (self.displaydamage/20), 350), size = 24)
+      self.engine.renderFont("default.ttf", str(damage), (290 + (self.displaydamage/20), 350), size = 24, flags = "Shadow")
     if self.displaydamage >= 500 and self.turnstep == 1:
       if damage == "Miss":
         damage = 0
@@ -153,6 +163,7 @@ class BattleScene(Layer):
       self.battle = False
       self.turnstep = 0
       self.spacehit = False
+      self.defend = False
 
   def update(self):
 
@@ -169,11 +180,11 @@ class BattleScene(Layer):
     self.engine.drawBar(self.barback, (65, 365), scale = (260,10))
     self.engine.drawBar(self.hpbar, (60, 360), scale = ((float(self.playercurrenthp)/float(self.playermaxhp))*260,10))
 
-    self.engine.renderFont("default.ttf", str(self.playercurrenthp) + "/" + str(self.playermaxhp), (200, 350), size = 24)
-    self.engine.renderFont("default.ttf", "HP", (30, 350), size = 24)
+    self.engine.renderFont("default.ttf", str(self.playercurrenthp) + "/" + str(self.playermaxhp), (200, 350), size = 24, flags = "Shadow")
+    self.engine.renderFont("default.ttf", "HP", (30, 350), size = 24, flags = "Shadow")
 
     self.engine.renderFont("default.ttf", str(Player.lvl), (33, 297), size = 24)
-    self.engine.renderFont("default.ttf", str(Player.name), (250, 297), size = 24)
+    self.engine.renderFont("default.ttf", str(Player.name), (250, 297), size = 24, flags = "Shadow")
 
     for key, char in GameEngine.getKeyPresses():
       if key == K_SPACE and self.battle == True:
@@ -189,13 +200,22 @@ class BattleScene(Layer):
           if active == True:
             button = self.engine.drawImage(self.buttonactive, coord= (550 - (20*i), 350 + (30*i)), scale = (150,25))
             if flag == True:
-              self.playercommand = 1
-              self.battle = True
-              self.timer = 0
-              self.rotatestart = random.randint(0, 359)
-              self.turnstep = 1
-              self.displaydamage = 0
-              self.stop = False
+              if i == 0:
+                self.playercommand = 1
+                self.battle = True
+                self.timer = 0
+                self.rotatestart = random.randint(0, 359)
+                self.turnstep = 1
+                self.displaydamage = 0
+                self.stop = False
+              if i == 1:
+                self.playercommand = 2
+                self.battle = True
+                self.timer = 0
+                self.rotatestart = random.randint(0, 359)
+                self.turnstep = 1
+                self.displaydamage = 0
+                self.stop = False
           buttonfont = self.engine.renderFont("default.ttf", choice, (550 - (20*i), 350 + (30*i)))
 
         button = self.engine.drawImage(self.button, coord= (100, 445), scale = (150,25))
@@ -213,10 +233,13 @@ class BattleScene(Layer):
 
     else:
       self.fade = True
-      if Player.spd > Enemy.spd:
+      if self.playercommand == 1:
+        if Player.spd > Enemy.spd:
+          roll = 1
+        else:
+          roll = 0
+      elif self.playercommand == 2:
         roll = 1
-      else:
-        roll = 0
       if self.turnstep == 1:
         self.fight(self.playercommand, self.enemycommand, roll)
       elif self.turnstep == 2:
