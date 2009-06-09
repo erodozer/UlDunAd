@@ -38,7 +38,7 @@ from Config import *
 import pygame
 
 class BattleScene(Layer):
-  def __init__(self, terrain = "grasslands.jpg"):
+  def __init__(self, terrain = "desert.png"):
 
     self.engine = GameEngine
     try:
@@ -61,7 +61,7 @@ class BattleScene(Layer):
     self.buttonactive = self.engine.loadImage(os.path.join("Data", "battlebuttonactive.png"))
 
     self.hpbar = self.engine.loadImage(os.path.join("Data", "hpbar.png"))
-    self.barback = self.engine.loadImage(os.path.join("Data", "barback.png"))
+    self.hpbarback = self.engine.loadImage(os.path.join("Data", "hpbarback.png"))
 
     self.hud = self.engine.loadImage(os.path.join("Data", "battlehud.png"))
     self.attackcb = self.engine.loadImage(os.path.join("Data", "battlecirclebottom.png"))
@@ -82,6 +82,7 @@ class BattleScene(Layer):
     self.spacehit = False
     self.defend = False
 
+    self.barframe = 1
     GameEngine.resetKeyPresses()
 
   def fight(self, playercommand, enemycommand, roll):
@@ -176,9 +177,10 @@ class BattleScene(Layer):
     if self.fade == True:
       self.engine.screenfade((150,150,150,175))
     self.engine.drawImage(self.enemysprite, (int(self.enemycoord[0]), int(self.enemycoord[1])))
+
     self.engine.drawImage(self.hud, (150, 380))
-    self.engine.drawBar(self.barback, (65, 365), scale = (260,10))
-    self.engine.drawBar(self.hpbar, (60, 360), scale = ((float(self.playercurrenthp)/float(self.playermaxhp))*260,10))
+    self.engine.drawBar(self.hpbarback, (55, 360), scale = (270,15))
+    self.engine.drawBar(self.hpbar, (60, 360), scale = ((float(self.playercurrenthp)/int(self.playermaxhp))*260,150), frames = 30, currentframe = self.barframe)
 
     self.engine.renderFont("default.ttf", str(self.playercurrenthp) + "/" + str(self.playermaxhp), (200, 350), size = 24, flags = "Shadow")
     self.engine.renderFont("default.ttf", "HP", (30, 350), size = 24, flags = "Shadow")
@@ -192,6 +194,11 @@ class BattleScene(Layer):
 
     commands = ["Attack", "Defend", "Skills", "Item"]
     if self.battle == False:
+      if self.barframe < 30:
+        self.barframe += .5
+      else:
+        self.barframe = 1
+
       if self.enemycurrenthp > 0:
         self.fade = False
         for i, choice in enumerate(commands):
@@ -248,7 +255,7 @@ class BattleScene(Layer):
   def clearscene(self):
 
     del self.displaydamage, self.turnstep, self.timer, self.rotatestart, self.rolled, self.fade, self.stop, self.spacehit
-    del self.barback, self.hud, self.attackcb, self.attackct, self.battle, self.playercommand, self.enemycommand
+    del self.hpbarback, self.hud, self.attackcb, self.attackct, self.battle, self.playercommand, self.enemycommand
     del self.enemycoord, self.playercurrenthp, self.playermaxhp, self.button, self.buttonactive, self.hpbar
     del self.background, self.enemysprite, self.enemycurrenthp, self.enemymaxhp
     self.engine.stopmusic()
@@ -263,7 +270,7 @@ class VictoryScene(Layer):
 
     self.engine = GameEngine
 
-    self.expbar = self.engine.loadImage(os.path.join("Data", "hpbar.png"))
+    self.expbar = self.engine.loadImage(os.path.join("Data", "expbar.png"))
     self.barback = self.engine.loadImage(os.path.join("Data", "barback.png"))
 
     self.background = self.engine.loadImage(os.path.join("Data", "characterbackground.png"))
@@ -301,8 +308,8 @@ class VictoryScene(Layer):
     self.engine.renderFont("default.ttf", str(self.exp) + "/" + str(self.exptonextlvl), (280, 150), size = 24)
     self.engine.renderFont("default.ttf", str(self.enemyexp), (100, 150), size = 24)
 
-    self.engine.drawBar(self.barback, (285, 195), scale = (260,10))
-    self.engine.drawBar(self.expbar, (280, 190), scale = ((float(self.exp)/float(self.exptonextlvl))*260,10))
+    self.engine.drawBar(self.barback, (275, 190), scale = (260,15))
+    self.engine.drawBar(self.expbar, (280, 190), scale = ((float(self.exp)/float(self.exptonextlvl))*260,5))
 
     if self.countdownexp == True:
       if self.enemyexp > 0:

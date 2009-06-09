@@ -46,7 +46,7 @@ class Drawing(pygame.sprite.Sprite):
     image = pygame.image.load(ImgData).convert_alpha()
     return image
     
-  def drawImage(self, image, coord = (640/2, 480/2), scale = None, rot = None):
+  def drawImage(self, image, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal"):
     pygame.sprite.Sprite.__init__(self)
 
     if scale != None:
@@ -54,13 +54,24 @@ class Drawing(pygame.sprite.Sprite):
     if rot != None:
       image = pygame.transform.rotate(image, rot)
     width,height = image.get_size()
+    if direction == "Vertical":
+      start = (int(currentframe)-1)*(height/frames)
+      end = (height/frames)
+      image = image.subsurface((0, start, width, end))
+      width,height = image.get_size()
+    else:
+      start = (int(currentframe)-1)*(width/frames)
+      end = (width/frames)
+      image = image.subsurface((start, 0, end, height))
+      width,height = image.get_size()
+
     rect = image.get_rect(topleft=(coord[0] - width/2, coord[1]-height/2))
 
     screen.blit(image, (coord[0] - width/2, coord[1]-height/2))
 
     return rect
 
-  def drawBar(self, image, coord = (640/2, 480/2), scale = None, rot = None):
+  def drawBar(self, image, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical"):
     pygame.sprite.Sprite.__init__(self)
 
     if scale != None:
@@ -68,6 +79,18 @@ class Drawing(pygame.sprite.Sprite):
     if rot != None:
       image = pygame.transform.rotate(image, rot)
     width,height = image.get_size()
+
+    if direction == "Vertical":
+      start = (int(currentframe)-1)*(height/frames)
+      end = (height/frames)
+      image = image.subsurface((0, start, width, end))
+      width,height = image.get_size()
+    else:
+      start = (int(currentframe)-1)*(width/frames)
+      end = (width/frames)
+      image = image.subsurface((start, 0, end, height))
+      width,height = image.get_size()
+
     rect = image.get_rect(topleft=(coord[0], coord[1]-height/2))
 
     screen.blit(image, (coord[0], coord[1]-height/2))
@@ -78,12 +101,12 @@ def loadImage(ImgData):
   image = Drawing().loadImage(ImgData)
   return image
 
-def drawImage(ImgData, coord = (640/2, 480/2), scale = None, rot = None):
-  rect = Drawing().drawImage(ImgData, coord, scale, rot)
+def drawImage(ImgData, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal"):
+  rect = Drawing().drawImage(ImgData, coord, scale, rot, frames, currentframe, direction)
   return rect
 
-def drawBar(ImgData, coord = (640/2, 480/2), scale = None, rot = None):
-  rect = Drawing().drawBar(ImgData, coord, scale, rot)
+def drawBar(ImgData, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical"):
+  rect = Drawing().drawBar(ImgData, coord, scale, rot, frames, currentframe, direction)
   return rect
        
 def loadAudio(AudioFile):
