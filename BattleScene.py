@@ -38,13 +38,13 @@ from Config import *
 import pygame
 
 class BattleScene(Layer):
-  def __init__(self, terrain = "desert.png"):
+  def __init__(self, terrain = "grasslands.png"):
 
     self.engine = GameEngine
-    try:
+    if os.path.isfile(os.path.join("Data", "Audio", "battle.mp3")):
       self.audio = self.engine.loadAudio("battle.mp3")
-    except IOError:
-      pass
+    else:
+      self.audio = None
 
     self.background = self.engine.loadImage(os.path.join("Data", "Terrains", terrain))
 
@@ -56,6 +56,9 @@ class BattleScene(Layer):
 
     self.playercurrenthp = Player.hp
     self.playermaxhp = Player.hp
+
+    self.playercurrentsp = Player.sp
+    self.playermaxsp = Player.sp
 
     self.button = self.engine.loadImage(os.path.join("Data", "battlebutton.png"))
     self.buttonactive = self.engine.loadImage(os.path.join("Data", "battlebuttonactive.png"))
@@ -93,6 +96,8 @@ class BattleScene(Layer):
     if roll == 1:
       if self.playercommand == 1 or self.playercommand == 2:
         self.renderbattlecircle()
+      elif self.playercommand == 3:
+        self.castspell()
         #self.attack(1)
 
   def renderbattlecircle(self):
@@ -137,13 +142,28 @@ class BattleScene(Layer):
 
     self.displayturn(damage, who)
 
+  def castspell(self):
+    speed = 60/float(self.spellini.frames)
+    if self.stop == False:
+      if self.timer <= float(self.spellini.frames):
+        self.timer += (float(self.spellini.frames)/speed)
+        self.engine.drawImage(self.spellanimation, (int(self.enemycoord[0]), int(self.enemycoord[1])), frames = int(self.spellini.frames), currentframe = self.timer, direction = self.spellini.direction)
+      else:
+        self.stop = True
+    else:
+      self.timer = 0
+      self.displayturn(self.spelldamage, 1)
+
   def displayturn(self, damage, who):
     self.displaydamage = self.displaydamage + 20
     if who == 1:
       self.engine.screenfade((255,255,255,255-(self.displaydamage*5)))
       self.engine.renderFont("default.ttf", str(damage), (int(self.enemycoord[0]) - (self.displaydamage/20), int(self.enemycoord[1])), size = 24, flags = "Shadow")
+      if self.playercommand == 3:
+        self.engine.renderFont("default.ttf", self.spellini.cost, (290 + (self.displaydamage/20), 380), size = 18, flags = "Shadow")
     else:
       self.engine.renderFont("default.ttf", str(damage), (290 + (self.displaydamage/20), 350), size = 24, flags = "Shadow")
+
     if self.displaydamage >= 500 and self.turnstep == 1:
       if damage == "Miss":
         damage = 0
@@ -151,6 +171,8 @@ class BattleScene(Layer):
         self.playercurrenthp = self.playercurrenthp - damage
       else:
         self.enemycurrenthp = self.enemycurrenthp - damage
+        if self.playercommand == 3:
+          self.playercurrentsp = self.playercurrentsp - int(self.spellini.cost)
       self.displaydamage = 0
       self.turnstep = 2
       self.spacehit = False
@@ -161,10 +183,46 @@ class BattleScene(Layer):
         self.playercurrenthp = self.playercurrenthp - damage
       else:
         self.enemycurrenthp = self.enemycurrenthp - damage
-      self.battle = False
-      self.turnstep = 0
+        if self.playercommand == 3:
+          self.playercurrentsp = self.playercurrentsp - int(self.spellini.cost)
+
+      self.clearvariables(self.playercommand)
+
+  def clearvariables(self, i):
+    self.battle = False
+    self.turnstep = 0
+    self.stop = True
+    self.timer = 0
+    self.displaydamage = 0
+
+    if i == 1 or i == 2:
+      self.rotatestart = 0
       self.spacehit = False
-      self.defend = False
+      if i == 2:
+        self.defend = False
+    if i == 3:
+      self.spell = None
+      self.spellini = None
+      self.spellanimation = None
+      self.spelldamage = None
+
+  def battlecommand(self, i):
+    if i == 2:
+      self.spell = "fire.ini"
+      self.spellini = Configuration(os.path.join("Data", "Spells", self.spell)).spell
+      self.spellanimation = self.engine.loadImage(os.path.join("Data", "Animations", self.spellini.animation))
+      self.spelldamage = int(self.spellini.damage) + random.randint(0, int(self.spellini.variance))
+      if self.playercurrentsp < int(self.spellini.cost): #if player sp is less than the cost of the spell then stop the command
+        return
+
+    self.battle = True
+    self.timer = 0
+    self.turnstep = 1
+    self.displaydamage = 0
+    self.stop = False
+
+    if i == 0 or i == 1:
+      self.rotatestart = random.randint(0, 359)
 
   def update(self):
 
@@ -180,10 +238,16 @@ class BattleScene(Layer):
 
     self.engine.drawImage(self.hud, (150, 380))
     self.engine.drawBar(self.hpbarback, (55, 360), scale = (270,15))
-    self.engine.drawBar(self.hpbar, (60, 360), scale = ((float(self.playercurrenthp)/int(self.playermaxhp))*260,150), frames = 30, currentframe = self.barframe)
+    self.engine.drawBar(self.hpbar, (60, 360), scale = (260,150), frames = 30, currentframe = self.barframe, barcrop = (float(self.playercurrenthp)/int(self.playermaxhp)))
 
     self.engine.renderFont("default.ttf", str(self.playercurrenthp) + "/" + str(self.playermaxhp), (200, 350), size = 24, flags = "Shadow")
     self.engine.renderFont("default.ttf", "HP", (30, 350), size = 24, flags = "Shadow")
+
+    self.engine.drawBar(self.hpbarback, (65, 385), scale = (250,15))
+    self.engine.drawBar(self.hpbar, (70, 385), scale = (240,150), frames = 30, currentframe = self.barframe, barcrop = (float(self.playercurrentsp)/int(self.playermaxsp)))
+
+    self.engine.renderFont("default.ttf", str(self.playercurrentsp) + "/" + str(self.playermaxsp), (200, 377), size = 18, flags = "Shadow")
+    self.engine.renderFont("default.ttf", "SP", (30, 380), size = 18, flags = "Shadow")
 
     self.engine.renderFont("default.ttf", str(Player.lvl), (33, 297), size = 24)
     self.engine.renderFont("default.ttf", str(Player.name), (250, 297), size = 24, flags = "Shadow")
@@ -206,23 +270,11 @@ class BattleScene(Layer):
           active, flag = self.engine.mousecol(button)
           if active == True:
             button = self.engine.drawImage(self.buttonactive, coord= (550 - (20*i), 350 + (30*i)), scale = (150,25))
-            if flag == True:
-              if i == 0:
-                self.playercommand = 1
-                self.battle = True
-                self.timer = 0
-                self.rotatestart = random.randint(0, 359)
-                self.turnstep = 1
-                self.displaydamage = 0
-                self.stop = False
-              if i == 1:
-                self.playercommand = 2
-                self.battle = True
-                self.timer = 0
-                self.rotatestart = random.randint(0, 359)
-                self.turnstep = 1
-                self.displaydamage = 0
-                self.stop = False
+            if flag == True: 
+              if i != 3: #this is temporary until the item system is implemented
+                self.playercommand = i+1
+                self.battlecommand(i)
+
           buttonfont = self.engine.renderFont("default.ttf", choice, (550 - (20*i), 350 + (30*i)))
 
         button = self.engine.drawImage(self.button, coord= (100, 445), scale = (150,25))
@@ -240,7 +292,7 @@ class BattleScene(Layer):
 
     else:
       self.fade = True
-      if self.playercommand == 1:
+      if self.playercommand == 1 or self.playercommand == 3:
         if Player.spd > Enemy.spd:
           roll = 1
         else:
@@ -259,10 +311,7 @@ class BattleScene(Layer):
     del self.enemycoord, self.playercurrenthp, self.playermaxhp, self.button, self.buttonactive, self.hpbar
     del self.background, self.enemysprite, self.enemycurrenthp, self.enemymaxhp
     self.engine.stopmusic()
-    try:
-      del self.audio
-    except IOError:
-      pass
+    del self.audio
     del self.engine
 
 class VictoryScene(Layer):

@@ -71,7 +71,7 @@ class Drawing(pygame.sprite.Sprite):
 
     return rect
 
-  def drawBar(self, image, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical"):
+  def drawBar(self, image, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
     pygame.sprite.Sprite.__init__(self)
 
     if scale != None:
@@ -83,7 +83,7 @@ class Drawing(pygame.sprite.Sprite):
     if direction == "Vertical":
       start = (int(currentframe)-1)*(height/frames)
       end = (height/frames)
-      image = image.subsurface((0, start, width, end))
+      image = image.subsurface((0, start, width*barcrop, end))
       width,height = image.get_size()
     else:
       start = (int(currentframe)-1)*(width/frames)
@@ -105,8 +105,8 @@ def drawImage(ImgData, coord = (640/2, 480/2), scale = None, rot = None, frames 
   rect = Drawing().drawImage(ImgData, coord, scale, rot, frames, currentframe, direction)
   return rect
 
-def drawBar(ImgData, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical"):
-  rect = Drawing().drawBar(ImgData, coord, scale, rot, frames, currentframe, direction)
+def drawBar(ImgData, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
+  rect = Drawing().drawBar(ImgData, coord, scale, rot, frames, currentframe, direction, barcrop)
   return rect
        
 def loadAudio(AudioFile):
