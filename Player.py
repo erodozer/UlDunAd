@@ -37,7 +37,9 @@ for i, num in enumerate(levelcurve):
   levelcurve[i] = float(num)
 lvl = playerini.player.__getattr__("lvl", "int")
 hp = raceini.__getattr__("hp", "int") + int(levelcurve[0]*lvl)
+currenthp = playerini.player.__getattr__("currenthp", "int")
 sp = raceini.__getattr__("sp", "int") + int(levelcurve[1]*lvl)
+currentsp = playerini.player.__getattr__("currentsp", "int")
 atk = raceini.__getattr__("atk", "int") + int(levelcurve[2]*lvl)
 defn = raceini.__getattr__("defn", "int") + int(levelcurve[3]*lvl)
 spd = raceini.__getattr__("spd", "int") + int(levelcurve[4]*lvl)
@@ -47,4 +49,5 @@ weapon = playerini.player.weapon
 armor = playerini.player.armor
 exp = playerini.player.__getattr__("exp", "int")
 explvl = 15*int(lvl*lvl)
-
+inventory = playerini.player.__getattr__("inventory").split(", ")
+monsterskilled = playerini.player.__getattr__("monsterskilled", "int")

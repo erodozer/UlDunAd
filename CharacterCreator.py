@@ -207,6 +207,9 @@ class CharacterCreator(Layer):
             newconf.player.weapon = "None"
             newconf.player.armor = "None"
             newconf.player.exp = str(0)
+            newconf.player.currenthp = str(0)
+            newconf.player.currentsp = str(0)
+            newconf.player.monsterskilled = str(0)
             newconf.save()
             View.removescene(self)
             GameEngine.player = str(name+".ini")

@@ -54,10 +54,10 @@ class BattleScene(Layer):
     self.enemymaxhp = Enemy.hp
     self.enemycoord = Enemy.coord
 
-    self.playercurrenthp = Player.hp
+    self.playercurrenthp = Player.currenthp
     self.playermaxhp = Player.hp
 
-    self.playercurrentsp = Player.sp
+    self.playercurrentsp = Player.currentsp
     self.playermaxsp = Player.sp
 
     self.button = self.engine.loadImage(os.path.join("Data", "battlebutton.png"))
@@ -289,6 +289,10 @@ class BattleScene(Layer):
       else:
         View.removescene(self)
         View.addscene(VictoryScene())
+        Player.playerini.player.__setattr__("currenthp", self.playercurrenthp)
+        Player.playerini.player.__setattr__("currentsp", self.playercurrentsp)
+        Player.playerini.player.__setattr__("monsterskilled", Player.monsterskilled + 1)
+
 
     else:
       self.fade = True
@@ -376,8 +380,11 @@ class VictoryScene(Layer):
     if self.exp >= self.exptonextlvl:
       self.engine.renderFont("default.ttf", "Level Up!", (300, 96), size = 42)
       if self.levelup == True:
+        if self.exp > self.exptonextlvl:
+          self.exp = self.exp - self.exptonextlvl
+        else:
+          self.exp = 0        
         Player.playerini.player.__setattr__("lvl", Player.lvl + 1)
-        self.exp = 0
         self.levelup = False
 
     if self.finished == True:

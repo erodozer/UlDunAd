@@ -121,7 +121,12 @@ def renderFont(font, text, coord = (w/2,h/2), size = 12, flags = None, alignment
   width, height = textfont.size(text)
   if flags == "Shadow":
     renderedfont = textfont.render(text, True, (0,0,0))
-    screen.blit(renderedfont, ((coord[0] - width/2)+2, (coord[1]-height/2)+2))
+    if alignment == 1:
+      screen.blit(renderedfont, ((coord[0])+2, (coord[1]-height/2)+2))
+    elif alignment == 2:
+      screen.blit(renderedfont, ((coord[0] - width)+2, (coord[1]-height/2)+2))
+    else:
+      screen.blit(renderedfont, ((coord[0] - width/2)+2, (coord[1]-height/2)+2))
   renderedfont = textfont.render(text, True, (255,255,255))
   if alignment == 1:
     screen.blit(renderedfont, (coord[0], coord[1]-height/2))
