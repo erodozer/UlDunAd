@@ -30,16 +30,16 @@ import Menu
 class MainMenu:
   def __init__(self):
     self.engine = GameEngine
-    self.background = self.engine.loadImage(os.path.join("Data", "menubackground.png"))
+    #self.background = self.engine.loadImage(os.path.join("Data", "menubackground.png"))
     #self.engine.drawImage(os.path.join("Data", "mapmenu.png"))
     #self.audio = self.engine.loadAudio("Town001.mp3")
     self.choices = ["New Game", "Continue", "Quit"]
-    self.button, self.buttonactive = Menu.initMenu(os.path.join("Data", "menubutton.png"), os.path.join("Data", "menubuttonactive.png"))
+    self.button, self.buttonactive = Menu.initMenu(os.path.join("Data", "defaultbutton.png"), os.path.join("Data", "defaultbuttonactive.png"))
 
   def update(self):
-    self.engine.drawImage(self.background)
+    #self.engine.drawImage(self.background)
     self.menu = Menu.drawMainMenu(self, self.choices, self.button, self.buttonactive)
     self.engine.renderMultipleFont("default.ttf", ("Welcome to", "Ultimate Dungeon Adventure"), coord = (320, 100), size = 24)
 
   def clearscene(self):
-    del self.menu, self.background, self.button, self.buttonactive, self.engine, self.choices
+    del self.menu, self.button, self.buttonactive, self.engine, self.choices

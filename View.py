@@ -68,7 +68,6 @@ def update():
       scenes.append(newscene)
       goingin.remove(goingin[i])
   elif goingout == [] and goingin == []:
-    for i in range(len(scenes)):
-      scenes[i].update()
+    scenes[-1].update()
 
 
