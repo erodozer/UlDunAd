@@ -385,6 +385,8 @@ class VictoryScene(Layer):
         else:
           self.exp = 0        
         Player.playerini.player.__setattr__("lvl", Player.lvl + 1)
+        Player.playerini.player.__setattr__("currenthp", Player.hp)
+        Player.playerini.player.__setattr__("currenthp", Player.sp)
         self.levelup = False
 
     if self.finished == True:

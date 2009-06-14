@@ -57,14 +57,14 @@ class CharacterCreator(Layer):
     self.textbutton = self.engine.loadImage(os.path.join("Data", "textbutton.png"))
     self.textbuttonactive = self.engine.loadImage(os.path.join("Data", "textbuttonactive.png"))
 
-    self.menubutton = self.engine.loadImage(os.path.join("Data", "menubutton.png"))
-    self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "menubuttonactive.png"))
+    self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
+    self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
     self.typingname = False
     self.racechooser = False
 
-    self.racebutton = self.engine.loadImage(os.path.join("Data", "mapmenubutton.png"))
-    self.racebuttonactive = self.engine.loadImage(os.path.join("Data", "mapmenubuttonactive.png"))
+    self.racebutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
+    self.racebuttonactive = self.engine.loadImage(os.path.join("Data", "secondarymenubuttonactive.png"))
 
     GameEngine.resetKeyPresses()
 
@@ -202,14 +202,16 @@ class CharacterCreator(Layer):
           if name != "":
             Config.Configuration(os.path.join("Data", "Players", name + ".ini")).save()
             newconf = Config.Configuration(os.path.join("Data", "Players", name + ".ini"))
+            raceini = Config.Configuration(os.path.join("Data", "Races", self.race)).race
             newconf.player.lvl = str(1)
             newconf.player.race = str(self.race)
             newconf.player.weapon = "None"
             newconf.player.armor = "None"
             newconf.player.exp = str(0)
-            newconf.player.currenthp = str(0)
-            newconf.player.currentsp = str(0)
+            newconf.player.currenthp = str(raceini.hp)
+            newconf.player.currentsp = str(raceini.sp)
             newconf.player.monsterskilled = str(0)
+            newconf.player.inventory = str('item001, item001, item001, item002, item002')
             newconf.save()
             View.removescene(self)
             GameEngine.player = str(name+".ini")

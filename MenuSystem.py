@@ -60,6 +60,8 @@ class MenuSystem(Layer):
     self.updatescene = None
     self.index = 0
 
+    self.quitactive = False
+
   def showInventory(self):
     self.engine.drawImage(self.background, scale = (640,480))
 
@@ -67,10 +69,13 @@ class MenuSystem(Layer):
       maxindex = len(Player.inventory)
       for i in range(self.index, 10+self.index):
         if i < maxindex:
-          itemini = Configuration(os.path.join("Data", "Items", Player.inventory[i]+".ini")).item
+          itemini = Configuration(os.path.join("Data", "Items", str(Player.inventory[i])+".ini")).item
           button = self.engine.drawImage(self.secondarybutton, coord= (120, 128 + (26*(i-self.index))), scale = (220,24))
           active, flag = self.engine.mousecol(button)
           if active == True:
+            itemimage = self.engine.loadImage(os.path.join("Data", "Items", str(Player.inventory[i])+".png"))
+            self.engine.drawImage(itemimage, coord= (465, 165), scale = (150,150))
+
             button = self.engine.drawImage(self.secondarybuttonactive, coord= (120, 128 + (26*(i-self.index))), scale = (220,24))
             if flag == True:
               pass
@@ -110,9 +115,9 @@ class MenuSystem(Layer):
             self.currentlayer = "Main"
             self.updatescene = None
             #saves as an array which for some reason it can not read correctly
-            #Player.playerini.player.__setattr__("inventory", str(Player.inventory))
-            #Player.playerini.save()
-            #reload(Player)
+            Player.playerini.player.__setattr__("inventory", ", ".join(Player.inventory))
+            Player.playerini.save()
+            reload(Player)
     
       buttonfont = self.engine.renderFont("default.ttf", choice, (240 + (180*i), 448))
       
@@ -158,17 +163,37 @@ class MenuSystem(Layer):
       for i, choice in enumerate(self.choices):
         button = self.engine.drawImage(self.button, coord= (110, 96+(40*i)), scale = (220,32))
         active, flag = self.engine.mousecol(button)
-        if active == True:
+        if active == True and self.quitactive == False:
           button = self.engine.drawImage(self.buttonactive, coord= (110, 96+(40*i)), scale = (220,32))
           renderhelpfont = self.engine.renderFont("default.ttf", self.help[i], (630, 448), alignment = 2)
           if flag == True:
             if i == 0:
               self.updatescene = i
               self.currentlayer = "Inventory"
+            elif i == 6:
+              self.quitactive = True
             elif i == 7:
               View.removescene(self)
     
         buttonfont = self.engine.renderFont("default.ttf", choice, (80, 96+(40*i)))
 
+
     self.engine.renderFont("menu.ttf", self.currentlayer, (30, 48), size = 48, flags = "Shadow", alignment = 1)
+
+    if self.quitactive == True:
+      self.engine.screenfade((150,150,150,130))
+
+      for i, choice in enumerate(['Yes', 'No']):
+        button = self.engine.drawImage(self.secondarybutton, coord= (265+(120*i), 280), scale = (100,48))
+        active, flag = self.engine.mousecol(button)
+        if active == True:
+          button = self.engine.drawImage(self.secondarybuttonactive, coord= (265+(120*i), 280), scale = (100,48))
+          if flag == True:
+            if i == 0:
+              GameEngine.finished = True
+            else:
+              self.quitactive = False
+    
+        buttonfont = self.engine.renderFont("default.ttf", choice, (265+(120*i), 280), size = 16)
+        self.engine.renderFont("default.ttf", "Are you sure you want to quit?", (320, 230), size = 20, flags = "Shadow")
 

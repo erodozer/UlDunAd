@@ -47,15 +47,15 @@ class Towns(Layer):
 
     self.choices = self.townini.choices.split(",")
 
-    if os.path.exists(os.path.join("Data", "Towns", self.townname, "menubutton.png")) == True:
-      self.menubutton = os.path.join("Data", "Towns", self.townname, "menubutton.png")
+    if os.path.exists(os.path.join("Data", "Towns", self.townname, "townbutton.png")) == True:
+      self.menubutton = os.path.join("Data", "Towns", self.townname, "townbutton.png")
     else:
-      self.menubutton = os.path.join("Data", "menubutton.png")
+      self.menubutton = os.path.join("Data", "defaultbutton.png")
 
-    if os.path.exists(os.path.join("Data", "Towns", self.townname, "menubuttonactive.png")) == True:
-      self.menubuttonactive = os.path.join("Data", "Towns", self.townname, "menubuttonactive.png")
+    if os.path.exists(os.path.join("Data", "Towns", self.townname, "townbuttonactive.png")) == True:
+      self.menubuttonactive = os.path.join("Data", "Towns", self.townname, "townbuttonactive.png")
     else:
-      self.menubuttonactive = os.path.join("Data", "menubuttonactive.png")
+      self.menubuttonactive = os.path.join("Data", "defaultbuttonactive.png")
 
     self.button, self.buttonactive = Menu.initMenu(self.menubutton, self.menubuttonactive)
 
