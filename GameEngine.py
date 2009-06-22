@@ -33,6 +33,7 @@ screen = None
 player = None
 enemy = None
 finished = False
+town = None
 
 mousepos = (0, 0)
 clicks = []
@@ -46,7 +47,7 @@ class Drawing(pygame.sprite.Sprite):
     image = pygame.image.load(ImgData).convert_alpha()
     return image
     
-  def drawImage(self, image, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal"):
+  def drawImage(self, image, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", opacity = 255):
     pygame.sprite.Sprite.__init__(self)
 
     if scale != None:
@@ -64,6 +65,8 @@ class Drawing(pygame.sprite.Sprite):
       end = (width/frames)
       image = image.subsurface((start, 0, end, height))
       width,height = image.get_size()
+
+    image.set_alpha(opacity)
 
     rect = image.get_rect(topleft=(coord[0] - width/2, coord[1]-height/2))
 
@@ -101,8 +104,8 @@ def loadImage(ImgData):
   image = Drawing().loadImage(ImgData)
   return image
 
-def drawImage(ImgData, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal"):
-  rect = Drawing().drawImage(ImgData, coord, scale, rot, frames, currentframe, direction)
+def drawImage(ImgData, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", opacity = 50):
+  rect = Drawing().drawImage(ImgData, coord, scale, rot, frames, currentframe, direction, opacity)
   return rect
 
 def drawBar(ImgData, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
@@ -116,11 +119,15 @@ def loadAudio(AudioFile):
 def stopmusic():
   pygame.mixer.music.stop()
 
-def renderFont(font, text, coord = (w/2,h/2), size = 12, flags = None, alignment = 0):
+def renderFont(font, text, coord = (w/2,h/2), size = 12, flags = None, alignment = 0, opacity = 255):
   textfont = pygame.font.Font(os.path.join("Data", font), size)
   width, height = textfont.size(text)
-  if flags == "Shadow":
+  if flags == "Shadow" or flags == "Soft Shadow":
     renderedfont = textfont.render(text, True, (0,0,0))
+    if flags == "Shadow":
+      renderedfont.set_alpha((opacity*255)/255)
+    elif flags == "Soft Shadow":
+      renderedfont.set_alpha((opacity*50)/255)
     if alignment == 1:
       screen.blit(renderedfont, ((coord[0])+2, (coord[1]-height/2)+2))
     elif alignment == 2:
@@ -128,6 +135,7 @@ def renderFont(font, text, coord = (w/2,h/2), size = 12, flags = None, alignment
     else:
       screen.blit(renderedfont, ((coord[0] - width/2)+2, (coord[1]-height/2)+2))
   renderedfont = textfont.render(text, True, (255,255,255))
+  renderedfont.set_alpha(opacity)
   if alignment == 1:
     screen.blit(renderedfont, (coord[0], coord[1]-height/2))
   elif alignment == 2:
@@ -135,12 +143,19 @@ def renderFont(font, text, coord = (w/2,h/2), size = 12, flags = None, alignment
   else:
     screen.blit(renderedfont, (coord[0] - width/2, coord[1]-height/2))
 
-def renderMultipleFont(font, text, coord = (w/2,h/2), size = 12):
+def renderMultipleFont(font, text, coord = (w/2,h/2), size = 12, opacity = 255):
   textfont = pygame.font.Font(os.path.join("Data", font), size)
   for i, textline in enumerate(text):
     width, height = textfont.size(textline)
     renderedfont = textfont.render(textline, True, (255,255,255))
+    renderedfont.set_alpha(opacity)
     screen.blit(renderedfont, (coord[0] - width/2, coord[1]-height/2+((size+3)*i)))
+
+def renderTextbox(font, text, size = 12):
+  textbox = loadImage(os.path.join("Data", "textbox.png"))
+  drawImage(textbox, coord = (320, 400), scale = (640, 160))
+  for i, textline in enumerate(text):
+    renderFont(font, textline, coord = (30, 350+((size+3)*i)), size = size, flags = "Soft Shadow", alignment = 1)
 
 def screenfade(color):
   surface = pygame.Surface((w, h))

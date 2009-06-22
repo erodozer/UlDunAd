@@ -26,13 +26,11 @@ from View import *
 
 import Config
 
-import Shop
-
 class Towns(Layer):
-  def __init__(self, townname):
+  def __init__(self):
 
     self.engine = GameEngine
-    self.townname = townname
+    self.townname = self.engine.town
 
     self.townini = Config.Configuration(os.path.join("Data", "Towns", self.townname, "town.ini")).town
 
@@ -48,30 +46,50 @@ class Towns(Layer):
     self.choices = self.townini.choices.split(",")
 
     if os.path.exists(os.path.join("Data", "Towns", self.townname, "townbutton.png")) == True:
-      self.menubutton = os.path.join("Data", "Towns", self.townname, "townbutton.png")
+      self.menubutton = self.engine.loadImage(os.path.join("Data", "Towns", self.townname, "townbutton.png"))
     else:
-      self.menubutton = os.path.join("Data", "defaultbutton.png")
+      self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
 
     if os.path.exists(os.path.join("Data", "Towns", self.townname, "townbuttonactive.png")) == True:
-      self.menubuttonactive = os.path.join("Data", "Towns", self.townname, "townbuttonactive.png")
+      self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "Towns", self.townname, "townbuttonactive.png"))
     else:
-      self.menubuttonactive = os.path.join("Data", "defaultbuttonactive.png")
+      self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
-    self.button, self.buttonactive = Menu.initMenu(self.menubutton, self.menubuttonactive)
 
   def update(self):
     self.engine.drawImage(self.background, scale = (640,480))
     self.engine.drawImage(self.sidebar, coord = (100, 240))
 
-    self.menu = Menu.drawTownMenu(self, self.choices, self.townini, self.button, self.buttonactive)
+    for i, choice in enumerate(self.choices):
+      button = self.engine.drawImage(self.menubutton, coord= (100, 90+(60*i)), scale = (150,45))
+      active, flag = self.engine.mousecol(button)
+      if active == True:
+        button = self.engine.drawImage(self.menubuttonactive, coord= (100, 90+(60*i)), scale = (150,45))
+        if flag == True:
+#          if choice != "Library" or choice != "library":
+#            choiceini = Config.Configuration(os.path.join("Data", "Towns", self.townname, choice))
+#          else:
+          from Library import Library
+          self.engine.stopmusic()
+          View.removescene(self)
+          View.addscene(Library())
+               
+      buttonfont = self.engine.renderFont("default.ttf", choice, (100, 90+(60*i)))
+
+    #return button
+    returnbutton = self.engine.drawImage(self.menubutton, coord= (100, 420), scale = (150,45))
+    active, flag = self.engine.mousecol(returnbutton)
+    if active == True:
+      returnbutton = self.engine.drawImage(self.menubuttonactive, coord= (100, 420), scale = (150,45))
+      if flag == True:
+        from Maplist import Maplist
+        self.engine.stopmusic()
+        View.removescene(self)
+        View.addscene(Maplist())
+    returnfont = self.engine.renderFont("default.ttf", "Return", (100, 420))
 
     self.towntitle = self.engine.renderFont("menu.ttf", self.townname, (430, 64), size = 32)
 
-  def openshop(self, whichshop):
-    View.removescene(self)
-    View.addscene(Shop.Shop(os.path.join("Data", "Towns", self.townname, whichshop)))
-    
-
   def clearscene(self):
-    del self.menu, self.towntitle, self.menubuttonactive, self.menubutton, self.button, self.buttonactive, self.audio, self.sidebar, self.background, self.townini, self.townname, self.engine
+    del self.towntitle, self.menubuttonactive, self.menubutton, self.audio, self.sidebar, self.background, self.townini, self.townname, self.engine
 

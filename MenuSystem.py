@@ -173,7 +173,9 @@ class MenuSystem(Layer):
             elif i == 6:
               self.quitactive = True
             elif i == 7:
+              from Maplist import Maplist
               View.removescene(self)
+              View.addscene(Maplist())
     
         buttonfont = self.engine.renderFont("default.ttf", choice, (80, 96+(40*i)))
 

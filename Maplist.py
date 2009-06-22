@@ -77,6 +77,7 @@ class Maplist(Layer):
       button = self.engine.drawImage(self.menubuttonactive, coord= (110, 425), scale = (150,45))
       if flag == True:
         import MenuSystem
+        View.removescene(self)
         View.addscene(MenuSystem.MenuSystem(self))
     buttonfont = self.engine.renderFont("default.ttf", "Menu", (110, 425))
 

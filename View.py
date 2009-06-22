@@ -44,6 +44,7 @@ class Layer:
 scenes = []
 goingout = []
 goingin = []
+opacity = 0
 
 def startup():
   scenes.append(MainMenu())
@@ -57,17 +58,28 @@ def addscene(scene):
     goingin.append(scene)
 
 def update():
+  global opacity
   if goingout != []:
-    for i, oldscene in enumerate(goingout):
-      oldscene.clearscene()
-      scenes.remove(goingout[i])
-      goingout.remove(goingout[i])
+    if opacity < 255:
+      opacity += 20
+    elif opacity >=255:
+      opacity = 255
+      for i, oldscene in enumerate(goingout):
+        oldscene.clearscene()
+        scenes.remove(goingout[i])
+        goingout.remove(goingout[i])
 
   elif goingout == [] and goingin != []:
     for i, newscene in enumerate(goingin):
       scenes.append(newscene)
       goingin.remove(goingin[i])
+
   elif goingout == [] and goingin == []:
+    if opacity > 0:
+      opacity -= 20
+    elif opacity <= 0:
+      opacity = 0
     scenes[-1].update()
 
+  GameEngine.screenfade((255,255,255,opacity))
 
