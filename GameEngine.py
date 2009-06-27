@@ -33,14 +33,21 @@ if not os.path.exists(os.path.join("uldunad.ini")):
   Config.Configuration(os.path.join("uldunad.ini")).save()
   uldunadini = Config.Configuration(os.path.join("uldunad.ini"))
   uldunadini.video.__setattr__("resolution", str(640) + str("x") + str(480))
-  uldunadini.audio.__setattr__("volume", str(1.0))
-  uldunadini.audio.__setattr__("battlevolume", str(1.0))
-  uldunadini.audio.__setattr__("townvolume", str(1.0))
+  uldunadini.audio.__setattr__("volume", str(10))
+  uldunadini.audio.__setattr__("battlevolume", str(10))
+  uldunadini.audio.__setattr__("townvolume", str(10))
+  uldunadini.gameplay.__setattr__("battlemode", str("wait"))
   uldunadini.save()
 else:
   uldunadini = Config.Configuration(os.path.join("uldunad.ini"))
 
 w, h = uldunadini.video.__getattr__("resolution").split("x")
+resolution = uldunadini.video.__getattr__("resolution")
+battlemode = uldunadini.gameplay.__getattr__("battlemode")
+volume = uldunadini.audio.__getattr__("volume")
+battlevolume = uldunadini.audio.__getattr__("battlevolume")
+townvolume = uldunadini.audio.__getattr__("townvolume")
+
 w, h = int(w), int(h)
 
 screen = None
@@ -48,6 +55,8 @@ party = []
 enemy = None
 finished = False
 town = None
+
+defaultsettings = False
 
 mousepos = (0, 0)
 clicks = []
@@ -108,7 +117,7 @@ class Drawing(pygame.sprite.Sprite):
     else:
       start = (int(currentframe)-1)*(width/frames)
       end = (width/frames)
-      image = image.subsurface((start, 0, end, height))
+      image = image.subsurface((start, 0, end, height*barcrop))
       width,height = image.get_size()
 
     rect = image.get_rect(topleft=(coord[0], coord[1]-height/2))

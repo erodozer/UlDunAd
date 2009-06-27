@@ -61,39 +61,5 @@ def drawMainMenu(scene, choices, buttonimg, activebuttonimg):
         elif i == 2:
            GameEngine.finished = True
     buttonfont = GameEngine.renderFont("default.ttf", str(choice), (220, 200+(60*i)))
-
-def drawPlayerMenu(scene, choices, buttonimg, activebuttonimg):
-  button = choices
-  buttonfont = choices
-
-  for i, choice in enumerate(choices):
-    button[i] = GameEngine.drawImage(buttonimg, coord= (320, 64+(48*i)), scale = (200,32))
-    active, flag = GameEngine.mousecol(button[i])
-    if active == True:
-      button[i] = GameEngine.drawImage(activebuttonimg, coord= (320, 64+(48*i)), scale = (200,32))
-      if flag == True:
-        from Maplist import Maplist
-        View.removescene(scene)
-        View.addscene(Maplist())
-        GameEngine.player = choice
-    buttonfont[i] = GameEngine.renderFont("menu.ttf", str(choice), (320, 64+(48*i)), size = 24)
-
-def drawMapMenu(scene, choices, buttonimg, activebuttonimg):
-
-  button = choices
-  buttonfont = choices
-
-  for i, choice in enumerate(choices):
-    button[i] = GameEngine.drawImage(buttonimg, coord= (320, 64+(48*i)), scale = (200,32))
-    active, flag = GameEngine.mousecol(button[i])
-    if active == True:
-      button[i] = GameEngine.drawImage(activebuttonimg, coord= (320, 64+(48*i)), scale = (200,32))
-      if flag == True:
-        GameEngine.town = choice
-        import Towns
-        View.removescene(scene)
-        View.addscene(Towns.Towns())
-        flag, active == False, False
-    buttonfont[i] = GameEngine.renderFont("menu.ttf", str(choice), (320, 64+(48*i)), size = 24)
     
 

@@ -115,7 +115,7 @@ class Maplist(Layer):
       if flag == True:
         from MenuSystem import MenuSystem
         View.removescene(self)
-        View.addscene(MenuSystem(self))
+        View.addscene(MenuSystem())
     buttonfont = self.engine.renderFont("default.ttf", "Menu", (110, 425))
 
   def clearscene(self):

@@ -32,16 +32,14 @@ from Player import Player
 from Config import *
       
 class MenuSystem(Layer):
-  def __init__(self, originalscene):
+  def __init__(self):
     self.engine = GameEngine
 
     self.party = []
     for i, partymember in enumerate(self.engine.party):
       self.party.append(Player(partymember))
 
-    self.originalscene = originalscene
-
-    self.choices = ["Inventory", "Spells", "Equipment", "Status", "Change Character", "Options", "Quit Game", "Exit Menu"]
+    self.choices = ["Inventory", "Spells", "Equipment", "Status", "Change Character", "Settings", "Quit Game", "Exit Menu"]
     self.help = ["Show what items you currently possess", "Plan your next battle by examining your arsenal of spells",
                  "Equip your character with armor and weapons to give him/her the edge in battle", 
                  "Not sure about your character's stats?  Want to know how to improve what with which item?",
@@ -69,6 +67,9 @@ class MenuSystem(Layer):
     self.whichcharacter = 0
 
     self.quitactive = False
+
+    self.optionselected = False
+    self.whichoption = 0
 
   def showInventory(self):
     for key, char in GameEngine.getKeyPresses():
@@ -144,18 +145,109 @@ class MenuSystem(Layer):
             partyinv.playerini.save()
     
       buttonfont = self.engine.renderFont("default.ttf", choice, (240 + (180*i), 448))
+
+  def showSettings(self):
+    self.engine.drawImage(self.background, scale = (640,480))
+
+    self.engine.renderFont("menu.ttf", "Select an option and press LEFT or RIGHT to change its value.", (630, 56), size = 20, flags = "Shadow", alignment = 2)
+    self.engine.renderFont("menu.ttf", "All changes (including changing to default) will take effect after program restart", (630, 80), size = 18, flags = "Shadow", alignment = 2)
+
+    choices = ['Resolution', 'Volume', 'Town Volume', 'Battle Volume', 'Battle Mode']
+    choicehelp = ['Size of the game window', 'How loud the music plays', 'How loud the music is in town', 'How loud the music is in battle', 'Decides whether to wait for player command (Wait) or have anything go whenever (Active)']
+    choiceoptions = [["640x480", "800x600", "1024x768"],
+                     ['0','1','2','3','4','5','6','7','8','9','10'],
+                     ['0','1','2','3','4','5','6','7','8','9','10'],
+                     ['0','1','2','3','4','5','6','7','8','9','10'],
+                     ["wait", "active"]]
+    correspondingoptions = [self.engine.resolution, self.engine.volume, self.engine.townvolume, self.engine.battlevolume, self.engine.battlemode]
+    for i, choice in enumerate(choices):
+      button = self.engine.drawImage(self.secondarybutton, coord= (120, 128 + (52*i)), scale = (220,48))
+      active, flag = self.engine.mousecol(button)
+      if ((active == True and self.optionselected == False) or (self.whichoption == i and self.optionselected == True)) and self.engine.defaultsettings == False:
+        renderhelpfont = self.engine.renderFont("default.ttf", choicehelp[i], (630, 408), alignment = 2)
+        button = self.engine.drawImage(self.secondarybuttonactive, coord= (120, 128 + (52*i)), scale = (220,48))
+        if flag == True and self.optionselected == False:
+          self.optionselected = True
+          self.whichoption = i
+    
+      buttonfont = self.engine.renderFont("default.ttf", choice, (120, 128 + (52*i)), size = 20)
+      self.engine.renderFont("default.ttf", str(choiceoptions[i][choiceoptions[i].index(correspondingoptions[i])]), (450, 128 + (52*i)), size = 20)
+
+    if choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])-1 > -1 and self.optionselected == True:
+      self.engine.renderFont("default.ttf", "<", (350, 128 + (52*self.whichoption)), size = 20)
+    if choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])+1 < len(choiceoptions[self.whichoption]) and self.optionselected == True:
+      self.engine.renderFont("default.ttf", ">", (550, 128 + (52*self.whichoption)), size = 20)
+    if self.optionselected == True:
+      self.engine.renderFont("default.ttf", "Press SPACE when you are satisfied with the current value selected", (10, 424), alignment = 1)
+    if self.engine.defaultsettings == True:
+      self.engine.renderFont("default.ttf", "Default settings has been hit, you must restart before you can change settings again.", (320, 408))
+
+
+    mainchoices = ["Default", "Return"]
+    for i, choice in enumerate(mainchoices):
+      button = self.engine.drawImage(self.secondarybutton, coord= (240 + (180*i), 448), scale = (160,32))
+      active, flag = self.engine.mousecol(button)
+      if (active == True and self.optionselected == False):
+        button = self.engine.drawImage(self.secondarybuttonactive, coord= (240 + (180*i), 448), scale = (160,32))
+        if i == 0 and self.engine.defaultsettings == False:
+          self.engine.renderFont("default.ttf", "Once default is hit you may not change the options until UlDunAd is restarted", (320, 408))
+        if flag == True:
+          if i == 0:
+            self.engine.uldunadini.video.__setattr__("resolution", str(640) + str("x") + str(480))
+            self.engine.uldunadini.audio.__setattr__("volume", str(10))
+            self.engine.uldunadini.audio.__setattr__("battlevolume", str(10))
+            self.engine.uldunadini.audio.__setattr__("townvolume", str(10))
+            self.engine.uldunadini.gameplay.__setattr__("battlemode", str("wait"))
+            self.engine.uldunadini.save()
+            self.engine.defaultsettings = True
+          elif i == 1:
+            if self.engine.defaultsettings == False:
+              self.engine.uldunadini.video.__setattr__("resolution", str(self.engine.resolution))
+              self.engine.uldunadini.audio.__setattr__("volume", str(self.engine.volume))
+              self.engine.uldunadini.audio.__setattr__("battlevolume", str(self.engine.battlevolume))
+              self.engine.uldunadini.audio.__setattr__("townvolume", str(self.engine.townvolume))
+              self.engine.uldunadini.gameplay.__setattr__("battlemode", str(self.engine.battlemode))
+              self.engine.uldunadini.save()
+            self.currentlayer = "Main"
+            self.updatescene = None
+
+      buttonfont = self.engine.renderFont("default.ttf", choice, (240 + (180*i), 448)) 
+
+    for key, char in GameEngine.getKeyPresses():
+      if self.optionselected == True:
+        if key == K_LEFT and (choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])-1 > -1 and self.optionselected == True):
+          if self.whichoption == 0:
+            self.engine.resolution = choiceoptions[self.whichoption][choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])-1]
+          elif self.whichoption == 1:
+            self.engine.volume = choiceoptions[self.whichoption][choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])-1]
+          elif self.whichoption == 2:
+            self.engine.townvolume = choiceoptions[self.whichoption][choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])-1]
+          elif self.whichoption == 3:
+            self.engine.battlevolume = choiceoptions[self.whichoption][choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])-1]
+          elif self.whichoption == 4:
+            self.engine.battlemode = choiceoptions[self.whichoption][choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])-1]
+        if key == K_RIGHT and (choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])+1 < len(choiceoptions[self.whichoption]) and self.optionselected == True):
+          if self.whichoption == 0:
+            self.engine.resolution = choiceoptions[self.whichoption][choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])+1]
+          elif self.whichoption == 1:
+            self.engine.volume = choiceoptions[self.whichoption][choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])+1]
+          elif self.whichoption == 2:
+            self.engine.townvolume = choiceoptions[self.whichoption][choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])+1]
+          elif self.whichoption == 3:
+            self.engine.battlevolume = choiceoptions[self.whichoption][choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])+1]
+          elif self.whichoption == 4:
+            self.engine.battlemode = choiceoptions[self.whichoption][choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])+1]
+        if key == K_SPACE:
+          self.optionselected = False    
       
   def update(self):
     
     if self.updatescene != None:
       if self.updatescene == 0:
         self.showInventory()
+      if self.updatescene == 5:
+        self.showSettings()
     else:
-      if self.barframe < 30:
-        self.barframe += .5
-      else:
-        self.barframe = 1
-
       self.engine.drawImage(self.background, scale = (640,480))
 
       for i, player in enumerate(self.party):
@@ -187,6 +279,9 @@ class MenuSystem(Layer):
             if i == 0:
               self.updatescene = i
               self.currentlayer = "Inventory"
+            if i == 5:
+              self.updatescene = i
+              self.currentlayer = "Settings"
             elif i == 6:
               self.quitactive = True
             elif i == 7:

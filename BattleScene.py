@@ -274,13 +274,14 @@ class BattleScene(Layer):
 
       for i, player in enumerate(self.party):
         if player.currentatb < 300 and self.enemy.currentatb < 300:
-          if self.activemember == None:
+          if (self.activemember == None and self.engine.battlemode == "wait") or self.engine.battlemode == "active":
             div = random.randint(4, 7)
             player.currentatb += (player.spd/div)
             self.enemy.currentatb += (self.enemy.spd/div)
         elif player.currentatb >= 300:
-          player.currentatb = 300
-          self.activemember = i
+          if (self.activemember == None and self.engine.battlemode == "active") or self.engine.battlemode == "wait":
+            player.currentatb = 300
+            self.activemember = i
         elif self.enemy.currentatb >= 300:
           self.enemybattlecommand()
 
@@ -335,7 +336,7 @@ class BattleScene(Layer):
     del self.audio, self.party, self.enemy, self.engine
 
 class VictoryScene(Layer):
-  def __init__(self):
+  def __init__(self, multiplier):
 
     self.engine = GameEngine
     self.party = []
@@ -350,7 +351,7 @@ class VictoryScene(Layer):
 
     self.background = self.engine.loadImage(os.path.join("Data", "characterbackground.png"))
 
-    self.enemyexp = int(self.enemy.exp/len(self.party))
+    self.enemyexp = int((self.enemy.exp/len(self.party))*multiplier)
     self.enemylvl = self.enemy.lvl
 
 
