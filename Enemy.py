@@ -27,19 +27,34 @@ from Config import *
 import os
 import math
 
-enemy = GameEngine.enemy
-enemyini = Configuration(os.path.join("Data", "Enemies", enemy)).enemy
+class Enemy:
+  def __init__(self):
 
-name = enemy.split(".ini")[0]
-hp = enemyini.__getattr__("hp", "int")
-sp = enemyini.__getattr__("sp", "int")
-atk = enemyini.__getattr__("atk", "int")
-defn = enemyini.__getattr__("defn", "int")
-spd = enemyini.__getattr__("spd", "int")
-mag = enemyini.__getattr__("mag", "int")
-evd = enemyini.__getattr__("evd", "int")
-coord = enemyini.__getattr__("coord").split(",")
-exp = enemyini.__getattr__("exp", "int")
-lvl = enemyini.__getattr__("lvl", "int")
-image = enemyini.__getattr__("image")
+    enemy = GameEngine.enemy
+    self.enemyini = Configuration(os.path.join("Data", "Enemies", enemy)).enemy
+
+    self.name = enemy.split(".ini")[0]
+    self.hp = self.enemyini.__getattr__("hp", "int")
+    self.sp = self.enemyini.__getattr__("sp", "int")
+    self.atk = self.enemyini.__getattr__("atk", "int")
+    self.defn = self.enemyini.__getattr__("defn", "int")
+    self.spd = self.enemyini.__getattr__("spd", "int")
+    self.mag = self.enemyini.__getattr__("mag", "int")
+    self.evd = self.enemyini.__getattr__("evd", "int")
+    self.coord = self.enemyini.__getattr__("coord").split(",")
+    self.exp = self.enemyini.__getattr__("exp", "int")
+    self.lvl = self.enemyini.__getattr__("lvl", "int")
+    self.image = self.enemyini.__getattr__("image")
+
+    #these are very important for battle
+    self.currentatb = 0
+    self.defending = False
+    self.currenthp = self.hp
+    self.currentsp = self.sp
+
+    #these numbers are for testing reasons, uncomment them if you require it
+    #self.name = "AAAAAAAAAAAA"
+    #self.hp = int(9999)
+    #self.sp = int(999)
+
 

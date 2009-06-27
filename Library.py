@@ -36,26 +36,62 @@ class Library(Layer):
     self.libraryback = None
     self.librarian = None
     self.booktex = None
+    self.bookcover = None
+
     if os.path.exists(os.path.join(self.library, "library.png")) == True:
       self.libraryback = self.engine.loadImage(os.path.join(self.library, "library.png"))
     if os.path.exists(os.path.join(self.library, "librarian.png")) == True:    
       self.librarian = self.engine.loadImage(os.path.join(self.library, "librarian.png"))
     if os.path.exists(os.path.join(self.library, "book.png")) == True:
       self.booktex = self.engine.loadImage(os.path.join(self.library, "book.png"))
+    if os.path.exists(os.path.join(self.library, "bookcover.png")) == True:
+      self.bookcover = self.engine.loadImage(os.path.join(self.library, "bookcover.png"))
+
+    self.secondarybutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
+    self.secondarybuttonactive = self.engine.loadImage(os.path.join("Data", "secondarymenubuttonactive.png"))
+    self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
+    self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
+
     self.enterdialog = 0
 
     self.books = []
     allbooks = os.listdir(self.library)
     for name in allbooks:
       if os.path.splitext(name)[1].lower() == ".txt":
-        self.books.append(name)
+        self.books.append(os.path.splitext(name)[0])
 
     self.index = 0
     self.spacehit = False
+    self.active = False
 
   def showbook(self, book):
     if self.booktex != None:
       self.engine.drawImage(self.booktex)
+
+  def lookatbooks(self):
+
+    if self.bookcover != None:
+      self.engine.drawImage(self.bookcover, scale = (640,480))
+
+    maxindex = len(self.books)
+   
+    buttonfont = self.engine.renderFont("menu.ttf", self.books[self.index], (320, 260), size = 18)
+
+    button = self.engine.drawImage(self.menubutton, coord= (110, 425), scale = (150,45))
+    active, flag = self.engine.mousecol(button)
+    if active == True:
+      button = self.engine.drawImage(self.menubuttonactive, coord= (110, 425), scale = (150,45))
+      if flag == True:
+        self.active = False
+    buttonfont = self.engine.renderFont("default.ttf", "Return", (110, 425))
+
+    button = self.engine.drawImage(self.menubutton, coord= (530, 425), scale = (150,45))
+    active, flag = self.engine.mousecol(button)
+    if active == True:
+      button = self.engine.drawImage(self.menubuttonactive, coord= (530, 425), scale = (150,45))
+      if flag == True:
+        pass
+    buttonfont = self.engine.renderFont("default.ttf", "Read", (530, 425))
 
   def update(self):
     if self.libraryback != None:
@@ -66,51 +102,47 @@ class Library(Layer):
     for key, char in self.engine.getKeyPresses():
       if key == K_SPACE:
         self.spacehit = True
+      if self.active == True:
+        if key == K_LEFT:
+          if self.index - 1 >= 0:
+            self.index -= 1
+        if key == K_RIGHT:
+          maxindex = len(self.books)
+          if self.index + 1 < maxindex:
+            self.index += 1
+
 
     if self.spacehit == True:
-      self.enterdialog == 1
+      self.enterdialog = 1
       self.spacehit = False
 
     if self.enterdialog == 0:
       self.engine.renderTextbox("default.ttf", ("Hello, welcome to the library of " + str(self.townname), ""), size = 18)
-    elif self.enterdialog == 1:
+    elif self.enterdialog == 1 and self.active == False:
       self.engine.renderTextbox("default.ttf", ("We have many books here, which would you like to check out?", ""), size = 18)
-      if self.books != []:
-        maxindex = len(self.books)
-        for i in range(self.index, 5+self.index):
-          if i < maxindex:
-            itemini = Configuration(os.path.join("Data", "Items", str(Player.inventory[i])+".ini")).item
-            button = self.engine.drawImage(self.secondarybutton, coord= (120, 128 + (26*(i-self.index))), scale = (220,24))
-            active, flag = self.engine.mousecol(button)
-            if active == True:
-              itemimage = self.engine.loadImage(os.path.join("Data", "Items", str(Player.inventory[i])+".png"))
-              self.engine.drawImage(itemimage, coord= (465, 165), scale = (150,150))
-
-              button = self.engine.drawImage(self.secondarybuttonactive, coord= (120, 128 + (26*(i-self.index))), scale = (220,24)) 
-              if flag == True:
-                pass
-    
-            buttonfont = self.engine.renderFont("default.ttf", itemini.__getattr__("name"), (120, 128 + (26*(i-self.index))))
-
-        button = self.engine.drawImage(self.secondarybutton, coord= (120, 132 + (26*10)), scale = (220,24))
+      for i, choice in enumerate(["Take a Look", "Leave"]):
+        button = self.engine.drawImage(self.secondarybutton, coord= (120, 128 + (26*(i-self.index))), scale = (220,24))
         active, flag = self.engine.mousecol(button)
         if active == True:
-          button = self.engine.drawImage(self.secondarybuttonactive, coord= (120, 132 + (26*10)), scale = (220,24))
+          button = self.engine.drawImage(self.secondarybuttonactive, coord= (120, 128 + (26*(i-self.index))), scale = (220,24)) 
           if flag == True:
-            if self.index + 5 < maxindex:
-              self.index += 5
-    
-        buttonfont = self.engine.renderFont("default.ttf", "Down", (120, 132 + (26*10)))
+            if i == 0:
+              if self.books != []:
+                self.active = True
+              else:
+                self.enterdialog = 2
+            else:
+              from Towns import Towns
+              View.removescene(self)
+              View.addscene(Towns())
 
-        button = self.engine.drawImage(self.secondarybutton, coord= (120, 128 + (30*-1)), scale = (220,24))
-        active, flag = self.engine.mousecol(button)
-        if active == True:
-          button = self.engine.drawImage(self.secondarybuttonactive, coord= (120, 128 + (30*-1)), scale = (220,24))
-          if flag == True:
-            if self.index - 5 >= 0:
-              self.index -= 5
     
-        buttonfont = self.engine.renderFont("default.ttf", "Up", (120, 128 + (30*-1)))
-      else:
-        self.engine.renderFont("default.ttf", "There are no books in this library", coord = (120, 240), size = 24)
+        buttonfont = self.engine.renderFont("default.ttf", choice, (120, 128 + (26*(i-self.index))))
+
+
+    elif self.enterdialog == 2:
+      self.engine.renderTextbox("default.ttf", ("There are no books in this library", ""), size = 18)
+    elif self.active == True:
+      self.lookatbooks()
+
         

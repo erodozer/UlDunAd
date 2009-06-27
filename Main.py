@@ -25,28 +25,39 @@ import os
 import sys
 import pygame
 from pygame.locals import *
-import GameEngine
 import View
 import os
-import gc
+import random
+import Config
 
+import GameEngine
+  
 FPS = 60
 
 def main():
   #video_flags = DOUBLEBUF|OPENGL
-  gc.enable()
   video_flags = 0
+
+  pygame.mixer.pre_init(48000)
+
   pygame.init()
 
   os.environ['SDL_VIDEO_WINDOW_POS'] = 'center'
 
-  window = pygame.display.set_mode((640,480), video_flags)
+  window = pygame.display.set_mode((GameEngine.w,GameEngine.h), video_flags)
 
   GameEngine.screen = window
 
   View.startup()
 
   fpsClock = pygame.time.Clock()
+
+  songpath = os.path.join("Data", "Audio")
+  songs = []
+  allsongs = os.listdir(songpath)
+  for name in allsongs:
+    if os.path.splitext(name)[1].lower() == (".mp3" or ".ogg" or ".m4a" or ".flac" or ".aac"):
+      songs.append(name)
 
   while not GameEngine.finished:
     # main event loop
@@ -56,6 +67,7 @@ def main():
         break  # no more events this frame
       elif event.type == QUIT:
         GameEngine.finished = True
+        GameEngine.stopmusic()
         break
       elif event.type == KEYDOWN:
         GameEngine.processKeyPress(event)
@@ -65,9 +77,14 @@ def main():
         if event.button == 1:
           GameEngine.processClick()
 
+    pygame.mixer.music.set_endevent(USEREVENT)
+    if (pygame.event.poll().type == USEREVENT or pygame.mixer.music.get_busy() == False) and GameEngine.party != [] and songs != []:
+      i = random.randint(1, len(songs))
+      GameEngine.loadAudio(songs[i-1])
+
     View.update()
 
-    pygame.display.update()
+    pygame.display.flip()
     GameEngine.resetClick()
 
     fpsClock.tick(FPS)

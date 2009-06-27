@@ -34,10 +34,10 @@ class Playerlist(Layer):
     self.background = self.engine.loadImage(os.path.join("Data", "mapbackground.png"))
     self.background2 = self.engine.loadImage(os.path.join("Data", "mapmenu.png"))
 
-    self.button, self.buttonactive = Menu.initMenu(os.path.join("Data", "mapmenubutton.png"), os.path.join("Data", "mapmenubuttonactive.png"))
-  def update(self):
-    self.engine.drawImage(self.background)
-    self.engine.drawImage(self.background2)
+    self.button = self.engine.loadImage(os.path.join("Data", "mapmenubutton.png"))
+    self.buttonactive = self.engine.loadImage(os.path.join("Data", "mapmenubuttonactive.png"))
+    self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
+    self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
     playerpath = os.path.join("Data", "Players")
     self.players = []
@@ -47,42 +47,126 @@ class Playerlist(Layer):
       if os.path.splitext(name)[1].lower() == ".ini":
         self.players.append(os.path.splitext(name)[0])
 
-    button = self.players
-    buttonfont = self.players
+    self.index = 0
 
-    index = 0
-    if index < 0:
-      index = 0
-    if index > len(self.players):
-      index = len(self.players) - 7
+    self.partybuilt = []
+    self.partybuilding = False
+    self.donebuilding = False
+    self.partyactive = False
+    self.selecting = True
+    self.flag = False
 
-    for i,choice in enumerate(self.players):
-      button[i] = self.engine.drawImage(self.button, coord= (320, 64+(48*(i+1))), scale = (200,32))
-      active, flag = self.engine.mousecol(button[i])
-      if active == True:
-        button[i] = self.engine.drawImage(self.buttonactive, coord= (320, 64+(48*(i+1))), scale = (200,32))
-        if flag == True:
-          from Maplist import Maplist
-          View.removescene(self)
-          View.addscene(Maplist())
-          GameEngine.player = str(choice+".ini")  
-      buttonfont[i] = self.engine.renderFont("menu.ttf", choice, (320, 64+(48*(i+1))), size = 24)
+  def update(self):
+    self.engine.drawImage(self.background)
+    self.engine.drawImage(self.background2)
+
+    if self.index < 0:
+      self.index = 0
+    if self.index > len(self.players):
+      self.index = len(self.players) - 7
+
+    maxindex = len(self.players)
+    for i in range(self.index, 7+self.index):
+      if i < maxindex:
+
+        button = self.engine.drawImage(self.button, coord= (320, 64+(48*(i+1))), scale = (200,32))
+        active, flag = self.engine.mousecol(button)
+        if active == True and self.selecting == True:
+          button = self.engine.drawImage(self.buttonactive, coord= (320, 64+(48*(i+1))), scale = (200,32))
+          if flag == True:
+            if len(self.partybuilt) < 3:
+              if self.partybuilt.count(str(self.players[i]+".ini")) == 0:
+                self.partybuilt.append(str(self.players[i]+".ini"))
+                self.flag = False
+              else:
+                self.flag = True
+              if len(self.partybuilt) == 1:
+                self.partyactive = True
+              if len(self.partybuilt) >= 3:
+                while len(self.partybuilt) > 3:
+                  self.partybuilt.remove(-1)
+                self.donebuilding = True
+
+        buttonfont = self.engine.renderFont("menu.ttf", self.players[i], (320, 64+(48*(i+1))), size = 24)
+
+    if self.flag == True:
+      self.engine.renderFont("menu.ttf", "That character is already in your party!", (320, 32), size = 24)
 
     button = self.engine.drawImage(self.button, coord= (320, 64), scale = (200,32))
     active, flag = self.engine.mousecol(button)
-    if active == True:
+    if active == True and self.selecting == True:
       button = self.engine.drawImage(self.buttonactive, coord= (320, 64), scale = (200,32))
       if flag == True:
-        index = index - 7
-    buttonfont[i] = self.engine.renderFont("menu.ttf", "-UP-", (320, 64), size = 24)
+        if self.index + 7 < maxindex:
+          self.index += 7
+    buttonfont = self.engine.renderFont("menu.ttf", "-UP-", (320, 64), size = 24)
 
     button = self.engine.drawImage(self.button, coord= (320, 432), scale = (200,32))
     active, flag = self.engine.mousecol(button)
-    if active == True:
+    if active == True and self.selecting == True:
       button = self.engine.drawImage(self.buttonactive, coord= (320, 432), scale = (200,32))
       if flag == True:
-        index = index - 7
-    buttonfont[i] = self.engine.renderFont("menu.ttf", "-DOWN-", (320, 432), size = 24)
+        if self.index - 7 >= 0:
+          self.index -= 7
+    buttonfont = self.engine.renderFont("menu.ttf", "-DOWN-", (320, 432), size = 24)
+
+    if self.partyactive == True and self.partybuilding == True and len(self.partybuilt) > 0:
+      button = self.engine.drawImage(self.menubutton, coord= (530, 425), scale = (150,45))
+      active, flag = self.engine.mousecol(button)
+      if active == True:
+        button = self.engine.drawImage(self.menubuttonactive, coord= (530, 425), scale = (150,45))
+        if flag == True:
+          self.donebuilding = True
+      buttonfont = self.engine.renderFont("default.ttf", "Done", (530, 425))
+
+    if self.partyactive == True:
+
+      if self.partybuilding == False:
+        self.selecting = False
+        self.engine.screenfade((150,150,150,130))
+        for i, choice in enumerate(['Yes', 'No']):
+          button = self.engine.drawImage(self.button, coord= (75+(490*i), 200), scale = (100,48))
+          active, flag = self.engine.mousecol(button)
+          if active == True:
+            button = self.engine.drawImage(self.buttonactive, coord= (75+(490*i), 200), scale = (100,48))
+            if flag == True:
+              if i == 0:
+                self.partybuilding = True
+                self.selecting = True
+              else:
+                GameEngine.party = self.partybuilt
+                from Maplist import Maplist
+                View.removescene(self)
+                View.addscene(Maplist())
+                  
+          buttonfont = self.engine.renderFont("default.ttf", choice, (75+(490*i), 200), size = 16)
+        self.engine.renderFont("default.ttf", "Do you wish to build a party?", (320, 120), size = 20, flags = "Shadow")
+
+      elif self.donebuilding == True:
+        self.selecting = False
+        self.engine.screenfade((150,150,150,130))
+        for i, choice in enumerate(['Yes', 'No']):
+          button = self.engine.drawImage(self.button, coord= (75+(490*i), 200), scale = (100,48))
+          active, flag = self.engine.mousecol(button)
+          if active == True:
+            button = self.engine.drawImage(self.buttonactive, coord= (75+(490*i), 200), scale = (100,48))
+            if flag == True:
+              if i == 0:
+                GameEngine.party = self.partybuilt
+                from Maplist import Maplist
+                View.removescene(self)
+                View.addscene(Maplist())
+              else:
+                self.donebuilding = False
+                self.selecting = True
+                self.partybuilt = []
+                
+                  
+          buttonfont = self.engine.renderFont("default.ttf", choice, (75+(490*i), 200), size = 16)
+        self.engine.renderFont("default.ttf", "Is this the party you want?", (320, 120), size = 20, flags = "Shadow")
+
+        for i, partymember in enumerate(self.partybuilt):
+          self.engine.renderFont("default.ttf", os.path.splitext(partymember)[0], (320, 180 + (i*24)), size = 20, flags = "Shadow")
 
   def clearscene(self):
     del  self.background, self.background2, self.engine, self.players

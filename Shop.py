@@ -16,7 +16,7 @@
 #                                                                   #
 # You should have received a copy of the GNU General Public License #
 # along with this program; if not, write to the Free Software       #
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,        #
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,        # 
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
@@ -27,30 +27,34 @@ from View import *
 import Config
 
 class Shop(Layer):
-  def __init__(self, shopinipath):
+  def __init__(self, shopini):
 
     self.engine = GameEngine
-    self.shopini = Config.Configuration(shopinipath).shop
+    self.shopini = shopini
 
-    self.engine.drawImage(os.path.join("Data", "menubackground.png"))
+    self.engine.loadImage(os.path.join("Data", "menubackground.png"))
 
     self.engine.renderFont("arial.ttf", "Welcome", (480,48), size = 32)
     self.choices = ["Buy", "Sell", "Exit"]
-    self.button = self.choices
 
     self.selectedchoice = 0
 
+    self.items = self.shopini.townchoice.__getattr__("items").split(", ")
+
   def update(self):
     if self.selectedchoice == 0:
-      for i in range(len(self.choices)):
-        self.button[i] = self.engine.drawImage(os.path.join("Data", "menubutton.png"), coord= (95 +(200*i), 400), scale = (150,45))
-        active, flag = self.engine.mousecol(self.button[i])
+      for i, choice in enumerate(self.choices):
+        button = self.engine.drawImage(os.path.join("Data", "menubutton.png"), coord= (95 +(200*i), 400), scale = (150,45))
+        active, flag = self.engine.mousecol(button)
         if active == True:
-          self.button[i] = self.engine.drawImage(os.path.join("Data", "menubuttonactive.png"), coord= (95 +(200*i), 400), scale = (150,45))
+          button = self.engine.drawImage(os.path.join("Data", "menubuttonactive.png"), coord= (95 +(200*i), 400), scale = (150,45))
           if flag == True:
             if i == 0:
-              break
+              pass
             elif i == 1:
-              break
-        self.choices = ["Buy", "Sell", "Exit"]
-        self.buttonfont[i] = self.engine.renderFont("default.ttf", self.choices[i], (95 +(200*i), 400))
+              pass
+            elif i == 2:
+              import Towns
+              View.removescene(self)
+              View.addscene(Towns.Towns())
+        buttonfont = self.engine.renderFont("default.ttf", choice, (95 +(200*i), 400))

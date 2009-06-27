@@ -27,27 +27,43 @@ from Config import *
 import os
 import math
 
-player = GameEngine.player
-playerini = Configuration(os.path.join("Data", "Players", player))
+class Player:
+  def __init__(self, player = GameEngine.party[0]):
 
-name = player.split(".ini")[0]
-raceini = Configuration(os.path.join("Data", "Races", str(playerini.player.race))).race
-levelcurve = raceini.__getattr__("levelcurve").split(",")
-for i, num in enumerate(levelcurve):
-  levelcurve[i] = float(num)
-lvl = playerini.player.__getattr__("lvl", "int")
-hp = raceini.__getattr__("hp", "int") + int(levelcurve[0]*(lvl-1))
-currenthp = playerini.player.__getattr__("currenthp", "int")
-sp = raceini.__getattr__("sp", "int") + int(levelcurve[1]*(lvl-1))
-currentsp = playerini.player.__getattr__("currentsp", "int")
-atk = raceini.__getattr__("atk", "int") + int(levelcurve[2]*(lvl-1))
-defn = raceini.__getattr__("defn", "int") + int(levelcurve[3]*(lvl-1))
-spd = raceini.__getattr__("spd", "int") + int(levelcurve[4]*(lvl-1))
-mag = raceini.__getattr__("mag", "int") + int(levelcurve[5]*(lvl-1))
-evd = raceini.__getattr__("evd", "int") + int(levelcurve[6]*(lvl-1))
-weapon = playerini.player.weapon
-armor = playerini.player.armor
-exp = playerini.player.__getattr__("exp", "int")
-explvl = 15*int(lvl**2)
-inventory = playerini.player.__getattr__("inventory").split(", ")
-monsterskilled = playerini.player.__getattr__("monsterskilled", "int")
+    self.playerini = Configuration(os.path.join("Data", "Players", player))
+
+    self.name = player.split(".ini")[0]
+    self.raceini = Configuration(os.path.join("Data", "Races", str(self.playerini.player.race))).race
+    self.levelcurve = self.raceini.__getattr__("levelcurve").split(",")
+    for i, num in enumerate(self.levelcurve):
+      self.levelcurve[i] = float(num)
+    self.lvl = self.playerini.player.__getattr__("lvl", "int")
+    self.hp = self.raceini.__getattr__("hp", "int") + int(self.levelcurve[0]*(self.lvl-1))
+    self.currenthp = self.playerini.player.__getattr__("currenthp", "int")
+    self.sp = self.raceini.__getattr__("sp", "int") + int(self.levelcurve[1]*(self.lvl-1))
+    self.currentsp = self.playerini.player.__getattr__("currentsp", "int")
+    self.atk = self.raceini.__getattr__("atk", "int") + int(self.levelcurve[2]*(self.lvl-1))
+    self.defn = self.raceini.__getattr__("defn", "int") + int(self.levelcurve[3]*(self.lvl-1))
+    self.spd = self.raceini.__getattr__("spd", "int") + int(self.levelcurve[4]*(self.lvl-1))
+    self.mag = self.raceini.__getattr__("mag", "int") + int(self.levelcurve[5]*(self.lvl-1))
+    self.evd = self.raceini.__getattr__("evd", "int") + int(self.levelcurve[6]*(self.lvl-1))
+    self.weapon = self.playerini.player.weapon
+    self.armor = self.playerini.player.armor
+    self.exp = self.playerini.player.__getattr__("exp", "int")
+    self.explvl = 15*int(self.lvl**2)
+    self.inventory = self.playerini.player.__getattr__("inventory").split(", ")
+    self.monsterskilled = self.playerini.player.__getattr__("monsterskilled", "int")
+
+    #these are very important for battle
+    self.currentatb = 0
+    self.defending = False
+
+    #these numbers are for testing reasons, uncomment them if you require it
+    #self.name = "AAAAAAAAAAAA"
+    #self.exp = self.explvl-1
+    #self.hp = int(9999)
+    #self.currenthp = int(9999)
+    #self.sp = int(999)
+    #self.currentsp = int(999)
+
+

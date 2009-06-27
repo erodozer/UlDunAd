@@ -26,6 +26,8 @@ import os
 import sys
 import View
 
+w, h = GameEngine.w, GameEngine.h
+
 def initMenu(buttonimg, activebuttonimg):
   button = GameEngine.loadImage(buttonimg)
   activebutton = GameEngine.loadImage(activebuttonimg)

@@ -120,11 +120,13 @@ class CharacterCreator(Layer):
       buttonfont = self.engine.renderFont("default.ttf", "_", (218+(36*8), 236 + (108*i)), size = 24)
 
     for key, char in GameEngine.getKeyPresses():
-      if (char >= 'a' and char <= 'z') or (char >= 'A' and char <= 'Z'):
-        self.name.append(char)
-      elif key == K_SPACE:
-        self.name.append(" ")
-      elif key == K_RETURN:
+      if len(self.name) < 13:
+        if (char >= 'a' and char <= 'z') or (char >= 'A' and char <= 'Z'):
+          self.name.append(char)
+        elif key == K_SPACE:
+          self.name.append(" ")
+
+      if key == K_RETURN:
         self.typingname = False
       elif key == K_BACKSPACE:
         if len(self.name) > 0:
@@ -214,7 +216,7 @@ class CharacterCreator(Layer):
             newconf.player.inventory = str('item001, item001, item001, item002, item002')
             newconf.save()
             View.removescene(self)
-            GameEngine.player = str(name+".ini")
+            GameEngine.party.append(str(name+".ini"))
             from Maplist import Maplist
             View.addscene(Maplist())
             

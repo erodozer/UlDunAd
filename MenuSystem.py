@@ -27,13 +27,18 @@ import View
 from View import *
 import Menu
 
-import Player
+from Player import Player
 
 from Config import *
       
 class MenuSystem(Layer):
   def __init__(self, originalscene):
     self.engine = GameEngine
+
+    self.party = []
+    for i, partymember in enumerate(self.engine.party):
+      self.party.append(Player(partymember))
+
     self.originalscene = originalscene
 
     self.choices = ["Inventory", "Spells", "Equipment", "Status", "Change Character", "Options", "Quit Game", "Exit Menu"]
@@ -45,6 +50,8 @@ class MenuSystem(Layer):
                  "I guess you've had enough for today I suppose", "Return to your game"]
 
     self.background = self.engine.loadImage(os.path.join("Data", "menubackground.png"))
+
+    self.statusbox = self.engine.loadImage(os.path.join("Data", "statusbox.png"))
 
     self.button = self.engine.loadImage(os.path.join("Data", "menubutton.png"))
     self.buttonactive = self.engine.loadImage(os.path.join("Data", "menubuttonactive.png"))
@@ -59,21 +66,39 @@ class MenuSystem(Layer):
     self.currentlayer = "Main"
     self.updatescene = None
     self.index = 0
+    self.whichcharacter = 0
 
     self.quitactive = False
 
   def showInventory(self):
+    for key, char in GameEngine.getKeyPresses():
+      if key == K_LEFT:
+        if self.whichcharacter - 1 > -1:
+          self.whichcharacter -= 1
+        else:
+          self.whichcharacter = len(self.party)-1
+      if key == K_RIGHT:
+        if self.whichcharacter + 1 < len(self.party):
+          self.whichcharacter += 1
+        else:
+          self.whichcharacter = 0    
+
     self.engine.drawImage(self.background, scale = (640,480))
 
-    if Player.inventory[0] != 'None':
-      maxindex = len(Player.inventory)
+    partyinv = self.party[self.whichcharacter]
+
+    self.engine.renderFont("menu.ttf", str(partyinv.name), (630, 56), size = 32, flags = "Shadow", alignment = 2)
+    self.engine.renderFont("menu.ttf", "Press LEFT or RIGHT to change character inventories", (630, 80), size = 18, flags = "Shadow", alignment = 2)
+
+    if partyinv.inventory[0] != 'None':
+      maxindex = len(partyinv.inventory)
       for i in range(self.index, 10+self.index):
         if i < maxindex:
-          itemini = Configuration(os.path.join("Data", "Items", str(Player.inventory[i])+".ini")).item
+          itemini = Configuration(os.path.join("Data", "Items", str(partyinv.inventory[i])+".ini")).item
           button = self.engine.drawImage(self.secondarybutton, coord= (120, 128 + (26*(i-self.index))), scale = (220,24))
           active, flag = self.engine.mousecol(button)
           if active == True:
-            itemimage = self.engine.loadImage(os.path.join("Data", "Items", str(Player.inventory[i])+".png"))
+            itemimage = self.engine.loadImage(os.path.join("Data", "Items", str(partyinv.inventory[i])+".png"))
             self.engine.drawImage(itemimage, coord= (465, 165), scale = (150,150))
 
             button = self.engine.drawImage(self.secondarybuttonactive, coord= (120, 128 + (26*(i-self.index))), scale = (220,24))
@@ -110,14 +135,13 @@ class MenuSystem(Layer):
         button = self.engine.drawImage(self.secondarybuttonactive, coord= (240 + (180*i), 448), scale = (160,32))
         if flag == True:
           if i == 0:
-            Player.inventory.sort()
+            partyinv.inventory.sort()
           elif i == 1:
             self.currentlayer = "Main"
             self.updatescene = None
             #saves as an array which for some reason it can not read correctly
-            Player.playerini.player.__setattr__("inventory", ", ".join(Player.inventory))
-            Player.playerini.save()
-            reload(Player)
+            partyinv.playerini.player.__setattr__("inventory", ", ".join(partyinv.inventory))
+            partyinv.playerini.save()
     
       buttonfont = self.engine.renderFont("default.ttf", choice, (240 + (180*i), 448))
       
@@ -134,37 +158,30 @@ class MenuSystem(Layer):
 
       self.engine.drawImage(self.background, scale = (640,480))
 
-      self.engine.drawBar(self.hpbarback, (325, 160), scale = (300,15))
-      self.engine.drawBar(self.hpbar, (330, 160), scale = (290,150), frames = 30, currentframe = self.barframe, barcrop = (float(Player.currenthp)/int(Player.hp)))
+      for i, player in enumerate(self.party):
+        self.engine.drawImage(self.statusbox, coord = ((640-172), 130+(i*100)), scale = (345, 80))
 
-      self.engine.renderFont("default.ttf", str(Player.currenthp) + "/" + str(Player.hp), (610, 150), size = 24, flags = "Shadow", alignment = 2)
-      self.engine.renderFont("default.ttf", "HP", (300, 150), size = 24, flags = "Shadow")
 
-      self.engine.drawBar(self.hpbarback, (325, 185), scale = (300,15))
-      self.engine.drawBar(self.hpbar, (330, 185), scale = (290,150), frames = 30, currentframe = self.barframe, barcrop = (float(Player.currentsp)/int(Player.sp)))
+        self.engine.renderFont("default.ttf", str(player.currenthp) + "/" + str(player.hp), (505, 130+(i*100)), size = 16, flags = "Shadow", alignment = 2)
+        self.engine.renderFont("default.ttf", "HP", (390, 130+(i*100)), size = 16, flags = "Shadow", alignment = 1)
 
-      self.engine.renderFont("default.ttf", str(Player.currentsp) + "/" + str(Player.sp), (610, 177), size = 18, flags = "Shadow", alignment = 2)
-      self.engine.renderFont("default.ttf", "SP", (300, 180), size = 18, flags = "Shadow")
 
-      self.engine.renderFont("default.ttf", str(Player.name), (600, 96), size = 24, flags = "Shadow", alignment = 2)
+        self.engine.renderFont("default.ttf", str(player.currentsp) + "/" + str(player.sp), (505, 150+(i*100)), size = 16, flags = "Shadow", alignment = 2)
+        self.engine.renderFont("default.ttf", "SP", (390, 150+(i*100)), size = 16, flags = "Shadow", alignment = 1)
 
-      self.engine.renderFont("default.ttf", str("Level:"), (350, 226), size = 20, flags = "Shadow")
-      self.engine.renderFont("default.ttf", str(Player.lvl), (610, 226), size = 20, flags = "Shadow", alignment = 2)
+        self.engine.renderFont("default.ttf", str(player.name), (390, 110+(i*100)), size = 20, flags = "Shadow", alignment = 1)
 
-      self.engine.drawBar(self.hpbarback, (375, 260), scale = (240,15))
-      self.engine.drawBar(self.hpbar, (380, 260), scale = (240,150), frames = 30, currentframe = self.barframe, barcrop = (float(Player.exp)/float(Player.explvl)))
+        self.engine.renderFont("default.ttf", str("Lvl:"), (570, 110+(i*100)), size = 16, flags = "Shadow", alignment = 1)
+        self.engine.renderFont("default.ttf", str(player.lvl), (630, 110+(i*100)), size = 16, flags = "Shadow", alignment = 2)
 
-      self.engine.renderFont("default.ttf", str(Player.exp) + "/" + str(Player.explvl), (610, 252), size = 20, alignment = 2, flags = "Shadow")
-      self.engine.renderFont("default.ttf", "Exp:", (350, 252), size = 20, flags = "Shadow")
-
-      self.engine.renderFont("default.ttf", str(Player.monsterskilled), (610, 342), size = 20, alignment = 2, flags = "Shadow")
-      self.engine.renderFont("default.ttf", "Monsters Killed:", (350, 342), size = 20, flags = "Shadow")
+        self.engine.renderFont("default.ttf", str("Exp to Lvl:"), (540, 130+(i*100)), size = 16, flags = "Shadow", alignment = 1)
+        self.engine.renderFont("default.ttf", str(player.exp) + "/" +str(player.explvl), (630, 150+(i*100)), size = 16, flags = "Shadow", alignment = 2)
 
       for i, choice in enumerate(self.choices):
-        button = self.engine.drawImage(self.button, coord= (110, 96+(40*i)), scale = (220,32))
+        button = self.engine.drawImage(self.button, coord= (90, 96+(40*i)), scale = (180,32))
         active, flag = self.engine.mousecol(button)
         if active == True and self.quitactive == False:
-          button = self.engine.drawImage(self.buttonactive, coord= (110, 96+(40*i)), scale = (220,32))
+          button = self.engine.drawImage(self.buttonactive, coord= (90, 96+(40*i)), scale = (180,32))
           renderhelpfont = self.engine.renderFont("default.ttf", self.help[i], (630, 448), alignment = 2)
           if flag == True:
             if i == 0:

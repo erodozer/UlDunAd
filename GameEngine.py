@@ -27,10 +27,24 @@ import pygame
 from pygame.locals import *
 
 import math
+import Config
 
-w, h = 640, 480
+if not os.path.exists(os.path.join("uldunad.ini")):
+  Config.Configuration(os.path.join("uldunad.ini")).save()
+  uldunadini = Config.Configuration(os.path.join("uldunad.ini"))
+  uldunadini.video.__setattr__("resolution", str(640) + str("x") + str(480))
+  uldunadini.audio.__setattr__("volume", str(1.0))
+  uldunadini.audio.__setattr__("battlevolume", str(1.0))
+  uldunadini.audio.__setattr__("townvolume", str(1.0))
+  uldunadini.save()
+else:
+  uldunadini = Config.Configuration(os.path.join("uldunad.ini"))
+
+w, h = uldunadini.video.__getattr__("resolution").split("x")
+w, h = int(w), int(h)
+
 screen = None
-player = None
+party = []
 enemy = None
 finished = False
 town = None
@@ -47,7 +61,7 @@ class Drawing(pygame.sprite.Sprite):
     image = pygame.image.load(ImgData).convert_alpha()
     return image
     
-  def drawImage(self, image, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", opacity = 255):
+  def drawImage(self, image, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", opacity = 255):
     pygame.sprite.Sprite.__init__(self)
 
     if scale != None:
@@ -74,7 +88,7 @@ class Drawing(pygame.sprite.Sprite):
 
     return rect
 
-  def drawBar(self, image, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
+  def drawBar(self, image, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
     pygame.sprite.Sprite.__init__(self)
 
     if scale != None:
@@ -82,6 +96,9 @@ class Drawing(pygame.sprite.Sprite):
     if rot != None:
       image = pygame.transform.rotate(image, rot)
     width,height = image.get_size()
+
+    if barcrop > 1:
+      barcrop = 1
 
     if direction == "Vertical":
       start = (int(currentframe)-1)*(height/frames)
@@ -104,16 +121,19 @@ def loadImage(ImgData):
   image = Drawing().loadImage(ImgData)
   return image
 
-def drawImage(ImgData, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", opacity = 50):
+def drawImage(ImgData, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", opacity = 50):
   rect = Drawing().drawImage(ImgData, coord, scale, rot, frames, currentframe, direction, opacity)
   return rect
 
-def drawBar(ImgData, coord = (640/2, 480/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
+def drawBar(ImgData, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
   rect = Drawing().drawBar(ImgData, coord, scale, rot, frames, currentframe, direction, barcrop)
   return rect
        
-def loadAudio(AudioFile):
-  pygame.mixer.music.load(os.path.join("Data", "Audio", AudioFile))
+def loadAudio(AudioFile, queue = False):
+  if queue == True:
+    pygame.mixer.music.queue(os.path.join("Data", "Audio", AudioFile))
+  else:
+    pygame.mixer.music.load(os.path.join("Data", "Audio", AudioFile))
   pygame.mixer.music.play()
 
 def stopmusic():
@@ -153,7 +173,7 @@ def renderMultipleFont(font, text, coord = (w/2,h/2), size = 12, opacity = 255):
 
 def renderTextbox(font, text, size = 12):
   textbox = loadImage(os.path.join("Data", "textbox.png"))
-  drawImage(textbox, coord = (320, 400), scale = (640, 160))
+  drawImage(textbox, coord = (320, 400), scale = (w, 160))
   for i, textline in enumerate(text):
     renderFont(font, textline, coord = (30, 350+((size+3)*i)), size = size, flags = "Soft Shadow", alignment = 1)
 

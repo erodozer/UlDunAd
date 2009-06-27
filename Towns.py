@@ -43,7 +43,7 @@ class Towns(Layer):
     if self.townini.audio != "None":
       self.audio = self.engine.loadAudio(self.townini.audio)
 
-    self.choices = self.townini.choices.split(",")
+    self.choices = self.townini.choices.split(", ")
 
     if os.path.exists(os.path.join("Data", "Towns", self.townname, "townbutton.png")) == True:
       self.menubutton = self.engine.loadImage(os.path.join("Data", "Towns", self.townname, "townbutton.png"))
@@ -66,14 +66,17 @@ class Towns(Layer):
       if active == True:
         button = self.engine.drawImage(self.menubuttonactive, coord= (100, 90+(60*i)), scale = (150,45))
         if flag == True:
-#          if choice != "Library" or choice != "library":
-#            choiceini = Config.Configuration(os.path.join("Data", "Towns", self.townname, choice))
-#          else:
-          from Library import Library
-          self.engine.stopmusic()
-          View.removescene(self)
-          View.addscene(Library())
-               
+          if choice == "Library" or choice == "library":
+            from Library import Library
+            View.removescene(self)
+            View.addscene(Library())
+          else:
+            choiceini = Config.Configuration(os.path.join("Data", "Towns", self.townname, choice+".ini"))
+            if choiceini.townchoice.type == "Shop":
+              from Shop import Shop
+              View.removescene(self)
+              View.addscene(Shop(choiceini))
+
       buttonfont = self.engine.renderFont("default.ttf", choice, (100, 90+(60*i)))
 
     #return button
@@ -83,7 +86,6 @@ class Towns(Layer):
       returnbutton = self.engine.drawImage(self.menubuttonactive, coord= (100, 420), scale = (150,45))
       if flag == True:
         from Maplist import Maplist
-        self.engine.stopmusic()
         View.removescene(self)
         View.addscene(Maplist())
     returnfont = self.engine.renderFont("default.ttf", "Return", (100, 420))
@@ -91,5 +93,8 @@ class Towns(Layer):
     self.towntitle = self.engine.renderFont("menu.ttf", self.townname, (430, 64), size = 32)
 
   def clearscene(self):
-    del self.towntitle, self.menubuttonactive, self.menubutton, self.audio, self.sidebar, self.background, self.townini, self.townname, self.engine
+    del self.towntitle, self.menubuttonactive, self.menubutton
+    if self.audio != None:
+      self.engine.stopmusic()
+    del self.audio, self.sidebar, self.background, self.townini, self.townname, self.engine
 
