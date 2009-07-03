@@ -42,6 +42,7 @@ class BattleScene(Layer):
 
     self.engine = GameEngine
     self.party = []
+    self.partyko = []
     for i, partymember in enumerate(self.engine.party):
       self.party.append(Player(partymember))
       
@@ -66,6 +67,9 @@ class BattleScene(Layer):
     self.hpback = self.engine.loadImage(os.path.join("Data", "hpbarback.png"))
 
     self.hud = self.engine.loadImage(os.path.join("Data", "battlehud.png"))
+    self.hudhighlight = self.engine.loadImage(os.path.join("Data", "battlehighlight.png"))
+    self.hudhighlightactive = self.engine.loadImage(os.path.join("Data", "battlehighlightactive.png"))
+
     self.attackcb = self.engine.loadImage(os.path.join("Data", "battlecirclebottom.png"))
     self.attackct = self.engine.loadImage(os.path.join("Data", "battlecircletop.png"))
 
@@ -87,6 +91,11 @@ class BattleScene(Layer):
     self.activemember = None
     self.roll = 1
     self.playertargeted = 0
+
+    self.multiplier = 100.0
+    self.bonusbar = self.engine.loadImage(os.path.join("Data", "bonusbar.png"))
+    self.bonusbarfill = self.engine.loadImage(os.path.join("Data", "bonusbarfill.png"))
+    self.bonusbarback = self.engine.loadImage(os.path.join("Data", "bonusbarback.png"))
 
     GameEngine.resetKeyPresses()
 
@@ -226,7 +235,6 @@ class BattleScene(Layer):
     self.battle = True
     self.roll = 0
     self.displaydamage = 0
-    self.playertargeted = random.randint(0, len(self.party)-1)
 
   def update(self):
 
@@ -237,10 +245,20 @@ class BattleScene(Layer):
     if self.fade == True:
       self.engine.screenfade((150,150,150,175))
     self.engine.drawImage(self.enemysprite, (int(self.enemy.coord[0]), int(self.enemy.coord[1])))
+    self.engine.drawImage(self.hud, (225,500), scale = (450, 280))
+
+    self.engine.drawImage(self.bonusbarback, (50, 208), scale = (30,245))
+    self.engine.drawBar(self.bonusbarfill, (50, 88), scale = (30,245), barcrop = (float(self.multiplier)/float(100.0)), direction = "Horizontal")
+    self.engine.drawImage(self.bonusbar, (50, 195), scale = (100,290))
 
     for i, player in enumerate(self.party):
       if player.currenthp <= 0:
         player.currenthp = 0
+
+      if self.activemember == i:
+        self.engine.drawImage(self.hudhighlightactive, (225,383+(i*30)), scale = (450, 28))
+      else:
+        self.engine.drawImage(self.hudhighlight, (225,383+(i*30)), scale = (450, 28))
 
       self.engine.drawBar(self.atbback, (10, 390+(i*30)), scale = (200,6))
       self.engine.drawBar(self.atb, (10, 390+(i*30)), scale = (200,6), barcrop = (float(player.currentatb)/int(300)))
@@ -257,7 +275,10 @@ class BattleScene(Layer):
       self.engine.renderFont("default.ttf", str(player.currentsp) + "/" + str(player.sp), (430, 380+(i*30)), size = 18, flags = "Shadow", alignment = 2)
       self.engine.renderFont("default.ttf", "SP", (335, 380+(i*30)), size = 18, flags = "Shadow", alignment = 1)
 
-      self.engine.renderFont("default.ttf", str(player.name), (10, 380+(i*30)), size = 18, flags = "Shadow", alignment = 1)
+      if player.knockedout == True:
+        self.engine.renderFont("default.ttf", str(player.name), (10, 380+(i*30)), size = 18, flags = "Shadow", alignment = 1, color = (255,0,0))
+      else:
+        self.engine.renderFont("default.ttf", str(player.name), (10, 380+(i*30)), size = 18, flags = "Shadow", alignment = 1)
 
     for key, char in GameEngine.getKeyPresses():
       if key == K_SPACE and self.battle == True:
@@ -273,33 +294,58 @@ class BattleScene(Layer):
         self.barframe = 1
 
       for i, player in enumerate(self.party):
-        if player.currentatb < 300 and self.enemy.currentatb < 300:
+        if player.currentatb <= 300:
           if (self.activemember == None and self.engine.battlemode == "wait") or self.engine.battlemode == "active":
             div = random.randint(4, 7)
-            player.currentatb += (player.spd/div)
-            self.enemy.currentatb += (self.enemy.spd/div)
-        elif player.currentatb >= 300:
-          if (self.activemember == None and self.engine.battlemode == "active") or self.engine.battlemode == "wait":
+            if player.currentatb < 300 and player not in self.partyko:
+              player.currentatb += (player.spd/div)
+            elif player in self.partyko:
+              player.currentatb = 0
+            if self.multiplier > 0.0:
+              self.multiplier -= 0.05
+        if player.currentatb >= 300:
+          if self.activemember == None:
             player.currentatb = 300
             self.activemember = i
-        elif self.enemy.currentatb >= 300:
+        if self.activemember == i and player in self.partyko:
+          self.activemember = None
+
+      if self.enemy.currentatb < 300:
+        self.enemy.currentatb += (self.enemy.spd/div)
+      if self.enemy.currentatb >= 300:
+        self.playertargeted = random.randint(0, len(self.party)-1)
+        if self.party[self.playertargeted] not in self.partyko:
           self.enemybattlecommand()
+
+      for player in self.party:
+        if player.currenthp == 0:
+          player.knockedout = True
+          if player not in self.partyko:
+            self.partyko.append(player)
+            
+      if len(self.party) == len(self.partyko):
+        pass
 
       if self.enemy.currenthp > 0:
         self.fade = False
         if self.activemember != None:
           for i, choice in enumerate(commands):
-            button = self.engine.drawImage(self.button, coord= (550, 340 + (30*i)), scale = (150,25))
+            button = self.engine.drawImage(self.button, coord= (550, 365 + (25*i)), scale = (160,25))
             active, flag = self.engine.mousecol(button)
             if active == True:
-              button = self.engine.drawImage(self.buttonactive, coord= (550, 340 + (30*i)), scale = (150,25))
+              button = self.engine.drawImage(self.buttonactive, coord= (535, 365 + (25*i)), scale = (160,25))
+              buttonfont = self.engine.renderFont("default.ttf", choice, (535, 365 + (25*i)))
               if flag == True: 
                 if i < 3: #this is temporary until the item system is implemented
                   self.playercommand = i+1
                   self.battlecommand(i)
                 elif i == 4:
                   for player in self.party:
-                    player.playerini.player.__setattr__("currenthp", player.currenthp)
+                    if player.knockedout == True:
+                      player.playerini.player.__setattr__("currenthp", int(1))
+                      player.knockedout = False
+                    else:
+                      player.playerini.player.__setattr__("currenthp", player.currenthp)
                     player.playerini.player.__setattr__("currentsp", player.currentsp)
                     player.playerini.player.__setattr__("monsterskilled", player.monsterskilled + 1)
                     player.playerini.save()
@@ -307,17 +353,21 @@ class BattleScene(Layer):
                   View.removescene(self)
                   View.addscene(Maplist())
                   GameEngine.enemy = None
-
-            buttonfont = self.engine.renderFont("default.ttf", choice, (550, 340 + (30*i)))
+            else:
+              buttonfont = self.engine.renderFont("default.ttf", choice, (550, 365 + (25*i)))
 
       else:
         for player in self.party:
-          player.playerini.player.__setattr__("currenthp", player.currenthp)
+          if player.knockedout == True:
+            player.playerini.player.__setattr__("currenthp", int(1))
+            player.knockedout = False
+          else:
+            player.playerini.player.__setattr__("currenthp", player.currenthp)
           player.playerini.player.__setattr__("currentsp", player.currentsp)
           player.playerini.player.__setattr__("monsterskilled", player.monsterskilled + 1)
           player.playerini.save()
         View.removescene(self)
-        View.addscene(VictoryScene())
+        View.addscene(VictoryScene(75.0 + self.multiplier))
 
     else:
       self.fade = True
@@ -351,7 +401,7 @@ class VictoryScene(Layer):
 
     self.background = self.engine.loadImage(os.path.join("Data", "characterbackground.png"))
 
-    self.enemyexp = int((self.enemy.exp/len(self.party))*multiplier)
+    self.enemyexp = int((self.enemy.exp/len(self.party))*(multiplier/100))
     self.enemylvl = self.enemy.lvl
 
 
@@ -370,11 +420,7 @@ class VictoryScene(Layer):
         elif self.countdownexp == True and self.enemyexp > 0:
           self.finishupcounting = True
         elif self.countdownexp == True and self.enemyexp == 0:
-          for i, player in enumerate(self.party):
-            if player.exp >= player.explvl:
-              self.levelup[i] = "True"
-            else:
-              self.finished = True
+          self.finished = True
 
     self.engine.drawImage(self.background, (320,240), scale = (640,480))
 
@@ -417,6 +463,7 @@ class VictoryScene(Layer):
       for player in self.party:
         player.playerini.player.__setattr__("exp", player.exp)
         player.playerini.save()
+        player.knockedout = False
       from Maplist import Maplist
       View.removescene(self)
       View.addscene(Maplist())
@@ -424,4 +471,3 @@ class VictoryScene(Layer):
   def clearscene(self):
     del self.levelup, self.finished, self.finishupcounting, self.countdownexp, self.enemylvl
     del self.enemyexp, self.background, self.barback, self.expbar, self.engine
-

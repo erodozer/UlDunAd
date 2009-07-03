@@ -70,7 +70,7 @@ class Drawing(pygame.sprite.Sprite):
     image = pygame.image.load(ImgData).convert_alpha()
     return image
     
-  def drawImage(self, image, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", opacity = 255):
+  def drawImage(self, image, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal"):
     pygame.sprite.Sprite.__init__(self)
 
     if scale != None:
@@ -88,8 +88,6 @@ class Drawing(pygame.sprite.Sprite):
       end = (width/frames)
       image = image.subsurface((start, 0, end, height))
       width,height = image.get_size()
-
-    image.set_alpha(opacity)
 
     rect = image.get_rect(topleft=(coord[0] - width/2, coord[1]-height/2))
 
@@ -122,7 +120,10 @@ class Drawing(pygame.sprite.Sprite):
 
     rect = image.get_rect(topleft=(coord[0], coord[1]-height/2))
 
-    screen.blit(image, (coord[0], coord[1]-height/2))
+    if direction == "Vertical":
+      screen.blit(image, (coord[0], coord[1]-height/2))
+    else:
+      screen.blit(image, (coord[0]-width/2, coord[1]))
 
     return rect
 
@@ -130,8 +131,8 @@ def loadImage(ImgData):
   image = Drawing().loadImage(ImgData)
   return image
 
-def drawImage(ImgData, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", opacity = 50):
-  rect = Drawing().drawImage(ImgData, coord, scale, rot, frames, currentframe, direction, opacity)
+def drawImage(ImgData, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal"):
+  rect = Drawing().drawImage(ImgData, coord, scale, rot, frames, currentframe, direction)
   return rect
 
 def drawBar(ImgData, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
@@ -148,23 +149,18 @@ def loadAudio(AudioFile, queue = False):
 def stopmusic():
   pygame.mixer.music.stop()
 
-def renderFont(font, text, coord = (w/2,h/2), size = 12, flags = None, alignment = 0, opacity = 255):
+def renderFont(font, text, coord = (w/2,h/2), size = 12, flags = None, alignment = 0, color = (255,255,255)):
   textfont = pygame.font.Font(os.path.join("Data", font), size)
   width, height = textfont.size(text)
-  if flags == "Shadow" or flags == "Soft Shadow":
+  if flags == "Shadow":
     renderedfont = textfont.render(text, True, (0,0,0))
-    if flags == "Shadow":
-      renderedfont.set_alpha((opacity*255)/255)
-    elif flags == "Soft Shadow":
-      renderedfont.set_alpha((opacity*50)/255)
     if alignment == 1:
       screen.blit(renderedfont, ((coord[0])+2, (coord[1]-height/2)+2))
     elif alignment == 2:
       screen.blit(renderedfont, ((coord[0] - width)+2, (coord[1]-height/2)+2))
     else:
       screen.blit(renderedfont, ((coord[0] - width/2)+2, (coord[1]-height/2)+2))
-  renderedfont = textfont.render(text, True, (255,255,255))
-  renderedfont.set_alpha(opacity)
+  renderedfont = textfont.render(text, True, color)
   if alignment == 1:
     screen.blit(renderedfont, (coord[0], coord[1]-height/2))
   elif alignment == 2:

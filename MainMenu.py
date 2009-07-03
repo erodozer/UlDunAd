@@ -25,7 +25,6 @@ import GameEngine
 
 import View
 from View import *
-import Menu
       
 class MainMenu:
   def __init__(self):
@@ -34,12 +33,40 @@ class MainMenu:
     #self.engine.drawImage(os.path.join("Data", "mapmenu.png"))
     #self.audio = self.engine.loadAudio("Town001.mp3")
     self.choices = ["New Game", "Continue", "Quit"]
-    self.button, self.buttonactive = Menu.initMenu(os.path.join("Data", "defaultbutton.png"), os.path.join("Data", "defaultbuttonactive.png"))
+    self.button = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
+    self.buttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
   def update(self):
     #self.engine.drawImage(self.background)
-    self.menu = Menu.drawMainMenu(self, self.choices, self.button, self.buttonactive)
+    w, h = self.engine.w, self.engine.h
     self.engine.renderMultipleFont("default.ttf", ("Welcome to", "Ultimate Dungeon Adventure"), coord = (320, 100), size = 24)
 
+    for i, choice in enumerate(self.choices):
+      button = GameEngine.drawImage(self.button, coord= (220, 200+(60*i)), scale = (150,45))
+      active, flag = GameEngine.mousecol(button)
+      if active == True:
+        button = GameEngine.drawImage(self.buttonactive, coord= (220, 200+(60*i)), scale = (150,45))
+        if flag == True:
+          if i == 0:
+            from CharacterCreator import CharacterCreator
+            View.removescene(self)
+            View.addscene(CharacterCreator())
+          if i == 1:
+            playerpath = os.path.join("Data", "Players")
+            players = []
+            allplayers = os.listdir(playerpath)
+            for name in allplayers:
+              if os.path.splitext(name)[1].lower() == ".ini":
+                players.append(name)
+
+            if players != []:
+              from Playerlist import Playerlist
+              View.removescene(self)
+              View.addscene(Playerlist())
+
+          elif i == 2:
+             GameEngine.finished = True
+      buttonfont = GameEngine.renderFont("default.ttf", str(choice), (220, 200+(60*i)))
+
   def clearscene(self):
-    del self.menu, self.button, self.buttonactive, self.engine, self.choices
+    del self.button, self.buttonactive, self.engine, self.choices

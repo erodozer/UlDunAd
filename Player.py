@@ -57,6 +57,7 @@ class Player:
     #these are very important for battle
     self.currentatb = 0
     self.defending = False
+    self.knockedout = False
 
     #these numbers are for testing reasons, uncomment them if you require it
     #self.name = "AAAAAAAAAAAA"
