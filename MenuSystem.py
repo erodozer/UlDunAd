@@ -25,7 +25,6 @@ import GameEngine
 
 import View
 from View import *
-import Menu
 
 from Player import Player
 

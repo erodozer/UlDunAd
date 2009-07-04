@@ -24,8 +24,6 @@ import GameEngine
 import View
 from View import *
 
-import Menu
-
 class Playerlist(Layer):
   def __init__(self):
     self.engine = GameEngine

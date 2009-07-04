@@ -438,9 +438,7 @@ class VictoryScene(Layer):
         if self.enemyexp > 0:
           if self.finishupcounting == True:
             playerexp += self.enemyexp
-            self.enemyexp = 0
           else:
-            self.enemyexp -= 1
             player.exp += 1
         else:
           self.enemyexp = 0
@@ -458,6 +456,16 @@ class VictoryScene(Layer):
           player.playerini.player.__setattr__("currenthp", player.hp)
           player.playerini.player.__setattr__("currenthp", player.sp)
           self.levelup[i] = "False"
+
+    if self.countdownexp == True:
+      if self.enemyexp > 0:
+        if self.finishupcounting == True:
+          self.enemyexp = 0
+        else:
+          self.enemyexp -= 1
+      else:
+        self.enemyexp = 0
+        self.countdown = False
 
     if self.finished == True:
       for player in self.party:

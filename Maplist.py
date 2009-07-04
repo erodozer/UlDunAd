@@ -24,7 +24,6 @@ import GameEngine
 import View
 from View import *
 
-import Menu
 import random
 
 class Maplist(Layer):

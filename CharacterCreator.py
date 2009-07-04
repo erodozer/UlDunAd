@@ -23,7 +23,6 @@
 import GameEngine
 
 from View import *
-import Menu
 
 import Config
 
