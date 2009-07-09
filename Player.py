@@ -38,10 +38,18 @@ class Player:
     for i, num in enumerate(self.levelcurve):
       self.levelcurve[i] = float(num)
     self.lvl = self.playerini.player.__getattr__("lvl", "int")
+
     self.hp = self.raceini.__getattr__("hp", "int") + int(self.levelcurve[0]*(self.lvl-1))
     self.currenthp = self.playerini.player.__getattr__("currenthp", "int")
+    if self.currenthp > self.hp:
+      self.currenthp = self.hp
+      self.playerini.save()
     self.sp = self.raceini.__getattr__("sp", "int") + int(self.levelcurve[1]*(self.lvl-1))
     self.currentsp = self.playerini.player.__getattr__("currentsp", "int")
+    if self.currentsp > self.sp:
+      self.currentsp = self.sp
+      self.playerini.save()
+
     self.atk = self.raceini.__getattr__("atk", "int") + int(self.levelcurve[2]*(self.lvl-1))
     self.defn = self.raceini.__getattr__("defn", "int") + int(self.levelcurve[3]*(self.lvl-1))
     self.spd = self.raceini.__getattr__("spd", "int") + int(self.levelcurve[4]*(self.lvl-1))
@@ -53,6 +61,7 @@ class Player:
     self.explvl = 15*int(self.lvl**2)
     self.inventory = self.playerini.player.__getattr__("inventory").split(", ")
     self.monsterskilled = self.playerini.player.__getattr__("monsterskilled", "int")
+    self.spells = self.playerini.player.__getattr__("spells")
 
     #these are very important for battle
     self.currentatb = 0

@@ -26,6 +26,8 @@ from View import *
 
 import Config
 
+import random
+
 class Towns(Layer):
   def __init__(self):
 
@@ -55,39 +57,41 @@ class Towns(Layer):
     else:
       self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
+    self.enemies = self.townini.enemylist.split(", ")
 
   def update(self):
     self.engine.drawImage(self.background, scale = (640,480))
     self.engine.drawImage(self.sidebar, coord = (100, 240))
 
     for i, choice in enumerate(self.choices):
-      button = self.engine.drawImage(self.menubutton, coord= (100, 90+(60*i)), scale = (150,45))
-      active, flag = self.engine.mousecol(button)
+      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (100, 90+(60*i)), scale = (150,45))
       if active == True:
-        button = self.engine.drawImage(self.menubuttonactive, coord= (100, 90+(60*i)), scale = (150,45))
         if flag == True:
           if choice == "Library" or choice == "library":
             from Library import Library
             View.removescene(self)
             View.addscene(Library())
+          elif choice == "Wilderness" or choice == "wilderness":
+            GameEngine.enemy = str(random.choice(self.enemies)+".ini")
+            from BattleScene import BattleScene
+            View.removescene(self)
+            View.addscene(BattleScene(self.townini.terrain))
           else:
             choiceini = Config.Configuration(os.path.join("Data", "Towns", self.townname, choice+".ini"))
-            if choiceini.townchoice.type == "Shop":
-              from Shop import Shop
-              View.removescene(self)
-              View.addscene(Shop(choiceini))
+            from Shop import Shop
+            View.removescene(self)
+            View.addscene(Shop(choiceini))
 
       buttonfont = self.engine.renderFont("default.ttf", choice, (100, 90+(60*i)))
 
     #return button
-    returnbutton = self.engine.drawImage(self.menubutton, coord= (100, 420), scale = (150,45))
-    active, flag = self.engine.mousecol(returnbutton)
+    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (100, 420), scale = (150,45))
     if active == True:
-      returnbutton = self.engine.drawImage(self.menubuttonactive, coord= (100, 420), scale = (150,45))
       if flag == True:
         from Maplist import Maplist
         View.removescene(self)
         View.addscene(Maplist())
+        self.engine.town = None
     returnfont = self.engine.renderFont("default.ttf", "Return", (100, 420))
 
     self.towntitle = self.engine.renderFont("menu.ttf", self.townname, (430, 64), size = 32)

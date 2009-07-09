@@ -34,20 +34,20 @@ class Shop(Layer):
 
     self.engine.loadImage(os.path.join("Data", "menubackground.png"))
 
-    self.engine.renderFont("arial.ttf", "Welcome", (480,48), size = 32)
     self.choices = ["Buy", "Sell", "Exit"]
 
     self.selectedchoice = 0
 
     self.items = self.shopini.townchoice.__getattr__("items").split(", ")
 
+    self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
+    self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
   def update(self):
     if self.selectedchoice == 0:
+      self.engine.renderFont("default.ttf", "Welcome", (480,48), size = 32)
       for i, choice in enumerate(self.choices):
-        button = self.engine.drawImage(os.path.join("Data", "menubutton.png"), coord= (95 +(200*i), 400), scale = (150,45))
-        active, flag = self.engine.mousecol(button)
+        active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord = (95 + (200*i), 400), scale = (150, 45))
         if active == True:
-          button = self.engine.drawImage(os.path.join("Data", "menubuttonactive.png"), coord= (95 +(200*i), 400), scale = (150,45))
           if flag == True:
             if i == 0:
               pass

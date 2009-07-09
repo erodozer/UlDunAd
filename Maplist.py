@@ -45,9 +45,6 @@ class Maplist(Layer):
         self.maps.append(name)
 
     self.index = 0
-  def update(self):
-    self.engine.drawImage(self.background)
-    self.engine.drawImage(self.background2)
 
     enemypath = os.path.join("Data", "Enemies")
     self.enemies = []
@@ -55,6 +52,17 @@ class Maplist(Layer):
     for name in allenemies:
       if os.path.splitext(name)[1].lower() == ".ini":
         self.enemies.append(name)
+
+    terrainspath = os.path.join("Data", "Terrains")
+    self.terrains = []
+    allterrains = os.listdir(terrainspath)
+    for name in allterrains:
+      if os.path.splitext(name)[1].lower() == ".png" or os.path.splitext(name)[1].lower() == ".jpg":
+        self.terrains.append(os.path.splitext(name)[0])
+
+  def update(self):
+    self.engine.drawImage(self.background)
+    self.engine.drawImage(self.background2)
 
     if self.index < 0:
       self.index = 0
@@ -64,10 +72,8 @@ class Maplist(Layer):
     maxindex = len(self.maps)
     for i in range(self.index, 7+self.index):
       if i < maxindex:
-        button = self.engine.drawImage(self.button, coord= (320, 64+(48*(i+1))), scale = (200,32))
-        active, flag = self.engine.mousecol(button)
+        active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 64 + (48*(i+1))), scale = (200,32))
         if active == True:
-          button = self.engine.drawImage(self.buttonactive, coord= (320, 64+(48*(i+1))), scale = (200,32))
           if flag == True:
             GameEngine.town = str(self.maps[i])
             from Towns import Towns
@@ -76,41 +82,33 @@ class Maplist(Layer):
           
         buttonfont = self.engine.renderFont("menu.ttf", self.maps[i], (320, 64+(48*(i+1))), size = 24)
 
-    button = self.engine.drawImage(self.button, coord= (320, 64), scale = (200,32))
-    active, flag = self.engine.mousecol(button)
+    active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 64), scale = (200,32))
     if active == True:
-      button = self.engine.drawImage(self.buttonactive, coord= (320, 64), scale = (200,32))
       if flag == True:
         if self.index + 7 < maxindex:
           self.index += 7
     buttonfont = self.engine.renderFont("menu.ttf", "-UP-", (320, 64), size = 24)
 
-    button = self.engine.drawImage(self.button, coord= (320, 432), scale = (200,32))
-    active, flag = self.engine.mousecol(button)
+    active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 432), scale = (200,32))
     if active == True:
-      button = self.engine.drawImage(self.buttonactive, coord= (320, 432), scale = (200,32))
       if flag == True:
         if self.index - 7 >= 0:
           self.index -= 7
     buttonfont = self.engine.renderFont("menu.ttf", "-DOWN-", (320, 432), size = 24)
 
     #activate beta battlescene
-    button = self.engine.drawImage(self.menubutton, coord= (530, 425), scale = (150,45))
-    active, flag = self.engine.mousecol(button)
+    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (530, 425), scale = (150,45))
     if active == True:
-      button = self.engine.drawImage(self.menubuttonactive, coord= (530, 425), scale = (150,45))
       if flag == True:
         GameEngine.enemy = str(random.choice(self.enemies))
         from BattleScene import BattleScene
         View.removescene(self)
-        View.addscene(BattleScene())
+        View.addscene(BattleScene(str(random.choice(self.terrains))))
     buttonfont = self.engine.renderFont("default.ttf", "Random Battle", (530, 425))
 
     #activate beta menu scene
-    button = self.engine.drawImage(self.menubutton, coord= (110, 425), scale = (150,45))
-    active, flag = self.engine.mousecol(button)
+    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (110, 425), scale = (150,45))
     if active == True:
-      button = self.engine.drawImage(self.menubuttonactive, coord= (110, 425), scale = (150,45))
       if flag == True:
         from MenuSystem import MenuSystem
         View.removescene(self)

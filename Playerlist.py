@@ -67,10 +67,8 @@ class Playerlist(Layer):
     for i in range(self.index, 7+self.index):
       if i < maxindex:
 
-        button = self.engine.drawImage(self.button, coord= (320, 64+(48*(i+1))), scale = (200,32))
-        active, flag = self.engine.mousecol(button)
+        active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 64 + (48*(i+1))), scale = (200,32))
         if active == True and self.selecting == True:
-          button = self.engine.drawImage(self.buttonactive, coord= (320, 64+(48*(i+1))), scale = (200,32))
           if flag == True:
             if len(self.partybuilt) < 3:
               if self.partybuilt.count(str(self.players[i]+".ini")) == 0:
@@ -90,29 +88,23 @@ class Playerlist(Layer):
     if self.flag == True:
       self.engine.renderFont("menu.ttf", "That character is already in your party!", (320, 32), size = 24)
 
-    button = self.engine.drawImage(self.button, coord= (320, 64), scale = (200,32))
-    active, flag = self.engine.mousecol(button)
+    active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 64), scale = (200,32))
     if active == True and self.selecting == True:
-      button = self.engine.drawImage(self.buttonactive, coord= (320, 64), scale = (200,32))
       if flag == True:
         if self.index + 7 < maxindex:
           self.index += 7
     buttonfont = self.engine.renderFont("menu.ttf", "-UP-", (320, 64), size = 24)
 
-    button = self.engine.drawImage(self.button, coord= (320, 432), scale = (200,32))
-    active, flag = self.engine.mousecol(button)
+    active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 432), scale = (200,32))
     if active == True and self.selecting == True:
-      button = self.engine.drawImage(self.buttonactive, coord= (320, 432), scale = (200,32))
       if flag == True:
         if self.index - 7 >= 0:
           self.index -= 7
     buttonfont = self.engine.renderFont("menu.ttf", "-DOWN-", (320, 432), size = 24)
 
     if self.partyactive == True and self.partybuilding == True and len(self.partybuilt) > 0:
-      button = self.engine.drawImage(self.menubutton, coord= (530, 425), scale = (150,45))
-      active, flag = self.engine.mousecol(button)
+      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (530, 425), scale = (150,45))
       if active == True:
-        button = self.engine.drawImage(self.menubuttonactive, coord= (530, 425), scale = (150,45))
         if flag == True:
           self.donebuilding = True
       buttonfont = self.engine.renderFont("default.ttf", "Done", (530, 425))
@@ -121,12 +113,10 @@ class Playerlist(Layer):
 
       if self.partybuilding == False:
         self.selecting = False
-        self.engine.screenfade((150,150,150,130))
+        self.engine.screenfade((0,0,0,130))
         for i, choice in enumerate(['Yes', 'No']):
-          button = self.engine.drawImage(self.button, coord= (75+(490*i), 200), scale = (100,48))
-          active, flag = self.engine.mousecol(button)
+          active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (75+(490*i), 200), scale = (100,48))
           if active == True:
-            button = self.engine.drawImage(self.buttonactive, coord= (75+(490*i), 200), scale = (100,48))
             if flag == True:
               if i == 0:
                 self.partybuilding = True
@@ -142,12 +132,10 @@ class Playerlist(Layer):
 
       elif self.donebuilding == True:
         self.selecting = False
-        self.engine.screenfade((150,150,150,130))
+        self.engine.screenfade((0,0,0,130))
         for i, choice in enumerate(['Yes', 'No']):
-          button = self.engine.drawImage(self.button, coord= (75+(490*i), 200), scale = (100,48))
-          active, flag = self.engine.mousecol(button)
+          active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (75+(490*i), 200), scale = (100,48))
           if active == True:
-            button = self.engine.drawImage(self.buttonactive, coord= (75+(490*i), 200), scale = (100,48))
             if flag == True:
               if i == 0:
                 GameEngine.party = self.partybuilt

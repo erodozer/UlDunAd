@@ -29,7 +29,7 @@ from View import *
 class MainMenu:
   def __init__(self):
     self.engine = GameEngine
-    #self.background = self.engine.loadImage(os.path.join("Data", "menubackground.png"))
+    self.background = self.engine.loadImage(os.path.join("Data", "mainbackground.png"))
     #self.engine.drawImage(os.path.join("Data", "mapmenu.png"))
     #self.audio = self.engine.loadAudio("Town001.mp3")
     self.choices = ["New Game", "Continue", "Quit"]
@@ -37,15 +37,12 @@ class MainMenu:
     self.buttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
   def update(self):
-    #self.engine.drawImage(self.background)
+    self.engine.drawImage(self.background, scale = (640,480))
     w, h = self.engine.w, self.engine.h
-    self.engine.renderMultipleFont("default.ttf", ("Welcome to", "Ultimate Dungeon Adventure"), coord = (320, 100), size = 24)
 
     for i, choice in enumerate(self.choices):
-      button = GameEngine.drawImage(self.button, coord= (220, 200+(60*i)), scale = (150,45))
-      active, flag = GameEngine.mousecol(button)
+      active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (90 + (30*i), 300 + (60*i)), scale = (150,45))
       if active == True:
-        button = GameEngine.drawImage(self.buttonactive, coord= (220, 200+(60*i)), scale = (150,45))
         if flag == True:
           if i == 0:
             from CharacterCreator import CharacterCreator
@@ -66,7 +63,7 @@ class MainMenu:
 
           elif i == 2:
              GameEngine.finished = True
-      buttonfont = GameEngine.renderFont("default.ttf", str(choice), (220, 200+(60*i)))
+      buttonfont = GameEngine.renderFont("default.ttf", str(choice), (90 + (30*i), 300 + (60*i)))
 
   def clearscene(self):
     del self.button, self.buttonactive, self.engine, self.choices

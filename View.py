@@ -81,5 +81,5 @@ def update():
       opacity = 0
     scenes[-1].update()
 
-  GameEngine.screenfade((255,255,255,opacity))
+  GameEngine.screenfade((0,0,0,opacity))
 

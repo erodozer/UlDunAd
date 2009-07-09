@@ -84,7 +84,7 @@ def main():
 
     View.update()
 
-    pygame.display.flip()
+    pygame.display.update()
     GameEngine.resetClick()
 
     fpsClock.tick(FPS)

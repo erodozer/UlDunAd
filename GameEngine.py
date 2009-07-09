@@ -70,7 +70,7 @@ class Drawing(pygame.sprite.Sprite):
     image = pygame.image.load(ImgData).convert_alpha()
     return image
     
-  def drawImage(self, image, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal"):
+  def drawImage(self, image, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", blit = True):
     pygame.sprite.Sprite.__init__(self)
 
     if scale != None:
@@ -91,7 +91,8 @@ class Drawing(pygame.sprite.Sprite):
 
     rect = image.get_rect(topleft=(coord[0] - width/2, coord[1]-height/2))
 
-    screen.blit(image, (coord[0] - width/2, coord[1]-height/2))
+    if blit == True:
+      screen.blit(image, (coord[0] - width/2, coord[1]-height/2))
 
     return rect
 
@@ -138,7 +139,22 @@ def drawImage(ImgData, coord = (w/2, h/2), scale = None, rot = None, frames = 1,
 def drawBar(ImgData, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
   rect = Drawing().drawBar(ImgData, coord, scale, rot, frames, currentframe, direction, barcrop)
   return rect
-       
+
+def drawButton(ImgData, ImgData2, coord = (w/2, h/2), scale = None, rot = None, buttons = 1, index = 1, direction = "Vertical", activeshift = 0):
+
+  whichimgdata = ImgData
+
+  rect = Drawing().drawImage(ImgData, coord, scale, rot, buttons, index, direction, blit = False)
+
+  active = rect.collidepoint(*mousepos)
+  flag = any(rect.collidepoint(clickx, clicky) for clickx, clicky in clicks)
+  if active == True:
+    Drawing().drawImage(ImgData2, (coord[0]+activeshift, coord[1]), scale, rot, buttons, index, direction)
+  else:
+    Drawing().drawImage(ImgData, coord, scale, rot, buttons, index, direction)
+
+  return active, flag
+
 def loadAudio(AudioFile, queue = False):
   if queue == True:
     pygame.mixer.music.queue(os.path.join("Data", "Audio", AudioFile))
@@ -184,18 +200,17 @@ def renderTextbox(font, text, size = 12):
 
 def screenfade(color):
   surface = pygame.Surface((w, h))
-  surface.set_colorkey((color[0],color[1],color[2]))
   alpha = color[3]
   if color[3] < 0:
     alpha = 0
   elif color[3] > 255:
     alpha = 255
   surface.set_alpha(alpha)
+  surface.fill((color[0],color[1],color[2]))
 
   screen.blit(surface,(0,0))
 
 def mousecol(rect): #for use in a scene's update command
-
   active = rect.collidepoint(*mousepos)
   flag = any(rect.collidepoint(clickx, clicky) for clickx, clicky in clicks)
 
