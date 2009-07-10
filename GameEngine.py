@@ -70,14 +70,11 @@ class Drawing(pygame.sprite.Sprite):
     image = pygame.image.load(ImgData).convert_alpha()
     return image
     
-  def drawImage(self, image, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", blit = True):
+  def drawImage(self, image, coord = (w/2, h/2), scale = None, scaleper = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", blit = True):
     pygame.sprite.Sprite.__init__(self)
 
-    if scale != None:
-      image = pygame.transform.smoothscale(image, (scale[0], scale[1]))
-    if rot != None:
-      image = pygame.transform.rotate(image, rot)
     width,height = image.get_size()
+
     if direction == "Vertical":
       start = (int(currentframe)-1)*(height/frames)
       end = (height/frames)
@@ -87,6 +84,16 @@ class Drawing(pygame.sprite.Sprite):
       start = (int(currentframe)-1)*(width/frames)
       end = (width/frames)
       image = image.subsurface((start, 0, end, height))
+      width,height = image.get_size()
+
+    if rot != None:
+      image = pygame.transform.rotate(image, rot)
+      width,height = image.get_size()
+    if scale != None:
+      image = pygame.transform.smoothscale(image, (scale[0], scale[1]))
+      width,height = image.get_size()
+    if scaleper != None:
+      image = pygame.transform.smoothscale(image, (int(width*scaleper/100), int(height*scaleper/100)))
       width,height = image.get_size()
 
     rect = image.get_rect(topleft=(coord[0] - width/2, coord[1]-height/2))
@@ -99,14 +106,16 @@ class Drawing(pygame.sprite.Sprite):
   def drawBar(self, image, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
     pygame.sprite.Sprite.__init__(self)
 
+    if barcrop > 1:
+      barcrop = 1
+
     if scale != None:
       image = pygame.transform.smoothscale(image, (scale[0], scale[1]))
     if rot != None:
       image = pygame.transform.rotate(image, rot)
-    width,height = image.get_size()
+      width,height = image.get_size()
 
-    if barcrop > 1:
-      barcrop = 1
+    width,height = image.get_size()
 
     if direction == "Vertical":
       start = (int(currentframe)-1)*(height/frames)
@@ -132,8 +141,8 @@ def loadImage(ImgData):
   image = Drawing().loadImage(ImgData)
   return image
 
-def drawImage(ImgData, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal"):
-  rect = Drawing().drawImage(ImgData, coord, scale, rot, frames, currentframe, direction)
+def drawImage(ImgData, coord = (w/2, h/2), scale = None, scaleper = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", blit = True):
+  rect = Drawing().drawImage(ImgData, coord, scale, scaleper, rot, frames, currentframe, direction, blit)
   return rect
 
 def drawBar(ImgData, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
@@ -144,14 +153,14 @@ def drawButton(ImgData, ImgData2, coord = (w/2, h/2), scale = None, rot = None, 
 
   whichimgdata = ImgData
 
-  rect = Drawing().drawImage(ImgData, coord, scale, rot, buttons, index, direction, blit = False)
+  rect = Drawing().drawImage(ImgData, coord, scale, 100, rot, buttons, index, direction, blit = False)
 
   active = rect.collidepoint(*mousepos)
   flag = any(rect.collidepoint(clickx, clicky) for clickx, clicky in clicks)
   if active == True:
-    Drawing().drawImage(ImgData2, (coord[0]+activeshift, coord[1]), scale, rot, buttons, index, direction)
+    Drawing().drawImage(ImgData2, (coord[0]+activeshift, coord[1]), scale, 100, rot, buttons, index, direction)
   else:
-    Drawing().drawImage(ImgData, coord, scale, rot, buttons, index, direction)
+    Drawing().drawImage(ImgData, coord, scale, 100, rot, buttons, index, direction)
 
   return active, flag
 

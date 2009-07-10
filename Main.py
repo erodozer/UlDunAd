@@ -44,7 +44,11 @@ def main():
 
   os.environ['SDL_VIDEO_WINDOW_POS'] = 'center'
 
+
   window = pygame.display.set_mode((GameEngine.w,GameEngine.h), video_flags)
+
+  icon = pygame.image.load('uldunadicon.png').convert_alpha()
+  pygame.display.set_icon(icon)
 
   GameEngine.screen = window
 

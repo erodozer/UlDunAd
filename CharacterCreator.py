@@ -70,32 +70,29 @@ class CharacterCreator(Layer):
   def TypeName(self):
     self.engine.drawImage(os.path.join(self.background), scale = (640,480))
     name = string.join(self.name, '')
-    namefont = self.engine.renderFont("default.ttf", name, (320 , 96), size = 32)
+    for i, char in enumerate(self.name):
+      self.engine.renderFont("default.ttf", char, (112 + i*34, 72), size = 32)
+    for i in range(0, 13): 
+      self.engine.renderFont("default.ttf", "_", (112 + i*34, 77), size = 32)
 
     for i in range(0,26):
-      button = self.engine.drawImage(self.textbutton, coord= (218 + (36*(i%9)) , 164+(36*(i/9))), scale = (32,32))
-      active, flag = self.engine.mousecol(button)
+      active, flag = self.engine.drawButton(self.textbutton, self.textbuttonactive, coord= (218 + (36*(i%9)) , 164+(36*(i/9))), scale = (32,32))
       if active == True:
-        button = self.engine.drawImage(self.textbuttonactive, coord= (218 + (36*(i%9)) , 164+(36*(i/9))), scale = (32,32))
-        if flag == True:
+        if flag == True and len(self.name) < 13:
           self.name.append(chr(97+i).upper())
 
       buttonfont = self.engine.renderFont("default.ttf", chr(97+i).upper(), (218 + (36*(i%9)) , 164+(36*(i/9))), size = 24)
 
-      button = self.engine.drawImage(self.textbutton, coord= (218 + (36*(i%9)) , 272+(36*(i/9))), scale = (32,32))
-      active, flag = self.engine.mousecol(button)
+      active, flag = self.engine.drawButton(self.textbutton, self.textbuttonactive, coord= (218 + (36*(i%9)) , 272+(36*(i/9))), scale = (32,32))
       if active == True:
-        button = self.engine.drawImage(self.textbuttonactive, coord= (218 + (36*(i%9)) , 272+(36*(i/9))), scale = (32,32))
-        if flag == True:
+        if flag == True and len(self.name) < 13:
           self.name.append(chr(97+i))
 
       buttonfont = self.engine.renderFont("default.ttf", chr(97+i), (218 + (36*(i%9)) , 272+(36*(i/9))), size = 24)
 
     for i, choice in enumerate(self.othercommands):
-      button = self.engine.drawImage(self.textbutton, coord= (90, 186 + (76*i)), scale = (150,44))
-      active, flag = self.engine.mousecol(button)
+      active, flag = self.engine.drawButton(self.textbutton, self.textbuttonactive, coord= (90, 186 + (76*i)), scale = (150,44))
       if active == True:
-        button = self.engine.drawImage(self.textbuttonactive, coord= (90, 186 + (76*i)), scale = (150,44))
         if flag == True:
           if i == 0:
             self.name = []
@@ -110,10 +107,8 @@ class CharacterCreator(Layer):
       buttonfont = self.engine.renderFont("default.ttf", str(choice), (90, 186 + (76*i)), size = 24)
 
     for i in range(0,2):
-      button = self.engine.drawImage(self.textbutton, coord= (218+(36*8), 236 + (108*i)), scale = (32,32))
-      active, flag = self.engine.mousecol(button)
+      active, flag = self.engine.drawButton(self.textbutton, self.textbuttonactive, coord= (218+(36*8), 236 + (108*i)), scale = (32,32))
       if active == True:
-        button = self.engine.drawImage(self.textbuttonactive, coord= (218+(36*8), 236 + (108*i)), scale = (32,32))
         if flag == True:
           self.name.append(" ")
       buttonfont = self.engine.renderFont("default.ttf", "_", (218+(36*8), 236 + (108*i)), size = 24)
@@ -140,18 +135,14 @@ class CharacterCreator(Layer):
       if os.path.splitext(name)[1].lower() == ".ini":
         self.races.append(name)
 
-    button = self.races
-    buttonfont = self.races
-
     for i, choice in enumerate(self.races):
-      button[i] = self.engine.drawImage(self.racebutton, coord= (320, 64+(48*i)), scale = (200,32))
-      active, flag = self.engine.mousecol(button[i])
+      active, flag = self.engine.drawButton(self.racebutton, self.racebuttonactive, coord= (90, 130), scale = (200,32))
       if active == True:
-        button[i] = self.engine.drawImage(self.racebuttonactive, coord= (320, 64+(48*i)), scale = (200,32))
-      if flag == True:
-        self.race = choice
-        self.racechooser = False
-      buttonfont[i] = self.engine.renderFont("menu.ttf", str(choice.split(".ini")[0]), (320, 64+(48*i)), size = 24)  
+        button = self.engine.drawImage(self.racebuttonactive, coord= (320, 64+(48*i)), scale = (200,32))
+        if flag == True:
+          self.race = choice
+          self.racechooser = False
+      buttonfont = self.engine.renderFont("menu.ttf", str(choice.split(".ini")[0]), (320, 64+(48*i)), size = 24)  
    
   def update(self):
     self.engine.drawImage(os.path.join(self.background), scale = (640,480))
@@ -161,10 +152,8 @@ class CharacterCreator(Layer):
     elif self.racechooser == True:
       self.drawRaceMenu()
     else:
-      button = self.engine.drawImage(self.menubutton, coord= (90, 130), scale = (150,45))
-      active, flag = self.engine.mousecol(button)
+      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (90, 130), scale = (150,45))
       if active == True:
-        button = self.engine.drawImage(self.menubuttonactive, coord= (90, 130), scale = (150,45))
         if flag == True:
           self.typingname = True
       buttonfont = self.engine.renderFont("default.ttf", "Change Name", (90, 130))
@@ -176,8 +165,7 @@ class CharacterCreator(Layer):
 
       self.engine.renderFont("default.ttf", "Create A Character", (170, 70), size = 24)
 
-      button = self.engine.drawImage(self.menubutton, coord= (90, 190), scale = (150,45))
-      active, flag = self.engine.mousecol(button)
+      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (90, 190), scale = (150,45))
       if active == True:
         button = self.engine.drawImage(self.menubuttonactive, coord= (90, 190), scale = (150,45))
         if flag == True:
@@ -195,10 +183,8 @@ class CharacterCreator(Layer):
         self.engine.renderFont("default.ttf", str(stat), (280, 240 + (i*32)), size = 24)
 
       name = string.join(self.name, '')
-      button = self.engine.drawImage(self.menubutton, coord= (470, 420), scale = (150,45))
-      active, flag = self.engine.mousecol(button)
+      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (470, 420), scale = (150,45))
       if active == True:
-        button = self.engine.drawImage(self.menubuttonactive, coord= (470, 420), scale = (150,45))
         if flag == True:
           if name != "":
             Config.Configuration(os.path.join("Data", "Players", name + ".ini")).save()
@@ -213,6 +199,7 @@ class CharacterCreator(Layer):
             newconf.player.currentsp = str(raceini.sp)
             newconf.player.monsterskilled = str(0)
             newconf.player.inventory = str('item001, item001, item001, item002, item002')
+            newconf.player.spells = str('')
             newconf.save()
             View.removescene(self)
             GameEngine.party.append(str(name+".ini"))

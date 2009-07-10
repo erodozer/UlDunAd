@@ -72,10 +72,9 @@ class Towns(Layer):
             View.removescene(self)
             View.addscene(Library())
           elif choice == "Wilderness" or choice == "wilderness":
-            GameEngine.enemy = str(random.choice(self.enemies)+".ini")
             from BattleScene import BattleScene
             View.removescene(self)
-            View.addscene(BattleScene(self.townini.terrain))
+            View.addscene(BattleScene(self.townini.terrain, str(random.choice(self.enemies)+".ini")))
           else:
             choiceini = Config.Configuration(os.path.join("Data", "Towns", self.townname, choice+".ini"))
             from Shop import Shop

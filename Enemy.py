@@ -28,12 +28,11 @@ import os
 import math
 
 class Enemy:
-  def __init__(self):
+  def __init__(self, enemy):
 
-    enemy = GameEngine.enemy
-    self.enemyini = Configuration(os.path.join("Data", "Enemies", enemy)).enemy
+    self.enemyini = Configuration(os.path.join("Data", "Enemies", "Info", enemy + ".ini")).enemy
 
-    self.name = enemy.split(".ini")[0]
+    self.name = enemy
     self.hp = self.enemyini.__getattr__("hp", "int")
     self.sp = self.enemyini.__getattr__("sp", "int")
     self.atk = self.enemyini.__getattr__("atk", "int")
@@ -41,7 +40,6 @@ class Enemy:
     self.spd = self.enemyini.__getattr__("spd", "int")
     self.mag = self.enemyini.__getattr__("mag", "int")
     self.evd = self.enemyini.__getattr__("evd", "int")
-    self.coord = self.enemyini.__getattr__("coord").split(",")
     self.exp = self.enemyini.__getattr__("exp", "int")
     self.lvl = self.enemyini.__getattr__("lvl", "int")
     self.image = self.enemyini.__getattr__("image")
