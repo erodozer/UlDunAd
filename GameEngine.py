@@ -32,7 +32,7 @@ import Config
 if not os.path.exists(os.path.join("uldunad.ini")):
   Config.Configuration(os.path.join("uldunad.ini")).save()
   uldunadini = Config.Configuration(os.path.join("uldunad.ini"))
-  uldunadini.video.__setattr__("resolution", str(640) + str("x") + str(480))
+  uldunadini.video.__setattr__("resolution", str(640) + str("x") + str(480) + str("x") + str("W"))
   uldunadini.audio.__setattr__("volume", str(10))
   uldunadini.audio.__setattr__("battlevolume", str(10))
   uldunadini.audio.__setattr__("townvolume", str(10))
@@ -41,7 +41,7 @@ if not os.path.exists(os.path.join("uldunad.ini")):
 else:
   uldunadini = Config.Configuration(os.path.join("uldunad.ini"))
 
-w, h = uldunadini.video.__getattr__("resolution").split("x")
+w, h, fullscreen = uldunadini.video.__getattr__("resolution").split("x")
 resolution = uldunadini.video.__getattr__("resolution")
 battlemode = uldunadini.gameplay.__getattr__("battlemode")
 volume = uldunadini.audio.__getattr__("volume")
@@ -133,9 +133,83 @@ class Drawing(pygame.sprite.Sprite):
     if direction == "Vertical":
       screen.blit(image, (coord[0], coord[1]-height/2))
     else:
-      screen.blit(image, (coord[0]-width/2, coord[1]))
+      screen.blit(image, (coord[0]-width/2, coord[1]-height))
 
     return rect
+
+class Sound:
+  def loadAudio(self, AudioFile, queue = False):
+    if queue == True:
+      pygame.mixer.music.queue(os.path.join("Data", "Audio", AudioFile))
+    else:
+      pygame.mixer.music.load(os.path.join("Data", "Audio", AudioFile))
+    pygame.mixer.music.play()
+  
+  def stop(self):
+    pygame.mixer.music.stop()
+
+  def volume(self, volume):
+    pygame.mixer.music.set_volume(volume)
+
+class Font:
+  def renderFont(self, font, text, coord = (w/2,h/2), size = 12, flags = None, alignment = 0, color = (255,255,255)):
+    textfont = pygame.font.Font(os.path.join("Data", font), size)
+    width, height = textfont.size(text)
+    if flags == "Shadow":
+      renderedfont = textfont.render(text, True, (0,0,0))
+      if alignment == 1:
+        screen.blit(renderedfont, ((coord[0])+2, (coord[1]-height/2)+2))
+      elif alignment == 2:
+        screen.blit(renderedfont, ((coord[0] - width)+2, (coord[1]-height/2)+2))
+      else:
+        screen.blit(renderedfont, ((coord[0] - width/2)+2, (coord[1]-height/2)+2))
+    renderedfont = textfont.render(text, True, color)
+    if alignment == 1:
+      screen.blit(renderedfont, (coord[0], coord[1]-height/2))
+    elif alignment == 2:
+      screen.blit(renderedfont, (coord[0] - width, coord[1]-height/2))
+    else:
+      screen.blit(renderedfont, (coord[0] - width/2, coord[1]-height/2))
+
+  def renderMultipleFont(self, font, text, coord = (w/2,h/2), size = 12, color = (255,255,255)):
+    textfont = pygame.font.Font(os.path.join("Data", font), size)
+    for i, textline in enumerate(text):
+      width, height = textfont.size(textline)
+      renderedfont = textfont.render(textline, True, color)
+      screen.blit(renderedfont, (coord[0] - width/2, coord[1]-height/2+((size+3)*i)))
+
+  def renderTextbox(self, font, text, size = 12):
+    textbox = Drawing().loadImage(os.path.join("Data", "textbox.png"))
+    Drawing().drawImage(textbox, coord = (320, 400), scale = (w, 160))
+    for i, textline in enumerate(text):
+      self.renderFont(font, textline, coord = (30, 350+((size+3)*i)), size = size, flags = "Soft Shadow", alignment = 1, color = (0,0,0))
+
+  def renderWrapText(self, font, text, coord = (w/2,h/2), size = 12, width = w/2, alignment = 1):
+    x, y = coord
+    sentence = ""
+    lines = 0
+    textfont = pygame.font.Font(os.path.join("Data", font), size)
+
+    for n, word in enumerate(text.split(" ")):
+      w, h = textfont.size(sentence + " " + word)
+      if x + (w/2) > x + width or word == "\n":
+        w, h = textfont.size(sentence)
+        self.renderFont(font, sentence, (x, y), size, alignment = alignment)
+        sentence = word
+        y += h
+        lines += 1
+      else:
+        if sentence == "" or sentence == "\n":
+          sentence = word
+        else:
+          sentence = sentence + " " + word
+    else:
+      w, h = textfont.size(sentence)
+      self.renderFont(font, sentence, (x, y), size, alignment = alignment)
+      y += h
+      lines += 1
+   
+    return lines
 
 def loadImage(ImgData):
   image = Drawing().loadImage(ImgData)
@@ -164,48 +238,18 @@ def drawButton(ImgData, ImgData2, coord = (w/2, h/2), scale = None, rot = None, 
 
   return active, flag
 
-def loadAudio(AudioFile, queue = False):
-  if queue == True:
-    pygame.mixer.music.queue(os.path.join("Data", "Audio", AudioFile))
-  else:
-    pygame.mixer.music.load(os.path.join("Data", "Audio", AudioFile))
-  pygame.mixer.music.play()
-
-def stopmusic():
-  pygame.mixer.music.stop()
-
 def renderFont(font, text, coord = (w/2,h/2), size = 12, flags = None, alignment = 0, color = (255,255,255)):
-  textfont = pygame.font.Font(os.path.join("Data", font), size)
-  width, height = textfont.size(text)
-  if flags == "Shadow":
-    renderedfont = textfont.render(text, True, (0,0,0))
-    if alignment == 1:
-      screen.blit(renderedfont, ((coord[0])+2, (coord[1]-height/2)+2))
-    elif alignment == 2:
-      screen.blit(renderedfont, ((coord[0] - width)+2, (coord[1]-height/2)+2))
-    else:
-      screen.blit(renderedfont, ((coord[0] - width/2)+2, (coord[1]-height/2)+2))
-  renderedfont = textfont.render(text, True, color)
-  if alignment == 1:
-    screen.blit(renderedfont, (coord[0], coord[1]-height/2))
-  elif alignment == 2:
-    screen.blit(renderedfont, (coord[0] - width, coord[1]-height/2))
-  else:
-    screen.blit(renderedfont, (coord[0] - width/2, coord[1]-height/2))
+  Font().renderFont(font,text,coord,size,flags,alignment,color)
 
-def renderMultipleFont(font, text, coord = (w/2,h/2), size = 12, opacity = 255):
-  textfont = pygame.font.Font(os.path.join("Data", font), size)
-  for i, textline in enumerate(text):
-    width, height = textfont.size(textline)
-    renderedfont = textfont.render(textline, True, (255,255,255))
-    renderedfont.set_alpha(opacity)
-    screen.blit(renderedfont, (coord[0] - width/2, coord[1]-height/2+((size+3)*i)))
+def renderMultipleFont(font, text, coord = (w/2,h/2), size = 12):
+  Font().renderMultipleFont(font,text,coord,size)
 
 def renderTextbox(font, text, size = 12):
-  textbox = loadImage(os.path.join("Data", "textbox.png"))
-  drawImage(textbox, coord = (320, 400), scale = (w, 160))
-  for i, textline in enumerate(text):
-    renderFont(font, textline, coord = (30, 350+((size+3)*i)), size = size, flags = "Soft Shadow", alignment = 1)
+  Font().renderTextbox(font,text,size)
+
+def renderWrapText(font, text, coord = (w/2,h/2), size = 12, width = w/2, alignment = 1):
+  lines = Font().renderWrapText(font, text, coord, size, width, alignment)
+  return lines
 
 def screenfade(color):
   surface = pygame.Surface((w, h))

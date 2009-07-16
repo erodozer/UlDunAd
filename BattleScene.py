@@ -20,6 +20,7 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from GameEngine import *
 import GameEngine
 
 from Player import Player
@@ -38,7 +39,7 @@ from Config import *
 import pygame
 
 class BattleScene(Layer):
-  def __init__(self, terrain, formation):
+  def __init__(self, formation):
 
     self.engine = GameEngine
     self.party = []
@@ -65,9 +66,13 @@ class BattleScene(Layer):
     self.formationscale = Configuration(os.path.join("Data", "Enemies", "Formations", self.formation)).formation.scale.split(";")
 
     if os.path.isfile(os.path.join("Data", "Audio", "battle.mp3")):
-      self.audio = self.engine.loadAudio("battle.mp3")
+      self.audio = Sound().loadAudio("battle.mp3")
     else:
       self.audio = None
+
+    Sound().volume(float(self.engine.battlevolume)/10)
+
+    terrain = Configuration(os.path.join("Data", "Enemies", "Formations", self.formation)).formation.terrain
 
     try:
       self.background = self.engine.loadImage(os.path.join("Data", "Terrains", terrain + ".png"))
@@ -109,6 +114,7 @@ class BattleScene(Layer):
     self.stop = False
     self.spacehit = False
     self.defend = False
+    self.attackboost = 0
 
     self.barframe = 1
 
@@ -179,11 +185,11 @@ class BattleScene(Layer):
   def attack(self, who, partymember):
     if who == 0:
       if self.party[partymember].defending == True:
-        damage = (self.enemy[self.activeenemy].atk*3)/(self.party[partymember].defn*2)
+        damage = (self.enemy[self.activeenemy].atk*3 + self.attackboost)/(self.party[partymember].defn*2)
       else:
-        damage = (self.enemy[self.activeenemy].atk*3)/self.party[partymember].defn
+        damage = (self.enemy[self.activeenemy].atk*3 + self.attackboost)/self.party[partymember].defn
     elif who == 1:
-      damage = (self.party[partymember].atk*3)/self.enemy[self.playertarget].defn
+      damage = (self.party[partymember].atk*3 + self.attackboost)/self.enemy[self.playertarget].defn
 
     self.displayturn(damage, who, partymember)
 
@@ -197,7 +203,7 @@ class BattleScene(Layer):
         self.stop = True
     else:
       self.timer = 0
-      self.displayturn(self.spelldamage, 1, partymember)
+      self.displayturn(self.spelldamage + random.randint(0, self.party[partymember].mag), 1, partymember)
 
   def displayturn(self, damage, who, partymember):
     self.displaydamage = self.displaydamage + 20
@@ -274,6 +280,7 @@ class BattleScene(Layer):
 
     self.party[partymember].defending = False
     self.playertarget = playertarget
+    self.attackboost = random.randint(0, self.party[partymember].atk)
 
     if i == 0 or i == 1:
       self.rotatestart = random.randint(0, 359)
@@ -283,7 +290,8 @@ class BattleScene(Layer):
     self.roll = 0
     self.displaydamage = 0
     self.activeenemy = i
-
+    self.playertargeted = random.randint(0, len(self.party)-1)
+    self.attackboost = random.randint(0, self.enemy[self.activeenemy].atk)
 
   def clearvariables(self, i):
     self.battle = False
@@ -309,6 +317,36 @@ class BattleScene(Layer):
       self.spellanimation = None
       self.spelldamage = None
 
+  def updateATB(self):
+    for i, player in enumerate(self.party):
+      if player.currentatb <= 300:
+        if (self.activemember == None and self.engine.battlemode == "wait") or self.engine.battlemode == "active":
+          div = random.randint(4, 7)
+          if player.currentatb < 300 and player not in self.partyko:
+            player.currentatb += (player.spd/div)
+          elif player in self.partyko:
+            player.currentatb = 0
+          if self.multiplier > 0.0:
+            self.multiplier -= 0.05
+      if player.currentatb >= 300:
+        if self.activemember == None:
+          player.currentatb = 300
+          self.activemember = i
+      if self.activemember == i and player in self.partyko:
+        self.activemember = None
+
+    for i, enemy in enumerate(self.enemy):
+      if enemy.currentatb < 300 and enemy not in self.enemyko:
+        if (self.activemember == None and self.engine.battlemode == "wait") or self.engine.battlemode == "active":
+          div = random.randint(4, 7)
+          enemy.currentatb += (enemy.spd/div)
+      elif enemy.currentatb >= 300:
+        if enemy not in self.enemyko:
+          if self.party[self.playertargeted] not in self.partyko:
+            self.enemybattlecommand(i)
+        else:
+          enemy.currentatb = 0
+
   def update(self):
 
     self.engine.drawImage(self.background, scale = (640,480))
@@ -318,6 +356,10 @@ class BattleScene(Layer):
     for i, enemy in enumerate(self.enemy):
       if enemy not in self.enemyko:
         self.engine.drawImage(self.enemysprite[i], coord = (int(self.formationcoord[i][0]), int(self.formationcoord[i][1])), scaleper = int(self.formationscale[i]))
+      if enemy.currenthp <= 0:
+        if enemy not in self.enemyko:
+          self.enemyko.append(enemy)
+
 
     if self.hue != None:
       self.engine.screenfade((int(self.hue[0]),int(self.hue[1]),int(self.hue[2]),50))
@@ -325,7 +367,7 @@ class BattleScene(Layer):
     self.engine.drawImage(self.hud, (225,500), scale = (450, 280))
 
     self.engine.drawImage(self.bonusbarback, (50, 208), scale = (30,245))
-    self.engine.drawBar(self.bonusbarfill, (50, 88), scale = (30,245), barcrop = (float(self.multiplier)/float(100.0)), direction = "Horizontal")
+    self.engine.drawBar(self.bonusbarfill, (50, 328), scale = (30,245), barcrop = (float(self.multiplier)/float(100.0)), direction = "Horizontal")
     self.engine.drawImage(self.bonusbar, (50, 195), scale = (100,290))
 
     for i, player in enumerate(self.party):
@@ -357,11 +399,25 @@ class BattleScene(Layer):
       else:
         self.engine.renderFont("default.ttf", str(player.name), (10, 380+(i*30)), size = 18, flags = "Shadow", alignment = 1)
 
+      if player.currenthp == 0:
+        player.knockedout = True
+        if player not in self.partyko:
+          self.partyko.append(player)
+            
+    if len(self.party) == len(self.partyko):
+      for player in self.party:
+        player.playerini.player.__setattr__("currenthp", int(1))
+        player.knockedout = False
+        player.playerini.player.__setattr__("currentsp", player.currentsp)
+        player.playerini.player.__setattr__("monsterskilled", player.monsterskilled + 1)
+        player.playerini.save()
+      from Maplist import Maplist
+      View.removescene(self)
+      View.addscene(Maplist())
+
     for key, char in GameEngine.getKeyPresses():
       if key == K_SPACE and self.battle == True:
         self.spacehit = True
-
-        enemytarget = random.randint(0, len(self.party)-1)
 
     commands = ["Attack", "Defend", "Skills", "Item", "Flee"]
     if self.battle == False:
@@ -370,58 +426,7 @@ class BattleScene(Layer):
       else:
         self.barframe = 1
 
-      for i, player in enumerate(self.party):
-        if player.currentatb <= 300:
-          if (self.activemember == None and self.engine.battlemode == "wait") or self.engine.battlemode == "active":
-            div = random.randint(4, 7)
-            if player.currentatb < 300 and player not in self.partyko:
-              player.currentatb += (player.spd/div)
-            elif player in self.partyko:
-              player.currentatb = 0
-            if self.multiplier > 0.0:
-              self.multiplier -= 0.05
-        if player.currentatb >= 300:
-          if self.activemember == None:
-            player.currentatb = 300
-            self.activemember = i
-        if self.activemember == i and player in self.partyko:
-          self.activemember = None
-
-      for i, enemy in enumerate(self.enemy):
-        if enemy.currentatb < 300 and enemy not in self.enemyko:
-          if (self.activemember == None and self.engine.battlemode == "wait") or self.engine.battlemode == "active":
-            div = random.randint(4, 7)
-            enemy.currentatb += (enemy.spd/div)
-        elif enemy.currentatb >= 300:
-          if enemy not in self.enemyko:
-            self.playertargeted = random.randint(0, len(self.party)-1)
-            if self.party[self.playertargeted] not in self.partyko:
-              self.enemybattlecommand(i)
-          else:
-            enemy.currentatb = 0
-
-      for player in self.party:
-        if player.currenthp == 0:
-          player.knockedout = True
-          if player not in self.partyko:
-            self.partyko.append(player)
-            
-      if len(self.party) == len(self.partyko):
-        for player in self.party:
-          player.playerini.player.__setattr__("currenthp", int(1))
-          player.knockedout = False
-          player.playerini.player.__setattr__("currentsp", player.currentsp)
-          player.playerini.player.__setattr__("monsterskilled", player.monsterskilled + 1)
-          player.playerini.save()
-        from Maplist import Maplist
-        View.removescene(self)
-        View.addscene(Maplist())
-
-      for enemy in self.enemy:
-        if enemy.currenthp <= 0:
-          if enemy not in self.enemyko:
-            self.enemyko.append(enemy)
-
+      self.updateATB()
       if not len(self.enemy) == len(self.enemyko):
         self.fade = False
         if self.activemember != None and self.selectingspell == False and self.selectingenemy == False:

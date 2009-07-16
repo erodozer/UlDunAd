@@ -20,6 +20,7 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
+from GameEngine import *
 import GameEngine
 import View
 from View import *
@@ -43,7 +44,9 @@ class Towns(Layer):
 
     self.audio = None
     if self.townini.audio != "None":
-      self.audio = self.engine.loadAudio(self.townini.audio)
+      self.audio = Sound().loadAudio(self.townini.audio)
+
+    Sound().volume(float(self.engine.townvolume)/10)
 
     self.choices = self.townini.choices.split(", ")
 

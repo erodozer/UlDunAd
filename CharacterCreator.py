@@ -34,17 +34,20 @@ class CharacterCreator(Layer):
   def __init__(self):
     self.engine = GameEngine
     self.race = "Hume.ini"
+    self.playerclass = "Warrior.ini"
+
     raceini = Config.Configuration(os.path.join("Data", "Races", self.race)).race
+    classini = Config.Configuration(os.path.join("Data", "Classes", self.playerclass)).defclass
 
     self.stat = []
     self.stattitle = ["HP", "SP", "ATK", "DEF", "SPD", "MAG", "EVD"]
-    self.hp = self.stat.append(raceini.hp)
-    self.sp =  self.stat.append(raceini.sp)
-    self.atk =  self.stat.append(raceini.atk)
-    self.defn =  self.stat.append(raceini.defn)
-    self.spd =  self.stat.append(raceini.spd)
-    self.mag =  self.stat.append(raceini.mag)
-    self.evd =  self.stat.append(raceini.evd)
+    self.hp = self.stat.append(int(raceini.hp) + int(classini.hp))
+    self.sp =  self.stat.append(int(raceini.sp) + int(classini.sp))
+    self.atk =  self.stat.append(int(raceini.atk) + int(classini.atk))
+    self.defn =  self.stat.append(int(raceini.defn) + int(classini.defn))
+    self.spd =  self.stat.append(int(raceini.spd) + int(classini.spd))
+    self.mag =  self.stat.append(int(raceini.mag) + int(classini.mag))
+    self.evd =  self.stat.append(int(raceini.evd) + int(classini.evd))
 
     self.capson = True
 
@@ -61,6 +64,7 @@ class CharacterCreator(Layer):
 
     self.typingname = False
     self.racechooser = False
+    self.classchooser = False
 
     self.racebutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
     self.racebuttonactive = self.engine.loadImage(os.path.join("Data", "secondarymenubuttonactive.png"))
@@ -136,12 +140,50 @@ class CharacterCreator(Layer):
         self.races.append(name)
 
     for i, choice in enumerate(self.races):
-      active, flag = self.engine.drawButton(self.racebutton, self.racebuttonactive, coord= (90, 130), scale = (200,32))
+      active, flag = self.engine.drawButton(self.racebutton, self.racebuttonactive, coord= (320, 64+(48*i)), scale = (200,32))
       if active == True:
-        button = self.engine.drawImage(self.racebuttonactive, coord= (320, 64+(48*i)), scale = (200,32))
         if flag == True:
           self.race = choice
           self.racechooser = False
+          raceini = Config.Configuration(os.path.join("Data", "Races", self.race)).race
+          classini = Config.Configuration(os.path.join("Data", "Classes", self.playerclass)).defclass
+          self.stat = []
+          self.hp = self.stat.append(int(raceini.hp) + int(classini.hp))
+          self.sp =  self.stat.append(int(raceini.sp) + int(classini.sp))
+          self.atk =  self.stat.append(int(raceini.atk) + int(classini.atk))
+          self.defn =  self.stat.append(int(raceini.defn) + int(classini.defn))
+          self.spd =  self.stat.append(int(raceini.spd) + int(classini.spd))
+          self.mag =  self.stat.append(int(raceini.mag) + int(classini.mag))
+          self.evd =  self.stat.append(int(raceini.evd) + int(classini.evd))
+
+      buttonfont = self.engine.renderFont("menu.ttf", str(choice.split(".ini")[0]), (320, 64+(48*i)), size = 24)  
+
+  def drawClassMenu(self):
+
+    classpath = os.path.join("Data", "Classes")
+    self.classes = []
+    allclasses = os.listdir(classpath)
+    for name in allclasses:
+      if os.path.splitext(name)[1].lower() == ".ini":
+        self.classes.append(name)
+
+    for i, choice in enumerate(self.classes):
+      active, flag = self.engine.drawButton(self.racebutton, self.racebuttonactive, coord= (320, 64+(48*i)), scale = (200,32))
+      if active == True:
+        if flag == True:
+          self.playerclass = choice
+          self.classchooser = False
+          raceini = Config.Configuration(os.path.join("Data", "Races", self.race)).race
+          classini = Config.Configuration(os.path.join("Data", "Classes", self.playerclass)).defclass
+          self.stat = []
+          self.hp = self.stat.append(int(raceini.hp) + int(classini.hp))
+          self.sp =  self.stat.append(int(raceini.sp) + int(classini.sp))
+          self.atk =  self.stat.append(int(raceini.atk) + int(classini.atk))
+          self.defn =  self.stat.append(int(raceini.defn) + int(classini.defn))
+          self.spd =  self.stat.append(int(raceini.spd) + int(classini.spd))
+          self.mag =  self.stat.append(int(raceini.mag) + int(classini.mag))
+          self.evd =  self.stat.append(int(raceini.evd) + int(classini.evd))
+
       buttonfont = self.engine.renderFont("menu.ttf", str(choice.split(".ini")[0]), (320, 64+(48*i)), size = 24)  
    
   def update(self):
@@ -151,31 +193,44 @@ class CharacterCreator(Layer):
       self.TypeName()
     elif self.racechooser == True:
       self.drawRaceMenu()
+    elif self.classchooser == True:
+      self.drawClassMenu()
     else:
-      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (90, 130), scale = (150,45))
+      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (90, 100), scale = (150,45))
       if active == True:
         if flag == True:
           self.typingname = True
-      buttonfont = self.engine.renderFont("default.ttf", "Change Name", (90, 130))
+      buttonfont = self.engine.renderFont("default.ttf", "Change Name", (90, 100))
 
-      otherfont = self.engine.renderFont("default.ttf", "Name", (200, 130), size = 24)
+      otherfont = self.engine.renderFont("default.ttf", "Name", (200, 100), size = 24)
 
       name = string.join(self.name, '')
-      namefont = self.engine.renderFont("default.ttf", name, (380, 130), size = 32)
+      namefont = self.engine.renderFont("default.ttf", name, (380, 100), size = 32)
 
       self.engine.renderFont("default.ttf", "Create A Character", (170, 70), size = 24)
 
-      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (90, 190), scale = (150,45))
+      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (90, 150), scale = (150,45))
       if active == True:
-        button = self.engine.drawImage(self.menubuttonactive, coord= (90, 190), scale = (150,45))
         if flag == True:
           self.racechooser = True
 
-      buttonfont = self.engine.renderFont("default.ttf", "Change Race", (90, 190))
-      otherfont = self.engine.renderFont("default.ttf", "Race", (200, 190), size = 24)
+      buttonfont = self.engine.renderFont("default.ttf", "Change Race", (90, 150))
+      otherfont = self.engine.renderFont("default.ttf", "Race", (200, 150), size = 24)
 
       name = self.race.split(".")
-      namefont = self.engine.renderFont("default.ttf", name[0], (380, 190), size = 32)
+      namefont = self.engine.renderFont("default.ttf", name[0], (380, 150), size = 32)
+
+      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (90, 200), scale = (150,45))
+      if active == True:
+        button = self.engine.drawImage(self.menubuttonactive, coord= (90, 200), scale = (150,45))
+        if flag == True:
+          self.classchooser = True
+
+      buttonfont = self.engine.renderFont("default.ttf", "Change Class", (90, 200))
+      otherfont = self.engine.renderFont("default.ttf", "Class", (200, 200), size = 24)
+
+      name = self.playerclass.split(".")
+      namefont = self.engine.renderFont("default.ttf", name[0], (380, 200), size = 32)
 
       for i, stat in enumerate(self.stat):
         self.engine.renderFont("default.ttf", self.stattitle[i], (100, 240 + (i*32)), size = 24)
@@ -192,11 +247,12 @@ class CharacterCreator(Layer):
             raceini = Config.Configuration(os.path.join("Data", "Races", self.race)).race
             newconf.player.lvl = str(1)
             newconf.player.race = str(self.race)
+            newconf.player.playerclass = str(self.playerclass)
             newconf.player.weapon = "None"
             newconf.player.armor = "None"
             newconf.player.exp = str(0)
-            newconf.player.currenthp = str(raceini.hp)
-            newconf.player.currentsp = str(raceini.sp)
+            newconf.player.currenthp = str(int(self.stat[0]))
+            newconf.player.currentsp = str(int(self.stat[1]))
             newconf.player.monsterskilled = str(0)
             newconf.player.inventory = str('item001, item001, item001, item002, item002')
             newconf.player.spells = str('')

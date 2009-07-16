@@ -34,27 +34,40 @@ class Player:
 
     self.name = player.split(".ini")[0]
     self.raceini = Configuration(os.path.join("Data", "Races", str(self.playerini.player.race))).race
+
     self.levelcurve = self.raceini.__getattr__("levelcurve").split(",")
     for i, num in enumerate(self.levelcurve):
       self.levelcurve[i] = float(num)
+
+    self.playerclass = self.playerini.player.playerclass.split(".ini")[0] 
+    self.classini = Configuration(os.path.join("Data", "Classes", str(self.playerini.player.playerclass))).defclass
+    self.classcurve = self.classini.__getattr__("levelcurve").split(",")
+    for i, num in enumerate(self.levelcurve):
+      self.classcurve[i] = float(num)
+
+    self.classpic = None
+    if os.path.exists(os.path.join("Data", "Classes", self.playerclass + ".png")) == True:
+      self.classpic = GameEngine.loadImage(os.path.join("Data", "Classes", self.playerclass + ".png"))
+
     self.lvl = self.playerini.player.__getattr__("lvl", "int")
 
-    self.hp = self.raceini.__getattr__("hp", "int") + int(self.levelcurve[0]*(self.lvl-1))
+    self.hp = self.raceini.__getattr__("hp", "int") + self.classini.__getattr__("hp", "int") + int(self.levelcurve[0]*(self.lvl-1)) + int(self.classcurve[0]*(self.lvl-1))
     self.currenthp = self.playerini.player.__getattr__("currenthp", "int")
     if self.currenthp > self.hp:
       self.currenthp = self.hp
       self.playerini.save()
-    self.sp = self.raceini.__getattr__("sp", "int") + int(self.levelcurve[1]*(self.lvl-1))
+    self.sp = self.raceini.__getattr__("sp", "int") + self.classini.__getattr__("sp", "int") + int(self.levelcurve[1]*(self.lvl-1)) + int(self.classcurve[1]*(self.lvl-1))
     self.currentsp = self.playerini.player.__getattr__("currentsp", "int")
     if self.currentsp > self.sp:
       self.currentsp = self.sp
       self.playerini.save()
 
-    self.atk = self.raceini.__getattr__("atk", "int") + int(self.levelcurve[2]*(self.lvl-1))
-    self.defn = self.raceini.__getattr__("defn", "int") + int(self.levelcurve[3]*(self.lvl-1))
-    self.spd = self.raceini.__getattr__("spd", "int") + int(self.levelcurve[4]*(self.lvl-1))
-    self.mag = self.raceini.__getattr__("mag", "int") + int(self.levelcurve[5]*(self.lvl-1))
-    self.evd = self.raceini.__getattr__("evd", "int") + int(self.levelcurve[6]*(self.lvl-1))
+    self.atk = self.raceini.__getattr__("atk", "int") + self.classini.__getattr__("atk", "int") + int(self.levelcurve[2]*(self.lvl-1)) + int(self.classcurve[2]*(self.lvl-1))
+    self.defn = self.raceini.__getattr__("defn", "int") + self.classini.__getattr__("defn", "int") + int(self.levelcurve[3]*(self.lvl-1)) + int(self.classcurve[3]*(self.lvl-1))
+    self.spd = self.raceini.__getattr__("spd", "int") + self.classini.__getattr__("spd", "int") + int(self.levelcurve[4]*(self.lvl-1)) + int(self.classcurve[4]*(self.lvl-1))
+    self.mag = self.raceini.__getattr__("mag", "int") + self.classini.__getattr__("mag", "int") + int(self.levelcurve[5]*(self.lvl-1)) + int(self.classcurve[5]*(self.lvl-1))
+    self.evd = self.raceini.__getattr__("evd", "int") + self.classini.__getattr__("evd", "int") + int(self.levelcurve[6]*(self.lvl-1)) + int(self.classcurve[6]*(self.lvl-1))
+
     self.weapon = self.playerini.player.weapon
     self.armor = self.playerini.player.armor
     self.exp = self.playerini.player.__getattr__("exp", "int")

@@ -26,6 +26,9 @@ from View import *
 
 import Config
 
+import textwrap
+import math
+
 class Library(Layer):
   def __init__(self):
 
@@ -61,12 +64,62 @@ class Library(Layer):
         self.books.append(os.path.splitext(name)[0])
 
     self.index = 0
+    self.lineindex = 0
     self.spacehit = False
     self.active = False
+    self.book = None
+    self.booklines = None
 
-  def showbook(self, book):
+  def readbook(self):
+
     if self.booktex != None:
       self.engine.drawImage(self.booktex)
+
+    book = open(os.path.join(self.library, self.book + ".txt"))
+    book.seek(0)
+    booklines = []
+    for line in book.read().splitlines():
+      if line == "" or line == "\n":
+        booklines.append("")
+      else:
+        line = textwrap.wrap(line, 60)
+        for lines in line:
+          booklines.append(lines)
+
+    lines = len(booklines)
+    pages = int(math.ceil(lines/25))+1
+    currentpage = int(math.ceil((self.lineindex + 1)/25)) + 1
+
+    for i, line in enumerate(booklines):
+      if i >= self.lineindex and i < self.lineindex + 25:
+        self.engine.renderFont("default.ttf", line, coord = (50, 75 + 15*(i-self.lineindex)), size = 12, alignment = 1, color = (0,0,0))
+    self.engine.renderFont("default.ttf", "Page " + str(currentpage) + " of " + str(pages), coord = (435, 465), size = 12, alignment = 2, color = (0,0,0))
+    self.engine.renderFont("menu.ttf", str(self.book), coord = (435, 50), size = 18, alignment = 2, color = (0,0,0))
+
+
+    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (560, 205), scale = (150,45))
+    if active == True:
+      if flag == True:
+        open(os.path.join(self.library, self.book + ".txt")).close()
+        self.book = None
+        self.lineindex = 0
+        self.booklines = None
+    buttonfont = self.engine.renderFont("default.ttf", "Return", (560, 205))
+
+    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (560, 75), scale = (150,45))
+    if active == True:
+      if flag == True:
+        if self.lineindex + 25 < lines:
+          self.lineindex += 25
+    buttonfont = self.engine.renderFont("default.ttf", "Next Page", (560, 75))
+
+    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (560, 130), scale = (150,45))
+    if active == True:
+      if flag == True:
+        if self.lineindex - 25 >= 0:
+          self.lineindex -= 25
+    buttonfont = self.engine.renderFont("default.ttf", "Previous Page", (560, 130))
+
 
   def lookatbooks(self):
 
@@ -75,22 +128,19 @@ class Library(Layer):
 
     maxindex = len(self.books)
    
-    buttonfont = self.engine.renderFont("menu.ttf", self.books[self.index], (320, 260), size = 18)
+    self.engine.renderFont("menu.ttf", self.books[self.index], (320, 260), size = 18)
 
-    button = self.engine.drawImage(self.menubutton, coord= (110, 425), scale = (150,45))
-    active, flag = self.engine.mousecol(button)
+    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (110, 425), scale = (150,45))
     if active == True:
-      button = self.engine.drawImage(self.menubuttonactive, coord= (110, 425), scale = (150,45))
       if flag == True:
         self.active = False
     buttonfont = self.engine.renderFont("default.ttf", "Return", (110, 425))
 
-    button = self.engine.drawImage(self.menubutton, coord= (530, 425), scale = (150,45))
-    active, flag = self.engine.mousecol(button)
+    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (530, 425), scale = (150,45))
     if active == True:
-      button = self.engine.drawImage(self.menubuttonactive, coord= (530, 425), scale = (150,45))
       if flag == True:
-        pass
+        self.book = self.books[self.index]
+
     buttonfont = self.engine.renderFont("default.ttf", "Read", (530, 425))
 
   def update(self):
@@ -142,7 +192,10 @@ class Library(Layer):
 
     elif self.enterdialog == 2:
       self.engine.renderTextbox("default.ttf", ("There are no books in this library", ""), size = 18)
-    elif self.active == True:
+    elif self.active == True and self.book == None:
       self.lookatbooks()
+    if self.book != None:
+      self.readbook()
+
 
         

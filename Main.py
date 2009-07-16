@@ -30,15 +30,20 @@ import os
 import random
 import Config
 
+from GameEngine import *
 import GameEngine
   
 FPS = 60
 
 def main():
   #video_flags = DOUBLEBUF|OPENGL
-  video_flags = 0
+  if GameEngine.fullscreen == "F":
+    video_flags = FULLSCREEN
+  else:
+    video_flags = 0
 
-  pygame.mixer.pre_init(48000)
+
+  pygame.mixer.pre_init(44100)
 
   pygame.init()
 
@@ -49,6 +54,7 @@ def main():
 
   icon = pygame.image.load('uldunadicon.png').convert_alpha()
   pygame.display.set_icon(icon)
+  pygame.display.set_caption('UlDunAd - Ultimate Dungeon Adventure')
 
   GameEngine.screen = window
 
@@ -71,7 +77,7 @@ def main():
         break  # no more events this frame
       elif event.type == QUIT:
         GameEngine.finished = True
-        GameEngine.stopmusic()
+        Sound().stopmusic()
         break
       elif event.type == KEYDOWN:
         GameEngine.processKeyPress(event)
@@ -84,7 +90,7 @@ def main():
     pygame.mixer.music.set_endevent(USEREVENT)
     if (pygame.event.poll().type == USEREVENT or pygame.mixer.music.get_busy() == False) and GameEngine.party != [] and songs != []:
       i = random.randint(1, len(songs))
-      GameEngine.loadAudio(songs[i-1])
+      Sound().loadAudio(songs[i-1])
 
     View.update()
 

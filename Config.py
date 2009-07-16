@@ -62,7 +62,6 @@ class Section:
     def __init__ (self, name, parser, type):
         self.name = name
         self.parser = parser
-        self.type = type
 
     def __getattr__ (self, name, type = None):
         if not self.parser.has_section(self.name):
@@ -73,7 +72,7 @@ class Section:
             elif type == "float":
               return self.parser.getfloat(self.name, name)
             elif type == "bool":
-              return self.parser.getbool(self.name, name)
+              return self.parser.getboolean(self.name, name)
             else:
               return self.parser.get(self.name, name)
         else:

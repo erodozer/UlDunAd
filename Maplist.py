@@ -48,13 +48,6 @@ class Maplist(Layer):
 
     self.index = 0
 
-    terrainspath = os.path.join("Data", "Terrains")
-    self.terrains = []
-    allterrains = os.listdir(terrainspath)
-    for name in allterrains:
-      if os.path.splitext(name)[1].lower() == ".png" or os.path.splitext(name)[1].lower() == ".jpg":
-        self.terrains.append(os.path.splitext(name)[0])
-
     formationpath = os.path.join("Data", "Enemies", "Formations")
     self.formations = []
     allformations = os.listdir(formationpath)
@@ -64,20 +57,10 @@ class Maplist(Layer):
 
     if self.formations != []:
       self.formation = random.choice(self.formations)
-      self.terrain = random.choice(self.terrains)
-    self.compatible = False
 
   def update(self):
     self.engine.drawImage(self.background)
     self.engine.drawImage(self.background2)
-
-    if self.formations != []:
-      if Configuration(os.path.join("Data", "Enemies", "Formations", self.formation)).formation.terrain != str(self.terrain):
-        self.formation = random.choice(self.formations)
-        self.terrain = random.choice(self.terrains)
-        self.compatible = False
-      else:
-        self.compatible = True
 
     if self.index < 0:
       self.index = 0
@@ -112,13 +95,13 @@ class Maplist(Layer):
     buttonfont = self.engine.renderFont("menu.ttf", "-DOWN-", (320, 432), size = 24)
 
     #activate beta battlescene
-    if self.formations != [] and self.compatible == True:
+    if self.formations != []:
       active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (530, 425), scale = (150,45))
       if active == True:
         if flag == True:
           from BattleScene import BattleScene
           View.removescene(self)
-          View.addscene(BattleScene(str(self.terrain), str(self.formation)))
+          View.addscene(BattleScene(str(self.formation)))
       buttonfont = self.engine.renderFont("default.ttf", "Random Battle", (530, 425))
 
     #activate beta menu scene

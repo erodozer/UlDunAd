@@ -143,8 +143,8 @@ class MenuSystem(Layer):
     self.engine.renderFont("menu.ttf", "All changes (including changing to default) will take effect after program restart", (630, 80), size = 18, flags = "Shadow", alignment = 2)
 
     choices = ['Resolution', 'Volume', 'Town Volume', 'Battle Volume', 'Battle Mode']
-    choicehelp = ['Size of the game window', 'How loud the music plays', 'How loud the music is in town', 'How loud the music is in battle', 'Decides whether to wait for player command (Wait) or have anything go whenever (Active)']
-    choiceoptions = [["640x480", "800x600", "1024x768"],
+    choicehelp = ['Size of the game window (W for windowed mode, F for Fullscreen)', 'How loud the music plays', 'How loud the music is in town', 'How loud the music is in battle', 'Decides whether to wait for player command (Wait) or have anything go whenever (Active)']
+    choiceoptions = [["640x480xW", "800x600xW", "1024x768xW", "640x480xF", "800x600xF", "1024x768xF"],
                      ['0','1','2','3','4','5','6','7','8','9','10'],
                      ['0','1','2','3','4','5','6','7','8','9','10'],
                      ['0','1','2','3','4','5','6','7','8','9','10'],
@@ -239,6 +239,8 @@ class MenuSystem(Layer):
       for i, player in enumerate(self.party):
         self.engine.drawImage(self.statusbox, coord = ((640-172), 130+(i*100)), scale = (345, 80))
 
+        if player.classpic != None:
+          self.engine.drawImage(player.classpic, coord = (350, 130+(i*100)), scale = (65, 65))
 
         self.engine.renderFont("default.ttf", str(player.currenthp) + "/" + str(player.hp), (505, 130+(i*100)), size = 16, flags = "Shadow", alignment = 2)
         self.engine.renderFont("default.ttf", "HP", (390, 130+(i*100)), size = 16, flags = "Shadow", alignment = 1)
