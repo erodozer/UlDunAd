@@ -30,23 +30,23 @@ import math
 class Player:
   def __init__(self, player = GameEngine.party[0]):
 
-    self.playerini = Configuration(os.path.join("Data", "Players", player))
+    self.playerini = Configuration(os.path.join("..", "Data", "Players", player))
 
     self.name = player.split(".ini")[0]
-    self.raceini = Configuration(os.path.join("Data", "Races", str(self.playerini.player.race))).race
+    self.raceini = Configuration(os.path.join("..", "Data", "Races", str(self.playerini.player.race))).race
 
-    self.levelcurve = self.raceini.__getattr__("levelcurve").split(",")
+    self.levelcurve = self.raceini.__getattr__("levelcurve").replace(" ", "").split(",")
     for i, num in enumerate(self.levelcurve):
       self.levelcurve[i] = float(num)
 
     self.playerclass = self.playerini.player.playerclass.split(".ini")[0] 
-    self.classini = Configuration(os.path.join("Data", "Classes", str(self.playerini.player.playerclass))).defclass
-    self.classcurve = self.classini.__getattr__("levelcurve").split(",")
+    self.classini = Configuration(os.path.join("..", "Data", "Classes", str(self.playerini.player.playerclass))).defclass
+    self.classcurve = self.classini.__getattr__("levelcurve").replace(" ", "").split(",")
     for i, num in enumerate(self.levelcurve):
       self.classcurve[i] = float(num)
 
     self.classpic = None
-    if os.path.exists(os.path.join("Data", "Classes", self.playerclass + ".png")) == True:
+    if os.path.exists(os.path.join("..", "Data", "Classes", self.playerclass + ".png")) == True:
       self.classpic = GameEngine.loadImage(os.path.join("Data", "Classes", self.playerclass + ".png"))
 
     self.lvl = self.playerini.player.__getattr__("lvl", "int")
@@ -72,9 +72,13 @@ class Player:
     self.armor = self.playerini.player.armor
     self.exp = self.playerini.player.__getattr__("exp", "int")
     self.explvl = 15*int(self.lvl**2)
-    self.inventory = self.playerini.player.__getattr__("inventory").split(", ")
+    self.inventory = self.playerini.player.__getattr__("inventory").replace(" ", "").split(",")
+    if self.playerini.player.__getattr__("inventory").isspace() == True:
+      self.inventory = "None"
     self.monsterskilled = self.playerini.player.__getattr__("monsterskilled", "int")
-    self.spells = self.playerini.player.__getattr__("spells")
+    self.spells = self.playerini.player.__getattr__("spells").replace(" ", "").split(",")
+    if self.playerini.player.__getattr__("spells") == "":
+      self.spells = "None"
 
     #these are very important for battle
     self.currentatb = 0

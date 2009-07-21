@@ -37,13 +37,7 @@ class Playerlist(Layer):
     self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
     self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
-    playerpath = os.path.join("Data", "Players")
-    self.players = []
-    defaultPlayer = None
-    allplayers = os.listdir(playerpath)
-    for name in allplayers:
-      if os.path.splitext(name)[1].lower() == ".ini":
-        self.players.append(os.path.splitext(name)[0])
+    self.players = self.engine.listpath(os.path.join("Data", "Players"), "splitfiletype", ".ini", "filename")
 
     self.index = 0
 
@@ -67,7 +61,7 @@ class Playerlist(Layer):
     for i in range(self.index, 7+self.index):
       if i < maxindex:
 
-        active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 64 + (48*(i+1))), scale = (200,32))
+        active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 70 + (44*(i-self.index+1))), scale = (200,32))
         if active == True and self.selecting == True:
           if flag == True:
             if len(self.partybuilt) < 3:
@@ -83,7 +77,7 @@ class Playerlist(Layer):
                   self.partybuilt.remove(-1)
                 self.donebuilding = True
 
-        buttonfont = self.engine.renderFont("menu.ttf", self.players[i], (320, 64+(48*(i+1))), size = 24)
+        buttonfont = self.engine.renderFont("menu.ttf", self.players[i], (320, 70+(44*(i-self.index+1))), size = 24)
 
     if self.flag == True:
       self.engine.renderFont("menu.ttf", "That character is already in your party!", (320, 32), size = 24)
@@ -91,15 +85,15 @@ class Playerlist(Layer):
     active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 64), scale = (200,32))
     if active == True and self.selecting == True:
       if flag == True:
-        if self.index + 7 < maxindex:
-          self.index += 7
+        if self.index - 7 >= 0:
+          self.index -= 7
     buttonfont = self.engine.renderFont("menu.ttf", "-UP-", (320, 64), size = 24)
 
     active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 432), scale = (200,32))
     if active == True and self.selecting == True:
       if flag == True:
-        if self.index - 7 >= 0:
-          self.index -= 7
+        if self.index + 7 < maxindex:
+          self.index += 7
     buttonfont = self.engine.renderFont("menu.ttf", "-DOWN-", (320, 432), size = 24)
 
     if self.partyactive == True and self.partybuilding == True and len(self.partybuilt) > 0:

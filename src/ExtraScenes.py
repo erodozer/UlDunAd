@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-1 -*-                                        #
 #                                                                   #
 # UlDunAd - Ultimate Dungeon Adventure                              #
-# Copyright (C) 2009 Blazingamer(n_hydock@comcast.net               #
+# Copyright (C) 2009 Blazingamer(n_hydock@comcast.net)              #
 #                                                                   #
 # This program is free software; you can redistribute it and/or     #
 # modify it under the terms of the GNU General Public License       #
@@ -20,66 +20,41 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
-import os
-import sys
-import pygame
+#these are scenes that aren't entirely neccessary to gameplay
+#they are however required for the game to run and look cool
+#who knows, maybe in the future some of these will become
+#important scenes for the game
 
-from pygame.locals import *
+from GameEngine import *
 
-from MainMenu import *
+from View import *
 
-class Layer:
-  def __init__(self):
-    pass
-
+class LoadingScene(Layer): #simple loading screen, time wasting but stylish
+  def __init__(self, phrase = "", time = 2.0):
+    self.engine = GameEngine
+    self.phrase = phrase
+    self.time = time
+    if os.path.exists(os.path.join("..", "Data", "loading.png")):
+      self.loadingImage = Drawing().loadImage(os.path.join("Data","loading.png"))
+    else:
+      self.loadingImage = None
+    self.rotate = 0
+    self.timer = 0
+    pygame.mixer.music.pause()
   def update(self):
-    pass
+    w, h = GameEngine.w, GameEngine.h
+    self.engine.screenfade((0,0,0,255))
+    if self.rotate < 360:
+      self.rotate += 10
+    else:
+      self.rotate = 0
 
-  def isMainLayer(self):
-    pass
+    if self.loadingImage is not None:
+      self.engine.drawImage(self.loadingImage, coord = (w/2, h/2), rot = self.rotate) 
+    self.engine.renderFont("default.ttf", self.phrase, coord = (w/2, h - h/10), size = 24)
 
-  def clearscene(self):
-    pass
-
-scenes = []
-goingout = []
-goingin = []
-opacity = 0
-
-def startup():
-  scenes.append(MainMenu())
-
-def removescene(scene):
-  if scene not in goingout:
-    goingout.append(scene)
-
-def addscene(scene):
-  if scene not in scenes:
-    goingin.append(scene)
-
-def update():
-  global opacity
-  if goingout != []:
-    if opacity < 255:
-      opacity += 20
-    elif opacity >=255:
-      opacity = 255
-      for i, oldscene in enumerate(goingout):
-        oldscene.clearscene()
-        scenes.remove(goingout[i])
-        goingout.remove(goingout[i])
-
-  elif goingout == [] and goingin != []:
-    for i, newscene in enumerate(goingin):
-      scenes.append(newscene)
-      goingin.remove(goingin[i])
-
-  elif goingout == [] and goingin == []:
-    if opacity > 0:
-      opacity -= 20
-    elif opacity <= 0:
-      opacity = 0
-    scenes[-1].update()
-
-  GameEngine.screenfade((0,0,0,opacity))
-
+    if self.timer < (self.time * 60) and self.engine.loadingscreen == True:
+      self.timer += 1
+    else:
+      View.removescene(self)
+      pygame.mixer.music.unpause()

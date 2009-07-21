@@ -21,7 +21,6 @@
 #####################################################################
 
 from GameEngine import *
-import GameEngine
 
 from Player import Player
 
@@ -48,7 +47,8 @@ class BattleScene(Layer):
       self.party.append(Player(partymember))
     
     self.formation = formation
-    self.enemies = Configuration(os.path.join("Data", "Enemies", "Formations", self.formation)).formation.enemies.split(", ")  
+    self.formationini = Configuration(os.path.join("..", "Data", "Enemies", "Formations", self.formation)).formation
+    self.enemies = self.formationini.enemies.split(", ")  
     self.enemy = []
     self.enemyko = []
     for enemy in self.enemies:
@@ -58,21 +58,27 @@ class BattleScene(Layer):
     for enemy in self.enemy:
       self.enemysprite.append(self.engine.loadImage(os.path.join("Data",  "Enemies", "Graphics", enemy.image)))
 
-    self.formationdiv = Configuration(os.path.join("Data", "Enemies", "Formations", self.formation)).formation.coord.split(";")
+    self.formationdiv = self.formationini.coord.split(";")
     self.formationcoord = []
     for i in range(len(self.formationdiv)):
       self.formationcoord.append(self.formationdiv[i].split(", "))
 
-    self.formationscale = Configuration(os.path.join("Data", "Enemies", "Formations", self.formation)).formation.scale.split(";")
+    self.formationscale = self.formationini.scale.split(";")
 
-    if os.path.isfile(os.path.join("Data", "Audio", "battle.mp3")):
-      self.audio = Sound().loadAudio("battle.mp3")
+    self.engine.inbattle = False
+    if os.path.exists(os.path.join("..", "Data", "Audio", "Battle")):
+      self.engine.inbattle = True
+      songs = self.engine.listpath(os.path.join("Data", "Audio", "Battle"), "splitfiletype", "audio")
+      self.audio = Sound().loadAudio(random.choice(songs))
     else:
-      self.audio = None
+      if os.path.isfile(os.path.join("Data", "Audio", "battle.mp3")):
+        self.audio = Sound().loadAudio("battle.mp3")
+      else:
+        self.audio = None
 
     Sound().volume(float(self.engine.battlevolume)/10)
 
-    terrain = Configuration(os.path.join("Data", "Enemies", "Formations", self.formation)).formation.terrain
+    terrain = self.formationini.terrain
 
     try:
       self.background = self.engine.loadImage(os.path.join("Data", "Terrains", terrain + ".png"))
@@ -131,9 +137,111 @@ class BattleScene(Layer):
     self.bonusbarback = self.engine.loadImage(os.path.join("Data", "bonusbarback.png"))
     self.selectingspell = False
     self.selectingenemy = False
+    self.selectingitem = False
     self.index = 0
 
     GameEngine.resetKeyPresses()
+
+  def showspells(self, partymember):
+
+    commands = self.party[partymember].spells
+
+    maxindex = len(commands)
+
+    for key, char in GameEngine.getKeyPresses():
+      if key == K_LEFT:
+        if self.index - 5 > 0:
+          self.index -= 5
+      if key == K_RIGHT:
+        if self.index + 5 < len(maxindex):
+          self.index += 5
+
+    for i in range(self.index, 4+self.index):
+      if i < maxindex:
+        active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (550, 365 + (25*(i-self.index))), scale = (160,25), activeshift = -15)        
+        if active == True:
+          buttonfont = self.engine.renderFont("default.ttf", commands[i], (535, 365 + (25*(i-self.index))))
+          if flag == True:
+            self.spell = commands[i] + ".ini"
+            self.spellini = Configuration(os.path.join("..", "Data", "Spells", self.spell)).spell
+            if self.party[partymember].currentsp < int(self.spellini.cost): #if player sp is less than the cost of the spell then stop the command
+              return
+            else:
+              self.spellanimation = self.engine.loadImage(os.path.join("Data", "Animations", self.spellini.animation))
+              self.spelldamage = int(self.spellini.damage) + random.randint(0, int(self.spellini.variance)) + random.randint(0, self.party[partymember].mag)
+              self.selectingenemy = True
+        else:
+          buttonfont = self.engine.renderFont("default.ttf", commands[i], (550, 365 + (25*i)))
+
+    active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (550, 340), scale = (160,25), activeshift = -15)        
+    if active == True:
+      buttonfont = self.engine.renderFont("default.ttf", "Return", (535, 340))
+      if flag == True:
+        self.selectingspell = False
+    else:
+      buttonfont = self.engine.renderFont("default.ttf", "Return", (550, 340))
+
+  def showitems(self, partymember):
+
+    commands = self.party[partymember].inventory
+
+    maxindex = len(commands)
+
+    for key, char in GameEngine.getKeyPresses():
+      if key == K_LEFT:
+        if self.index - 5 > 0:
+          self.index -= 5
+      if key == K_RIGHT:
+        if self.index + 5 < len(maxindex):
+          self.index += 5
+
+    for i in range(self.index, 4+self.index):
+      if i < maxindex:
+        name = Configuration(os.path.join("..", "Data", "Items", commands[i] + ".ini")).item.__getattr__("name")
+        active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (550, 365 + (25*(i-self.index))), scale = (160,25), activeshift = -15)        
+        if active == True:
+          buttonfont = self.engine.renderFont("default.ttf", name, (535, 365 + (25*(i-self.index))))
+          if flag == True:
+            self.item = commands[i] + ".ini"
+            self.itemini = Configuration(os.path.join("..", "Data", "Items", self.item)).item
+            self.itemfunction = self.itemini.function.split(".")
+            if self.itemfunction[0] == "Heal":
+              self.battlecommand(3, partymember, playertarget = None)
+        else:
+          buttonfont = self.engine.renderFont("default.ttf", name, (550, 365 + (25*i)))
+
+    active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (550, 340), scale = (160,25), activeshift = -15)        
+    if active == True:
+      buttonfont = self.engine.renderFont("default.ttf", "Return", (535, 340))
+      if flag == True:
+        self.selectingitem = False
+    else:
+      buttonfont = self.engine.renderFont("default.ttf", "Return", (550, 340))
+
+  def battlecommand(self, i, partymember = 0, playertarget = 0):
+    self.playercommand = i + 1
+
+    self.selectingspell = False      
+    self.battle = True
+    self.roll = 1
+    self.timer = 0
+    self.displaydamage = 0
+    self.stop = False
+
+    self.party[partymember].defending = False
+    self.playertarget = playertarget
+    self.attackboost = random.randint(0, self.party[partymember].atk)
+
+    if i == 0 or i == 1:
+      self.rotatestart = random.randint(0, 359)
+
+  def enemybattlecommand(self, i):
+    self.battle = True
+    self.roll = 0
+    self.displaydamage = 0
+    self.activeenemy = i
+    self.playertargeted = random.randint(0, len(self.party)-1)
+    self.attackboost = random.randint(0, self.enemy[self.activeenemy].atk)
 
   def fight(self, playercommand, enemycommand, roll, partymember = None):
     if roll == 0:
@@ -145,7 +253,20 @@ class BattleScene(Layer):
         self.renderbattlecircle(self.activemember)
       elif self.playercommand == 3:
         self.castspell(self.activemember)
-        #self.attack(1)
+      elif self.playercommand == 4:
+        self.displayturn(self.itemfunction[2], 1, self.activemember)
+
+  def castspell(self, partymember):
+    speed = 60/float(self.spellini.frames)
+    if self.stop == False:
+      if self.timer <= float(self.spellini.frames):
+        self.timer += (float(self.spellini.frames)/speed)
+        self.engine.drawImage(self.spellanimation, (int(self.formationcoord[self.playertarget][0]), int(self.formationcoord[self.playertarget][1])), frames = int(self.spellini.frames), currentframe = self.timer, direction = self.spellini.direction)
+      else:
+        self.stop = True
+    else:
+      self.timer = 0
+      self.displayturn(self.spelldamage, 1, partymember)
 
   def renderbattlecircle(self, partymember):
     if self.stop == False:
@@ -193,25 +314,18 @@ class BattleScene(Layer):
 
     self.displayturn(damage, who, partymember)
 
-  def castspell(self, partymember):
-    speed = 60/float(self.spellini.frames)
-    if self.stop == False:
-      if self.timer <= float(self.spellini.frames):
-        self.timer += (float(self.spellini.frames)/speed)
-        self.engine.drawImage(self.spellanimation, (int(self.formationcoord[self.playertarget][0]), int(self.formationcoord[self.playertarget][1])), frames = int(self.spellini.frames), currentframe = self.timer, direction = self.spellini.direction)
-      else:
-        self.stop = True
-    else:
-      self.timer = 0
-      self.displayturn(self.spelldamage + random.randint(0, self.party[partymember].mag), 1, partymember)
-
   def displayturn(self, damage, who, partymember):
     self.displaydamage = self.displaydamage + 20
     if who == 1:
       self.engine.screenfade((0,0,0,255-(self.displaydamage*2)))
-      self.engine.renderFont("default.ttf", str(damage), (int(self.formationcoord[self.playertarget][0]) - (self.displaydamage/20), int(self.formationcoord[self.playertarget][1])), size = 24, flags = "Shadow")
-      if self.playercommand == 3:
-        self.engine.renderFont("default.ttf", self.spellini.cost, (450, 380+(partymember*20)), size = 18, flags = "Shadow")
+      if self.playercommand == 4:
+        if self.itemfunction[0] == "Heal":
+          self.engine.renderFont("default.ttf", self.itemfunction[2], (450 + (self.displaydamage/20), 380+(partymember*30)), size = 18, flags = "Shadow", color = (0, 255, 0))
+      else:
+        self.engine.renderFont("default.ttf", str(damage), (int(self.formationcoord[self.playertarget][0]) - (self.displaydamage/20), int(self.formationcoord[self.playertarget][1])), size = 24, flags = "Shadow")
+        if self.playercommand == 3:
+          self.engine.renderFont("default.ttf", self.spellini.cost, (450 + (self.displaydamage/20), 380+(partymember*30)), size = 18, flags = "Shadow")
+
     else:
       self.engine.renderFont("default.ttf", str(damage), (450 + (self.displaydamage/20), 380+(partymember*30)), size = 16, flags = "Shadow")
 
@@ -221,90 +335,29 @@ class BattleScene(Layer):
       if who == 0:
         self.party[partymember].currenthp -= damage
       else:
-        self.enemy[self.playertarget].currenthp -= damage
-        if self.playercommand == 3:
-          self.party[partymember].currentsp -= int(self.spellini.cost)
+        if self.playercommand == 4:
+          if self.itemfunction[0] == "Heal":
+            if self.itemfunction[1] == "HP":
+              self.party[partymember].currenthp += int(self.itemfunction[2])
+            elif self.itemfunction[1] == "SP":
+              self.party[partymember].currentsp += int(self.itemfunction[2])
+        else:
+          self.enemy[self.playertarget].currenthp -= damage
+          if self.playercommand == 3:
+            self.party[partymember].currentsp -= int(self.spellini.cost)
       self.displaydamage = 0
       self.spacehit = False
 
       self.clearvariables(self.playercommand)
-
-  def showspells(self, partymember):
-
-    commands = self.party[partymember].spells.split(", ")
-
-    maxindex = len(commands)
-
-    for key, char in GameEngine.getKeyPresses():
-      if key == K_LEFT:
-        if self.index - 5 > 0:
-          self.index -= 5
-      if key == K_RIGHT:
-        if self.index + 5 < len(maxindex):
-          self.index += 5
-
-    for i in range(self.index, 4+self.index):
-      if i < maxindex:
-        active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (550, 365 + (25*i)), scale = (160,25), activeshift = -15)        
-        if active == True:
-          buttonfont = self.engine.renderFont("default.ttf", commands[i], (535, 365 + (25*i)))
-          if flag == True:
-            self.spell = commands[i] + ".ini"
-            self.spellini = Configuration(os.path.join("Data", "Spells", self.spell)).spell
-            if self.party[partymember].currentsp < int(self.spellini.cost): #if player sp is less than the cost of the spell then stop the command
-              return
-            else:
-              self.spellanimation = self.engine.loadImage(os.path.join("Data", "Animations", self.spellini.animation))
-              self.spelldamage = int(self.spellini.damage) + random.randint(0, int(self.spellini.variance))
-              self.selectingenemy = True
-        else:
-          buttonfont = self.engine.renderFont("default.ttf", commands[i], (550, 365 + (25*i)))
-
-    active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (550, 340), scale = (160,25), activeshift = -15)        
-    if active == True:
-      buttonfont = self.engine.renderFont("default.ttf", "Return", (535, 340))
-      if flag == True:
-        self.selectingspell = False
-    else:
-      buttonfont = self.engine.renderFont("default.ttf", "Return", (550, 340))
-
-  def battlecommand(self, i, partymember = 0, playertarget = 0):
-    self.playercommand = i + 1
-
-    self.selectingspell = False      
-    self.battle = True
-    self.roll = 1
-    self.timer = 0
-    self.displaydamage = 0
-    self.stop = False
-
-    self.party[partymember].defending = False
-    self.playertarget = playertarget
-    self.attackboost = random.randint(0, self.party[partymember].atk)
-
-    if i == 0 or i == 1:
-      self.rotatestart = random.randint(0, 359)
-
-  def enemybattlecommand(self, i):
-    self.battle = True
-    self.roll = 0
-    self.displaydamage = 0
-    self.activeenemy = i
-    self.playertargeted = random.randint(0, len(self.party)-1)
-    self.attackboost = random.randint(0, self.enemy[self.activeenemy].atk)
 
   def clearvariables(self, i):
     self.battle = False
     self.stop = True
     self.timer = 0
     self.displaydamage = 0
-    if self.roll == 0:
-      self.enemy[self.activeenemy].currentatb = 0
-    else:
-      self.party[self.activemember].currentatb = 0
-      self.activemember = None
-      self.playertarget = None
-      self.selectingenemy = False
+
+    self.selectingitem = False
+    self.selectingspell = False
 
     if i == 1 or i == 2:
       self.rotatestart = 0
@@ -316,6 +369,22 @@ class BattleScene(Layer):
       self.spellini = None
       self.spellanimation = None
       self.spelldamage = None
+    if i == 4:
+      if self.roll == 1:
+        self.party[self.activemember].inventory.remove(self.item.split(".ini")[0])
+      self.item = None
+      self.itemini = None
+      self.itemanimation = None
+      self.itemfunction = None
+
+    if self.roll == 0:
+      self.enemy[self.activeenemy].currentatb = 0
+    else:
+      self.party[self.activemember].currentatb = 0
+      self.activemember = None
+      self.playertarget = None
+      self.selectingenemy = False
+            
 
   def updateATB(self):
     for i, player in enumerate(self.party):
@@ -429,7 +498,7 @@ class BattleScene(Layer):
       self.updateATB()
       if not len(self.enemy) == len(self.enemyko):
         self.fade = False
-        if self.activemember != None and self.selectingspell == False and self.selectingenemy == False:
+        if self.activemember != None and self.selectingspell == False and self.selectingenemy == False and self.selectingitem == False:
           for i, choice in enumerate(commands):
             active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (550, 365 + (25*i)), scale = (160,25), activeshift = -15)
             if active == True:
@@ -440,14 +509,21 @@ class BattleScene(Layer):
                 elif i == 1:
                   self.battlecommand(1, self.activemember)
                 elif i == 2:
-                  self.selectingspell = True
-                  self.index = 0
+                  if self.party[self.activemember].spells != "None":
+                    self.selectingspell = True
+                    self.index = 0
+                elif i == 3:
+                  if self.party[self.activemember].inventory != "None":
+                    self.selectingitem = True
+                    self.index = 0
                 elif i == 4:
                   self.endscene("flee")
             else:
               buttonfont = self.engine.renderFont("default.ttf", choice, (550, 365 + (25*i)))
         elif self.activemember != None and self.selectingspell == True and self.selectingenemy == False:
           self.showspells(self.activemember)
+        elif self.activemember != None and self.selectingitem == True and self.selectingenemy == False:
+          self.showitems(self.activemember)
         elif self.activemember != None and self.selectingenemy == True:
           for i, enemy in enumerate(self.enemy):
             if enemy not in self.enemyko:
@@ -478,6 +554,7 @@ class BattleScene(Layer):
       else:
         player.playerini.player.__setattr__("currenthp", player.currenthp)
       player.playerini.player.__setattr__("currentsp", player.currentsp)
+      player.playerini.player.__setattr__("inventory", ", ".join(player.inventory))
 
     if condition == "victory":
       for player in self.party:
@@ -489,6 +566,8 @@ class BattleScene(Layer):
     elif condition == "flee":
       for player in self.party:
         player.playerini.save()
+      self.engine.inbattle = False
+      pygame.mixer.music.fadeout(400)
       if self.engine.town != None:
         from Towns import Towns
         View.removescene(self)
@@ -504,8 +583,6 @@ class BattleScene(Layer):
     del self.displaydamage, self.timer, self.rotatestart, self.fade, self.stop, self.spacehit
     del self.attackcb, self.attackct, self.battle, self.playercommand, self.enemycommand
     del self.button, self.buttonactive, self.hpbar, self.hpback, self.atb, self.atbback, self.background
-    if self.audio != None:
-      self.engine.stopmusic()
     del self.audio, self.party, self.enemy, self.engine
 
 class VictoryScene(Layer):
@@ -518,7 +595,7 @@ class VictoryScene(Layer):
       self.party.append(Player(partymember))
       self.levelup.append("False")
 
-    self.enemies = Configuration(os.path.join("Data", "Enemies", "Formations", formation)).formation.enemies.split(", ")  
+    self.enemies = Configuration(os.path.join("..", "Data", "Enemies", "Formations", formation)).formation.enemies.split(", ")  
     self.enemy = []
     self.enemyko = []
     for enemy in self.enemies:
@@ -527,7 +604,11 @@ class VictoryScene(Layer):
     self.expbar = self.engine.loadImage(os.path.join("Data", "expbar.png"))
     self.barback = self.engine.loadImage(os.path.join("Data", "barback.png"))
 
-    self.background = self.engine.loadImage(os.path.join("Data", "characterbackground.png"))
+    self.background = self.engine.loadImage(os.path.join("Data", "victorybackground.png"))
+    self.statusbox = self.engine.loadImage(os.path.join("Data", "statusbox.png"))
+
+    self.button = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
+    self.buttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
     self.enemyexp = 0
     for enemy in self.enemy:
@@ -547,20 +628,31 @@ class VictoryScene(Layer):
           self.countdownexp = True
         elif self.countdownexp == True and self.enemyexp > 0:
           self.finishupcounting = True
-        elif self.countdownexp == True and self.enemyexp == 0:
-          self.finished = True
 
     self.engine.drawImage(self.background, (320,240), scale = (640,480))
+    
+    if self.countdownexp == True and self.enemyexp == 0:  
+      active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (530, 425), scale = (150,45))
+      if flag == True:
+        self.finished = True
+      self.engine.renderFont("default.ttf", "Finished", (530, 425))
+
+    self.engine.renderFont("menu.ttf", "Loot and Drops", (20, 96), size = 28, flags = "Shadow", alignment = 1)
+    self.engine.renderFont("menu.ttf", "Status", (620, 70), size = 32, flags = "Shadow", alignment = 2)
 
     for i, player in enumerate(self.party):
 
-      self.engine.renderFont("default.ttf", str(player.name), (150, 96 + (i*100)), size = 32)
+      self.engine.drawImage(self.statusbox, coord = ((640-150), 130+(i*100)), scale = (345, 80))
 
-      self.engine.renderFont("default.ttf", str(player.exp) + "/" + str(player.explvl), (280, 120 + (i*100)), size = 24)
-      self.engine.renderFont("default.ttf", str(self.enemyexp), (100, 120 + (i*100)), size = 24)
+      self.engine.renderFont("default.ttf", str(player.name), (350, 110+(i*100)), size = 20, flags = "Shadow", alignment = 1)
+      self.engine.renderFont("default.ttf", "Lvl:" + str(player.lvl), (620, 110 + (i*100)), size = 20, flags = "Shadow", alignment = 2)
 
-      self.engine.drawBar(self.barback, (275, 125 + (i*100)), scale = (260,15))
-      self.engine.drawBar(self.expbar, (280, 125 + (i*100)), scale = ((float(player.exp)/float(player.explvl))*260,5))
+      self.engine.renderFont("default.ttf", str(player.exp) + "/" + str(player.explvl), (620, 140 + (i*100)), size = 16, flags = "Shadow", alignment = 2)
+      self.engine.renderFont("default.ttf", str(self.enemyexp), (350, 140 + (i*100)), size = 24, flags = "Shadow", alignment = 1)
+
+
+      self.engine.drawBar(self.barback, (350, 155 + (i*100)), scale = (260,15))
+      self.engine.drawBar(self.expbar, (350, 155 + (i*100)), scale = ((float(player.exp)/float(player.explvl))*260,5))
 
       if self.countdownexp == True:
         if self.enemyexp > 0:
@@ -574,20 +666,14 @@ class VictoryScene(Layer):
 
     
       if player.exp >= player.explvl:
-        self.engine.renderFont("default.ttf", "Level Up!", (300, 96 + (i*100)), size = 42)
         self.levelup[i] = "True"
-        if self.levelup[i] == "True":
-          if player.exp > player.explvl:
-            player.exp = player.exp - player.explvl
-          else:
-            player.exp = 0
-          player.lvl += 1
-          player.currenthp = player.hp
-          player.currentsp = player.sp        
-          player.playerini.player.__setattr__("lvl", player.lvl)
-          player.playerini.player.__setattr__("currenthp", player.currenthp)
-          player.playerini.player.__setattr__("currenthp", player.currentsp)
-          self.levelup[i] = "False"
+      
+      if self.levelup[i] == "True":
+        self.engine.renderFont("default.ttf", "Level Up!", (480, 155 + (i*100)), size = 30)
+        if player.exp > player.explvl:
+          player.exp = player.exp - player.explvl
+        else:
+          player.exp = 0
 
     if self.countdownexp == True:
       if self.enemyexp > 0:
@@ -600,10 +686,20 @@ class VictoryScene(Layer):
         self.countdown = False
 
     if self.finished == True:
-      for player in self.party:
+      for i, player in enumerate(self.party):
+        if self.levelup[i] == "True":
+          player.lvl += 1
+          player.currenthp = player.hp
+          player.currentsp = player.sp        
+          player.playerini.player.__setattr__("lvl", player.lvl)
+          player.playerini.player.__setattr__("currenthp", player.currenthp)
+          player.playerini.player.__setattr__("currenthp", player.currentsp)
+          self.levelup[i] = "False"
         player.playerini.player.__setattr__("exp", player.exp)
         player.playerini.save()
         player.knockedout = False
+      self.engine.inbattle = False
+      pygame.mixer.music.fadeout(400)
       if self.engine.town != None:
         from Towns import Towns
         View.removescene(self)

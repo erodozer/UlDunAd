@@ -32,35 +32,22 @@ class Maplist(Layer):
   def __init__(self):
     self.engine = GameEngine
     self.background = self.engine.loadImage(os.path.join("Data", "mapbackground.png"))
-    self.background2 = self.engine.loadImage(os.path.join("Data", "mapmenu.png"))
 
     self.button = self.engine.loadImage(os.path.join("Data", "mapmenubutton.png"))
     self.buttonactive = self.engine.loadImage(os.path.join("Data", "mapmenubuttonactive.png"))
     self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
     self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
-    mappath = os.path.join("Data", "Towns")
-    self.maps = []
-    allmaps = os.listdir(mappath)
-    for name in allmaps:
-      if os.path.exists(os.path.join(mappath,name,"town.ini")):
-        self.maps.append(name)
+    self.maps = self.engine.listpath(os.path.join("Data", "Towns"), "searchfile", "town.ini")
+    self.formations = self.engine.listpath(os.path.join("Data", "Enemies", "Formations"), "splitfiletype", ".ini")
 
     self.index = 0
-
-    formationpath = os.path.join("Data", "Enemies", "Formations")
-    self.formations = []
-    allformations = os.listdir(formationpath)
-    for name in allformations:
-      if os.path.splitext(name)[1].lower() == ".ini":
-        self.formations.append(name)
 
     if self.formations != []:
       self.formation = random.choice(self.formations)
 
   def update(self):
     self.engine.drawImage(self.background)
-    self.engine.drawImage(self.background2)
 
     if self.index < 0:
       self.index = 0
@@ -70,7 +57,7 @@ class Maplist(Layer):
     maxindex = len(self.maps)
     for i in range(self.index, 7+self.index):
       if i < maxindex:
-        active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 64 + (48*(i+1))), scale = (200,32))
+        active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 70 + (44*(i+1))), scale = (200,32))
         if active == True:
           if flag == True:
             GameEngine.town = str(self.maps[i])
@@ -78,7 +65,7 @@ class Maplist(Layer):
             View.removescene(self)
             View.addscene(Towns())
           
-        buttonfont = self.engine.renderFont("menu.ttf", self.maps[i], (320, 64+(48*(i+1))), size = 24)
+        buttonfont = self.engine.renderFont("menu.ttf", self.maps[i], (320, 70+(44*(i+1))), size = 24)
 
     active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 64), scale = (200,32))
     if active == True:
@@ -99,9 +86,13 @@ class Maplist(Layer):
       active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (530, 425), scale = (150,45))
       if active == True:
         if flag == True:
+          pygame.mixer.music.fadeout(400)
           from BattleScene import BattleScene
           View.removescene(self)
           View.addscene(BattleScene(str(self.formation)))
+          from ExtraScenes import LoadingScene
+          View.addscene(LoadingScene("Preparing Battle", 4.5))
+
       buttonfont = self.engine.renderFont("default.ttf", "Random Battle", (530, 425))
 
     #activate beta menu scene
@@ -114,5 +105,5 @@ class Maplist(Layer):
     buttonfont = self.engine.renderFont("default.ttf", "Menu", (110, 425))
 
   def clearscene(self):
-    del  self.background, self.background2, self.maps, self.engine
+    del  self.background, self.maps, self.menubutton, self.menubuttonactive, self.engine
 

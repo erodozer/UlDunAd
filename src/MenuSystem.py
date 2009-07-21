@@ -66,6 +66,7 @@ class MenuSystem(Layer):
     self.whichcharacter = 0
 
     self.quitactive = False
+    self.changeactive = False
 
     self.optionselected = False
     self.whichoption = 0
@@ -94,7 +95,7 @@ class MenuSystem(Layer):
       maxindex = len(partyinv.inventory)
       for i in range(self.index, 10+self.index):
         if i < maxindex:
-          itemini = Configuration(os.path.join("Data", "Items", str(partyinv.inventory[i])+".ini")).item
+          itemini = Configuration(os.path.join("..", "Data", "Items", str(partyinv.inventory[i])+".ini")).item
           active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (120, 128 + (26*(i-self.index))), scale = (220,24))
           if active == True:
             itemimage = self.engine.loadImage(os.path.join("Data", "Items", str(partyinv.inventory[i])+".png"))
@@ -130,11 +131,70 @@ class MenuSystem(Layer):
           elif i == 1:
             self.currentlayer = "Main"
             self.updatescene = None
-            #saves as an array which for some reason it can not read correctly
             partyinv.playerini.player.__setattr__("inventory", ", ".join(partyinv.inventory))
             partyinv.playerini.save()
     
       buttonfont = self.engine.renderFont("default.ttf", choice, (240 + (180*i), 448))
+
+  def showSpells(self):
+    for key, char in GameEngine.getKeyPresses():
+      if key == K_LEFT:
+        if self.whichcharacter - 1 > -1:
+          self.whichcharacter -= 1
+        else:
+          self.whichcharacter = len(self.party)-1
+      if key == K_RIGHT:
+        if self.whichcharacter + 1 < len(self.party):
+          self.whichcharacter += 1
+        else:
+          self.whichcharacter = 0    
+
+    self.engine.drawImage(self.background, scale = (640,480))
+
+    partyspell = self.party[self.whichcharacter]
+
+    self.engine.renderFont("menu.ttf", str(partyspell.name), (630, 56), size = 32, flags = "Shadow", alignment = 2)
+    self.engine.renderFont("menu.ttf", "Press LEFT or RIGHT to change character spell lists", (630, 80), size = 18, flags = "Shadow", alignment = 2)
+
+    if partyspell.spells != "None":
+      maxindex = len(partyspell.spells)
+      for i in range(self.index, 6+self.index):
+        if i < maxindex:
+          spellini = Configuration(os.path.join("..", "Data", "Spells", str(partyspell.spells[i])+".ini")).spell
+          active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (120, 128 + (38*(i-self.index))), scale = (220,36))
+          if active == True:
+            if os.path.exists(os.path.join("..", "Data", "Spells", spellini.__getattr__("element")+".png")):
+              spellimage = self.engine.loadImage(os.path.join("Data", "Spells", str(spellini.__getattr__("element"))+".png"))
+              self.engine.drawImage(spellimage, coord= (465, 165), scale = (150,150))
+            self.engine.renderWrapText("default.ttf", spellini.__getattr__("description"), (120, 128 + (38*(i-self.index))))
+    
+          buttonfont = self.engine.renderFont("default.ttf", str(partyspell.spells[i]), (120, 128 + (38*(i-self.index))))
+    else:
+      self.engine.renderMultipleFont("default.ttf", (str(partyspell.name), "has no spells"), (120, 240), size = 24)
+
+    active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (120, 132 + (26*10)), scale = (220,24))
+    if active == True:
+      if flag == True:
+        if self.index + 6 < maxindex:
+          self.index += 6
+    
+    buttonfont = self.engine.renderFont("default.ttf", "Down", (120, 132 + (26*10)))
+
+    active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (120, 128 + (30*-1)), scale = (220,24))
+    if active == True:
+      if flag == True:
+        if self.index - 6 >= 0:
+          self.index -= 6
+    
+    buttonfont = self.engine.renderFont("default.ttf", "Up", (120, 128 + (30*-1)))
+
+    active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (320, 448), scale = (160,32))
+    if active == True:
+      if flag == True:
+        self.currentlayer = "Main"
+        self.updatescene = None
+    
+    buttonfont = self.engine.renderFont("default.ttf", "Return", (320, 448))
 
   def showSettings(self):
     self.engine.drawImage(self.background, scale = (640,480))
@@ -231,7 +291,9 @@ class MenuSystem(Layer):
     if self.updatescene != None:
       if self.updatescene == 0:
         self.showInventory()
-      if self.updatescene == 5:
+      elif self.updatescene == 1:
+        self.showSpells()
+      elif self.updatescene == 5:
         self.showSettings()
     else:
       self.engine.drawImage(self.background, scale = (640,480))
@@ -265,7 +327,12 @@ class MenuSystem(Layer):
             if i == 0:
               self.updatescene = i
               self.currentlayer = "Inventory"
-            if i == 5:
+            elif i == 1:
+              self.updatescene = i
+              self.currentlayer = "Spells"
+            elif i == 4:
+              self.changeactive = True
+            elif i == 5:
               self.updatescene = i
               self.currentlayer = "Settings"
             elif i == 6:
@@ -294,4 +361,21 @@ class MenuSystem(Layer):
     
         buttonfont = self.engine.renderFont("default.ttf", choice, (265+(120*i), 280), size = 16)
         self.engine.renderFont("default.ttf", "Are you sure you want to quit?", (320, 230), size = 20, flags = "Shadow")
+
+    if self.changeactive == True:
+      self.engine.screenfade((150,150,150,130))
+
+      for i, choice in enumerate(['Yes', 'No']):
+        active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (265+(120*i), 280), scale = (100,48))
+        if active == True:
+          if flag == True:
+            if i == 0:
+              from Playerlist import Playerlist
+              View.removescene(self)
+              View.addscene(Playerlist())
+            else:
+              self.changeactive = False
+    
+        buttonfont = self.engine.renderFont("default.ttf", choice, (265+(120*i), 280), size = 16)
+        self.engine.renderFont("default.ttf", "Are you sure you wish to change characters?", (320, 230), size = 20, flags = "Shadow")
 

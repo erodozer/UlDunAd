@@ -36,18 +36,9 @@ class CharacterCreator(Layer):
     self.race = "Hume.ini"
     self.playerclass = "Warrior.ini"
 
-    raceini = Config.Configuration(os.path.join("Data", "Races", self.race)).race
-    classini = Config.Configuration(os.path.join("Data", "Classes", self.playerclass)).defclass
-
-    self.stat = []
     self.stattitle = ["HP", "SP", "ATK", "DEF", "SPD", "MAG", "EVD"]
-    self.hp = self.stat.append(int(raceini.hp) + int(classini.hp))
-    self.sp =  self.stat.append(int(raceini.sp) + int(classini.sp))
-    self.atk =  self.stat.append(int(raceini.atk) + int(classini.atk))
-    self.defn =  self.stat.append(int(raceini.defn) + int(classini.defn))
-    self.spd =  self.stat.append(int(raceini.spd) + int(classini.spd))
-    self.mag =  self.stat.append(int(raceini.mag) + int(classini.mag))
-    self.evd =  self.stat.append(int(raceini.evd) + int(classini.evd))
+
+    self.loadplayerini()
 
     self.capson = True
 
@@ -132,12 +123,7 @@ class CharacterCreator(Layer):
 
   def drawRaceMenu(self):
 
-    racepath = os.path.join("Data", "Races")
-    self.races = []
-    allraces = os.listdir(racepath)
-    for name in allraces:
-      if os.path.splitext(name)[1].lower() == ".ini":
-        self.races.append(name)
+    self.races = self.engine.listpath(os.path.join("Data", "Races"), "splitfiletype", ".ini")
 
     for i, choice in enumerate(self.races):
       active, flag = self.engine.drawButton(self.racebutton, self.racebuttonactive, coord= (320, 64+(48*i)), scale = (200,32))
@@ -145,27 +131,13 @@ class CharacterCreator(Layer):
         if flag == True:
           self.race = choice
           self.racechooser = False
-          raceini = Config.Configuration(os.path.join("Data", "Races", self.race)).race
-          classini = Config.Configuration(os.path.join("Data", "Classes", self.playerclass)).defclass
-          self.stat = []
-          self.hp = self.stat.append(int(raceini.hp) + int(classini.hp))
-          self.sp =  self.stat.append(int(raceini.sp) + int(classini.sp))
-          self.atk =  self.stat.append(int(raceini.atk) + int(classini.atk))
-          self.defn =  self.stat.append(int(raceini.defn) + int(classini.defn))
-          self.spd =  self.stat.append(int(raceini.spd) + int(classini.spd))
-          self.mag =  self.stat.append(int(raceini.mag) + int(classini.mag))
-          self.evd =  self.stat.append(int(raceini.evd) + int(classini.evd))
+          self.loadplayerini()
 
       buttonfont = self.engine.renderFont("menu.ttf", str(choice.split(".ini")[0]), (320, 64+(48*i)), size = 24)  
 
   def drawClassMenu(self):
 
-    classpath = os.path.join("Data", "Classes")
-    self.classes = []
-    allclasses = os.listdir(classpath)
-    for name in allclasses:
-      if os.path.splitext(name)[1].lower() == ".ini":
-        self.classes.append(name)
+    self.classes = self.engine.listpath(os.path.join("Data", "Classes"), "splitfiletype", ".ini")
 
     for i, choice in enumerate(self.classes):
       active, flag = self.engine.drawButton(self.racebutton, self.racebuttonactive, coord= (320, 64+(48*i)), scale = (200,32))
@@ -173,19 +145,21 @@ class CharacterCreator(Layer):
         if flag == True:
           self.playerclass = choice
           self.classchooser = False
-          raceini = Config.Configuration(os.path.join("Data", "Races", self.race)).race
-          classini = Config.Configuration(os.path.join("Data", "Classes", self.playerclass)).defclass
-          self.stat = []
-          self.hp = self.stat.append(int(raceini.hp) + int(classini.hp))
-          self.sp =  self.stat.append(int(raceini.sp) + int(classini.sp))
-          self.atk =  self.stat.append(int(raceini.atk) + int(classini.atk))
-          self.defn =  self.stat.append(int(raceini.defn) + int(classini.defn))
-          self.spd =  self.stat.append(int(raceini.spd) + int(classini.spd))
-          self.mag =  self.stat.append(int(raceini.mag) + int(classini.mag))
-          self.evd =  self.stat.append(int(raceini.evd) + int(classini.evd))
-
+          self.loadplayerini()
       buttonfont = self.engine.renderFont("menu.ttf", str(choice.split(".ini")[0]), (320, 64+(48*i)), size = 24)  
-   
+  
+  def loadplayerini(self):
+    raceini = Config.Configuration(os.path.join("..", "Data", "Races", self.race)).race
+    classini = Config.Configuration(os.path.join("..", "Data", "Classes", self.playerclass)).defclass
+    self.stat = []
+    self.hp = self.stat.append(int(raceini.hp) + int(classini.hp))
+    self.sp =  self.stat.append(int(raceini.sp) + int(classini.sp))
+    self.atk =  self.stat.append(int(raceini.atk) + int(classini.atk))
+    self.defn =  self.stat.append(int(raceini.defn) + int(classini.defn))
+    self.spd =  self.stat.append(int(raceini.spd) + int(classini.spd))
+    self.mag =  self.stat.append(int(raceini.mag) + int(classini.mag))
+    self.evd =  self.stat.append(int(raceini.evd) + int(classini.evd))
+ 
   def update(self):
     self.engine.drawImage(os.path.join(self.background), scale = (640,480))
 
@@ -242,9 +216,8 @@ class CharacterCreator(Layer):
       if active == True:
         if flag == True:
           if name != "":
-            Config.Configuration(os.path.join("Data", "Players", name + ".ini")).save()
-            newconf = Config.Configuration(os.path.join("Data", "Players", name + ".ini"))
-            raceini = Config.Configuration(os.path.join("Data", "Races", self.race)).race
+            Config.Configuration(os.path.join("..", "Data", "Players", name + ".ini")).save()
+            newconf = Config.Configuration(os.path.join("..", "Data", "Players", name + ".ini"))
             newconf.player.lvl = str(1)
             newconf.player.race = str(self.race)
             newconf.player.playerclass = str(self.playerclass)

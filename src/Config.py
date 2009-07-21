@@ -76,7 +76,8 @@ class Section:
             else:
               return self.parser.get(self.name, name)
         else:
-            raise AttributeError, 'No option "%s" in section "%s".' % (name, self.name)
+            return ''
+            #raise AttributeError, 'No option "%s" in section "%s".' % (name, self.name)
 
     def __setattr__ (self, name, value):
         if name in ('name', 'parser') or name.startswith('__'):

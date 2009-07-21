@@ -41,13 +41,13 @@ class Library(Layer):
     self.booktex = None
     self.bookcover = None
 
-    if os.path.exists(os.path.join(self.library, "library.png")) == True:
+    if os.path.isfile(os.path.join(self.library, "library.png")):
       self.libraryback = self.engine.loadImage(os.path.join(self.library, "library.png"))
-    if os.path.exists(os.path.join(self.library, "librarian.png")) == True:    
+    if os.path.isfile(os.path.join(self.libary, "librarian.png")):
       self.librarian = self.engine.loadImage(os.path.join(self.library, "librarian.png"))
-    if os.path.exists(os.path.join(self.library, "book.png")) == True:
+    if os.path.isfile(os.path.join(self.libary, "book.png")):
       self.booktex = self.engine.loadImage(os.path.join(self.library, "book.png"))
-    if os.path.exists(os.path.join(self.library, "bookcover.png")) == True:
+    if os.path.isfile(os.path.join(self.libary, "bookcover.png")):
       self.bookcover = self.engine.loadImage(os.path.join(self.library, "bookcover.png"))
 
     self.secondarybutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
@@ -57,11 +57,7 @@ class Library(Layer):
 
     self.enterdialog = 0
 
-    self.books = []
-    allbooks = os.listdir(self.library)
-    for name in allbooks:
-      if os.path.splitext(name)[1].lower() == ".txt":
-        self.books.append(os.path.splitext(name)[0])
+    self.books = self.engine.listpath(self.library, "splitfiletype", ".txt", "filename")
 
     self.index = 0
     self.lineindex = 0
@@ -122,6 +118,8 @@ class Library(Layer):
 
 
   def lookatbooks(self):
+
+    self.engine.renderFont("menu.ttf", "Press LEFT or RIGHT to change selected book", (630, 30), size = 18, flags = "Shadow", alignment = 2)
 
     if self.bookcover != None:
       self.engine.drawImage(self.bookcover, scale = (640,480))

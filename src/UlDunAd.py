@@ -49,10 +49,9 @@ def main():
 
   os.environ['SDL_VIDEO_WINDOW_POS'] = 'center'
 
-
   window = pygame.display.set_mode((GameEngine.w,GameEngine.h), video_flags)
 
-  icon = pygame.image.load('uldunadicon.png').convert_alpha()
+  icon = pygame.image.load(os.path.join('..', 'uldunadicon.png')).convert_alpha()
   pygame.display.set_icon(icon)
   pygame.display.set_caption('UlDunAd - Ultimate Dungeon Adventure')
 
@@ -62,12 +61,7 @@ def main():
 
   fpsClock = pygame.time.Clock()
 
-  songpath = os.path.join("Data", "Audio")
-  songs = []
-  allsongs = os.listdir(songpath)
-  for name in allsongs:
-    if os.path.splitext(name)[1].lower() == (".mp3" or ".ogg" or ".m4a" or ".flac" or ".aac"):
-      songs.append(name)
+  songs = GameEngine.listpath(os.path.join("Data", "Audio"), "splitfiletype", "audio")
 
   while not GameEngine.finished:
     # main event loop
@@ -88,9 +82,14 @@ def main():
           GameEngine.processClick()
 
     pygame.mixer.music.set_endevent(USEREVENT)
-    if (pygame.event.poll().type == USEREVENT or pygame.mixer.music.get_busy() == False) and GameEngine.party != [] and songs != []:
-      i = random.randint(1, len(songs))
-      Sound().loadAudio(songs[i-1])
+    if (pygame.event.poll().type == USEREVENT or pygame.mixer.music.get_busy() == False) and GameEngine.party != []:
+      if GameEngine.inbattle == True:
+        songs = GameEngine.listpath(os.path.join("Data", "Audio", "Battle"), "splitfiletype", "audio")
+      else:
+        songs = GameEngine.listpath(os.path.join("Data", "Audio"), "splitfiletype", "audio")
+
+      if songs != []:
+        Sound().loadAudio(random.choice(songs))
 
     View.update()
 

@@ -37,6 +37,7 @@ if not os.path.exists(os.path.join("uldunad.ini")):
   uldunadini.audio.__setattr__("battlevolume", str(10))
   uldunadini.audio.__setattr__("townvolume", str(10))
   uldunadini.gameplay.__setattr__("battlemode", str("wait"))
+  uldunadini.gameplay.__setattr__("loadingscreen", str("True"))
   uldunadini.save()
 else:
   uldunadini = Config.Configuration(os.path.join("uldunad.ini"))
@@ -44,12 +45,14 @@ else:
 w, h, fullscreen = uldunadini.video.__getattr__("resolution").split("x")
 resolution = uldunadini.video.__getattr__("resolution")
 battlemode = uldunadini.gameplay.__getattr__("battlemode")
+loadingscreen = uldunadini.gameplay.__getattr__("loadingscreen", "bool")
 volume = uldunadini.audio.__getattr__("volume")
 battlevolume = uldunadini.audio.__getattr__("battlevolume")
 townvolume = uldunadini.audio.__getattr__("townvolume")
 
 w, h = int(w), int(h)
 
+inbattle = None
 screen = None
 party = []
 enemy = None
@@ -67,7 +70,7 @@ class Drawing(pygame.sprite.Sprite):
   def loadImage(self, ImgData):
     pygame.sprite.Sprite.__init__(self)
 
-    image = pygame.image.load(ImgData).convert_alpha()
+    image = pygame.image.load(os.path.join("..", ImgData)).convert_alpha()
     return image
     
   def drawImage(self, image, coord = (w/2, h/2), scale = None, scaleper = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", blit = True):
@@ -139,10 +142,16 @@ class Drawing(pygame.sprite.Sprite):
 
 class Sound:
   def loadAudio(self, AudioFile, queue = False):
-    if queue == True:
-      pygame.mixer.music.queue(os.path.join("Data", "Audio", AudioFile))
+    global inbattle
+    if inbattle == True:
+      audiopath = os.path.join("..", "Data", "Audio", "Battle", AudioFile)
     else:
-      pygame.mixer.music.load(os.path.join("Data", "Audio", AudioFile))
+      audiopath = os.path.join("..", "Data", "Audio", AudioFile)
+
+    if queue == True:
+      pygame.mixer.music.queue(audiopath)
+    else:
+      pygame.mixer.music.load(audiopath)
     pygame.mixer.music.play()
   
   def stop(self):
@@ -153,7 +162,7 @@ class Sound:
 
 class Font:
   def renderFont(self, font, text, coord = (w/2,h/2), size = 12, flags = None, alignment = 0, color = (255,255,255)):
-    textfont = pygame.font.Font(os.path.join("Data", font), size)
+    textfont = pygame.font.Font(os.path.join("..", "Data", font), size)
     width, height = textfont.size(text)
     if flags == "Shadow":
       renderedfont = textfont.render(text, True, (0,0,0))
@@ -172,7 +181,7 @@ class Font:
       screen.blit(renderedfont, (coord[0] - width/2, coord[1]-height/2))
 
   def renderMultipleFont(self, font, text, coord = (w/2,h/2), size = 12, color = (255,255,255)):
-    textfont = pygame.font.Font(os.path.join("Data", font), size)
+    textfont = pygame.font.Font(os.path.join("..", "Data", font), size)
     for i, textline in enumerate(text):
       width, height = textfont.size(textline)
       renderedfont = textfont.render(textline, True, color)
@@ -188,7 +197,7 @@ class Font:
     x, y = coord
     sentence = ""
     lines = 0
-    textfont = pygame.font.Font(os.path.join("Data", font), size)
+    textfont = pygame.font.Font(os.path.join("..", "Data", font), size)
 
     for n, word in enumerate(text.split(" ")):
       w, h = textfont.size(sentence + " " + word)
@@ -262,6 +271,26 @@ def screenfade(color):
   surface.fill((color[0],color[1],color[2]))
 
   screen.blit(surface,(0,0))
+
+def listpath(path, condition = "splitfiletype", value = ".ini", flag = None):
+  items = []
+  listitems = os.listdir(os.path.join("..", path))
+  for name in listitems:
+    if condition == "splitfiletype":
+      if value == "audio":
+        if os.path.splitext(name)[1].lower() == ".mp3" or os.path.splitext(name)[1].lower() == ".ogg" or os.path.splitext(name)[1].lower() == ".m4a" or os.path.splitext(name)[1].lower() == ".flac" or os.path.splitext(name)[1].lower() == ".aac":
+          items.append(name)
+      else:
+        if os.path.splitext(name)[1].lower() == value:
+          if flag == "filename":
+            items.append(os.path.splitext(name)[0])
+          else:
+            items.append(name)
+    elif condition == "searchfile":
+      if os.path.exists(os.path.join("..", path,name,value)):
+        items.append(name)
+
+  return items  
 
 def mousecol(rect): #for use in a scene's update command
   active = rect.collidepoint(*mousepos)

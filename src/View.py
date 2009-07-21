@@ -20,39 +20,69 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
-
-import GameEngine
-
-from Config import *
+import gc
 import os
-import math
+import sys
+import pygame
 
-class Enemy:
-  def __init__(self, enemy):
+from pygame.locals import *
 
-    self.enemyini = Configuration(os.path.join("Data", "Enemies", "Info", enemy + ".ini")).enemy
+from MainMenu import *
 
-    self.name = enemy
-    self.hp = self.enemyini.__getattr__("hp", "int")
-    self.sp = self.enemyini.__getattr__("sp", "int")
-    self.atk = self.enemyini.__getattr__("atk", "int")
-    self.defn = self.enemyini.__getattr__("defn", "int")
-    self.spd = self.enemyini.__getattr__("spd", "int")
-    self.mag = self.enemyini.__getattr__("mag", "int")
-    self.evd = self.enemyini.__getattr__("evd", "int")
-    self.exp = self.enemyini.__getattr__("exp", "int")
-    self.lvl = self.enemyini.__getattr__("lvl", "int")
-    self.image = self.enemyini.__getattr__("image")
+class Layer:
+  def __init__(self):
+    pass
 
-    #these are very important for battle
-    self.currentatb = 0
-    self.defending = False
-    self.currenthp = self.hp
-    self.currentsp = self.sp
+  def update(self):
+    pass
 
-    #these numbers are for testing reasons, uncomment them if you require it
-    #self.name = "AAAAAAAAAAAA"
-    #self.hp = int(9999)
-    #self.sp = int(999)
+  def isMainLayer(self):
+    pass
 
+  def clearscene(self):
+    pass
+
+scenes = []
+goingout = []
+goingin = []
+opacity = 0
+
+def startup():
+  scenes.append(MainMenu())
+  gc.enable()
+
+def removescene(scene):
+  if scene not in goingout:
+    goingout.append(scene)
+
+def addscene(scene):
+  if scene not in scenes:
+    goingin.append(scene)
+
+def update():
+  global opacity
+  if goingout != []:
+    if opacity < 255:
+      opacity += 20
+    elif opacity >=255:
+      opacity = 255
+      for i, oldscene in enumerate(goingout):
+        gc.collect()
+        oldscene.clearscene()
+        scenes.remove(goingout[i])
+        goingout.remove(goingout[i])
+
+  elif goingout == [] and goingin != []:
+    for i, newscene in enumerate(goingin):
+      scenes.append(newscene)
+      goingin.remove(goingin[i])
+
+  elif goingout == [] and goingin == []:
+    if opacity > 0:
+      opacity -= 20
+    elif opacity <= 0:
+      opacity = 0
+    scenes[-1].update()
+
+  GameEngine.screenfade((0,0,0,opacity))
 

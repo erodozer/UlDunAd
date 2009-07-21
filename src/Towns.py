@@ -35,7 +35,7 @@ class Towns(Layer):
     self.engine = GameEngine
     self.townname = self.engine.town
 
-    self.townini = Config.Configuration(os.path.join("Data", "Towns", self.townname, "town.ini")).town
+    self.townini = Config.Configuration(os.path.join("..", "Data", "Towns", self.townname, "town.ini")).town
 
     self.background = None
     if self.townini.background != "None":
@@ -50,12 +50,12 @@ class Towns(Layer):
 
     self.choices = self.townini.choices.split(", ")
 
-    if os.path.exists(os.path.join("Data", "Towns", self.townname, "townbutton.png")) == True:
+    if os.path.exists(os.path.join("..", "Data", "Towns", self.townname, "townbutton.png")) == True:
       self.menubutton = self.engine.loadImage(os.path.join("Data", "Towns", self.townname, "townbutton.png"))
     else:
       self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
 
-    if os.path.exists(os.path.join("Data", "Towns", self.townname, "townbuttonactive.png")) == True:
+    if os.path.exists(os.path.join("..", "Data", "Towns", self.townname, "townbuttonactive.png")) == True:
       self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "Towns", self.townname, "townbuttonactive.png"))
     else:
       self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
@@ -75,9 +75,12 @@ class Towns(Layer):
             View.removescene(self)
             View.addscene(Library())
           elif choice == "Wilderness" or choice == "wilderness":
+            pygame.mixer.music.fadeout(400)
             from BattleScene import BattleScene
             View.removescene(self)
-            View.addscene(BattleScene(self.townini.terrain, str(random.choice(self.enemies)+".ini")))
+            View.addscene(BattleScene(str(random.choice(self.enemies)+".ini")))
+            from ExtraScenes import LoadingScene
+            View.addscene(LoadingScene("Preparing Battle", 4.5))
           else:
             choiceini = Config.Configuration(os.path.join("Data", "Towns", self.townname, choice+".ini"))
             from Shop import Shop

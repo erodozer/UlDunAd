@@ -49,13 +49,7 @@ class MainMenu:
             View.removescene(self)
             View.addscene(CharacterCreator())
           if i == 1:
-            playerpath = os.path.join("Data", "Players")
-            players = []
-            allplayers = os.listdir(playerpath)
-            for name in allplayers:
-              if os.path.splitext(name)[1].lower() == ".ini":
-                players.append(name)
-
+            players = self.engine.listpath(os.path.join("Data", "Players"), "splitfiletype", ".ini")
             if players != []:
               from Playerlist import Playerlist
               View.removescene(self)
