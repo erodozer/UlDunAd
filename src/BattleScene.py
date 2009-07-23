@@ -81,9 +81,9 @@ class BattleScene(Layer):
     terrain = self.formationini.terrain
 
     try:
-      self.background = self.engine.loadImage(os.path.join("Data", "Terrains", terrain + ".png"))
+      self.background = self.engine.loadImage(os.path.join("Data", "Terrains", terrain + ".png"), returnnone = False)
     except:
-      self.background = self.engine.loadImage(os.path.join("Data", "Terrains", terrain + ".jpg"))
+      self.background = self.engine.loadImage(os.path.join("Data", "Terrains", terrain + ".jpg"), returnnone = True)
 
     self.hue = None
     if os.path.isfile(os.path.join("Data", "Terrains", terrain + ".ini")):
@@ -148,14 +148,6 @@ class BattleScene(Layer):
 
     maxindex = len(commands)
 
-    for key, char in GameEngine.getKeyPresses():
-      if key == K_LEFT:
-        if self.index - 5 > 0:
-          self.index -= 5
-      if key == K_RIGHT:
-        if self.index + 5 < len(maxindex):
-          self.index += 5
-
     for i in range(self.index, 4+self.index):
       if i < maxindex:
         active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (550, 365 + (25*(i-self.index))), scale = (160,25), activeshift = -15)        
@@ -187,14 +179,6 @@ class BattleScene(Layer):
 
     maxindex = len(commands)
 
-    for key, char in GameEngine.getKeyPresses():
-      if key == K_LEFT:
-        if self.index - 5 > 0:
-          self.index -= 5
-      if key == K_RIGHT:
-        if self.index + 5 < len(maxindex):
-          self.index += 5
-
     for i in range(self.index, 4+self.index):
       if i < maxindex:
         name = Configuration(os.path.join("..", "Data", "Items", commands[i] + ".ini")).item.__getattr__("name")
@@ -207,8 +191,10 @@ class BattleScene(Layer):
             self.itemfunction = self.itemini.function.split(".")
             if self.itemfunction[0] == "Heal":
               self.battlecommand(3, partymember, playertarget = None)
+            elif self.itemfunction[0] == "Damage":
+              self.selectingenemy = True
         else:
-          buttonfont = self.engine.renderFont("default.ttf", name, (550, 365 + (25*i)))
+          buttonfont = self.engine.renderFont("default.ttf", name, (550, 365 + (25*(i-self.index))))
 
     active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (550, 340), scale = (160,25), activeshift = -15)        
     if active == True:
@@ -230,10 +216,14 @@ class BattleScene(Layer):
 
     self.party[partymember].defending = False
     self.playertarget = playertarget
-    self.attackboost = random.randint(0, self.party[partymember].atk)
 
     if i == 0 or i == 1:
       self.rotatestart = random.randint(0, 359)
+    elif i == 1:
+      self.attackboost = random.randint(0, self.party[partymember].atk)
+    elif i == 3:
+      if self.itemfunction[0] == "Damage":
+        self.attackboost = random.randint(0, int(int(self.itemfunction[2])/5))
 
   def enemybattlecommand(self, i):
     self.battle = True
@@ -254,7 +244,11 @@ class BattleScene(Layer):
       elif self.playercommand == 3:
         self.castspell(self.activemember)
       elif self.playercommand == 4:
-        self.displayturn(self.itemfunction[2], 1, self.activemember)
+        if self.itemfunction[0] == "Heal":
+          self.displayturn(int(self.itemfunction[2]), 1, self.activemember)
+        else:
+          self.displayturn(int(self.itemfunction[2]) + self.attackboost, 1, self.activemember)
+
 
   def castspell(self, partymember):
     speed = 60/float(self.spellini.frames)
@@ -320,7 +314,9 @@ class BattleScene(Layer):
       self.engine.screenfade((0,0,0,255-(self.displaydamage*2)))
       if self.playercommand == 4:
         if self.itemfunction[0] == "Heal":
-          self.engine.renderFont("default.ttf", self.itemfunction[2], (450 + (self.displaydamage/20), 380+(partymember*30)), size = 18, flags = "Shadow", color = (0, 255, 0))
+          self.engine.renderFont("default.ttf", str(damage), (450 + (self.displaydamage/20), 380+(partymember*30)), size = 18, flags = "Shadow", color = (0, 255, 0))
+        elif self.itemfunction[0] == "Damage":
+          self.engine.renderFont("default.ttf", str(damage), (int(self.formationcoord[self.playertarget][0]) - (self.displaydamage/20), int(self.formationcoord[self.playertarget][1])), size = 24, flags = "Shadow")
       else:
         self.engine.renderFont("default.ttf", str(damage), (int(self.formationcoord[self.playertarget][0]) - (self.displaydamage/20), int(self.formationcoord[self.playertarget][1])), size = 24, flags = "Shadow")
         if self.playercommand == 3:
@@ -338,9 +334,14 @@ class BattleScene(Layer):
         if self.playercommand == 4:
           if self.itemfunction[0] == "Heal":
             if self.itemfunction[1] == "HP":
-              self.party[partymember].currenthp += int(self.itemfunction[2])
+              self.party[partymember].currenthp += damage
             elif self.itemfunction[1] == "SP":
-              self.party[partymember].currentsp += int(self.itemfunction[2])
+              self.party[partymember].currentsp += damage
+          elif self.itemfunction[0] == "Damage":
+            if self.itemfunction[1] == "HP":
+              self.enemy[self.playertarget].currenthp -= damage
+            elif self.itemfunction[1] == "SP":
+              self.enemy[self.playertarget].currentsp -= damage
         else:
           self.enemy[self.playertarget].currenthp -= damage
           if self.playercommand == 3:
@@ -356,8 +357,9 @@ class BattleScene(Layer):
     self.timer = 0
     self.displaydamage = 0
 
-    self.selectingitem = False
-    self.selectingspell = False
+    if self.roll == 1:
+      self.selectingitem = False
+      self.selectingspell = False
 
     if i == 1 or i == 2:
       self.rotatestart = 0
@@ -418,7 +420,8 @@ class BattleScene(Layer):
 
   def update(self):
 
-    self.engine.drawImage(self.background, scale = (640,480))
+    if self.background != None:
+      self.engine.drawImage(self.background, scale = (640,480))
     if self.fade == True:
       self.engine.screenfade((0,0,0,175))
 
@@ -487,6 +490,17 @@ class BattleScene(Layer):
     for key, char in GameEngine.getKeyPresses():
       if key == K_SPACE and self.battle == True:
         self.spacehit = True
+      if key == K_LEFT and (self.selectingitem == True or self.selectingspell == True):
+        if self.index - 5 > 0:
+          self.index -= 5
+      if key == K_RIGHT and (self.selectingitem == True or self.selectingspell == True):
+        if self.selectingitem == True:
+          maxindex = len(self.party[self.activemember].inventory)
+        elif self.selectingspell == True:
+          maxindex = len(self.party[self.activemember].spells)
+        if self.index + 5 < maxindex:
+          self.index += 5
+
 
     commands = ["Attack", "Defend", "Skills", "Item", "Flee"]
     if self.battle == False:
@@ -535,6 +549,8 @@ class BattleScene(Layer):
                 if flag == True:
                   if self.selectingspell == True:
                     self.battlecommand(2, self.activemember, i)
+                  elif self.selectingitem == True:
+                    self.battlecommand(3, self.activemember, i)
                   else:
                     self.battlecommand(0, self.activemember, i)
       else:

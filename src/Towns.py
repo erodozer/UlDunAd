@@ -82,7 +82,7 @@ class Towns(Layer):
             from ExtraScenes import LoadingScene
             View.addscene(LoadingScene("Preparing Battle", 4.5))
           else:
-            choiceini = Config.Configuration(os.path.join("Data", "Towns", self.townname, choice+".ini"))
+            choiceini = Config.Configuration(os.path.join("..", "Data", "Towns", self.townname, choice+".ini"))
             from Shop import Shop
             View.removescene(self)
             View.addscene(Shop(choiceini))

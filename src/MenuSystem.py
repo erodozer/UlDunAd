@@ -99,7 +99,8 @@ class MenuSystem(Layer):
           active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (120, 128 + (26*(i-self.index))), scale = (220,24))
           if active == True:
             itemimage = self.engine.loadImage(os.path.join("Data", "Items", str(partyinv.inventory[i])+".png"))
-            self.engine.drawImage(itemimage, coord= (465, 165), scale = (150,150))
+            if itemimage != None:
+              self.engine.drawImage(itemimage, coord= (465, 165), scale = (150,150))
             if flag == True:
               pass
     

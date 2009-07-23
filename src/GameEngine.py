@@ -67,10 +67,16 @@ keypresses = []
 
 class Drawing(pygame.sprite.Sprite):
 
-  def loadImage(self, ImgData):
+  def loadImage(self, ImgData, returnnone = True):
     pygame.sprite.Sprite.__init__(self)
+    if returnnone == True:
+      if os.path.exists(os.path.join("..", ImgData)):
+        image = pygame.image.load(os.path.join("..", ImgData)).convert_alpha()
+      else:
+        image = None
+    else:
+      image = pygame.image.load(os.path.join("..", ImgData)).convert_alpha()
 
-    image = pygame.image.load(os.path.join("..", ImgData)).convert_alpha()
     return image
     
   def drawImage(self, image, coord = (w/2, h/2), scale = None, scaleper = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", blit = True):
@@ -98,6 +104,7 @@ class Drawing(pygame.sprite.Sprite):
     if scaleper != None:
       image = pygame.transform.smoothscale(image, (int(width*scaleper/100), int(height*scaleper/100)))
       width,height = image.get_size()
+
 
     rect = image.get_rect(topleft=(coord[0] - width/2, coord[1]-height/2))
 
@@ -148,11 +155,14 @@ class Sound:
     else:
       audiopath = os.path.join("..", "Data", "Audio", AudioFile)
 
-    if queue == True:
-      pygame.mixer.music.queue(audiopath)
+    if os.path.exists(os.path.join(audiopath)):
+      if queue == True:
+        pygame.mixer.music.queue(audiopath)
+      else:
+        pygame.mixer.music.load(audiopath)
+      pygame.mixer.music.play()
     else:
-      pygame.mixer.music.load(audiopath)
-    pygame.mixer.music.play()
+      return None
   
   def stop(self):
     pygame.mixer.music.stop()
@@ -220,8 +230,8 @@ class Font:
    
     return lines
 
-def loadImage(ImgData):
-  image = Drawing().loadImage(ImgData)
+def loadImage(ImgData, returnnone = True):
+  image = Drawing().loadImage(ImgData, returnnone)
   return image
 
 def drawImage(ImgData, coord = (w/2, h/2), scale = None, scaleper = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", blit = True):

@@ -50,11 +50,49 @@ class LoadingScene(Layer): #simple loading screen, time wasting but stylish
       self.rotate = 0
 
     if self.loadingImage is not None:
-      self.engine.drawImage(self.loadingImage, coord = (w/2, h/2), rot = self.rotate) 
+      self.engine.drawImage(self.loadingImage, coord = (w/2, h/2), rot = -self.rotate) 
     self.engine.renderFont("default.ttf", self.phrase, coord = (w/2, h - h/10), size = 24)
 
     if self.timer < (self.time * 60) and self.engine.loadingscreen == True:
       self.timer += 1
     else:
+      View.removescene(self)
+      pygame.mixer.music.unpause()
+
+class TitleScreen(Layer): #title screen to pop up when game starts
+  def __init__(self, phrase = "", time = 2.0):
+    self.engine = GameEngine
+    self.time = time
+
+    self.titleImage = Drawing().loadImage(os.path.join("Data","titlescreen.png"))
+
+    self.timer = 5.0
+    self.audio = Sound().loadAudio("main.mp3")
+
+    self.spacehit = False
+
+  def update(self):
+    w, h = GameEngine.w, GameEngine.h
+
+    if self.timer > 1.0 and self.spacehit == False:
+      self.timer -= 0.1
+    elif self.timer <= 4.0 and self.spacehit == True:
+      self.timer += 0.1
+    if self.timer < 1.0:
+      self.timer = 1.0
+
+
+    if self.titleImage is not None:
+      self.engine.drawImage(self.titleImage, coord = (w/2, h/2), scale = (w,h))
+
+    self.engine.screenfade((0,0,0,255-(255*(2-self.timer))))
+    if self.timer == 1.0:
+      self.engine.renderFont("default.ttf", "Press SPACE", coord = (w/2, h - h/10), size = 32, flags = "Shadow")
+
+    for key, char in GameEngine.getKeyPresses():
+      if key == K_SPACE and self.timer <= 1.1:
+        self.spacehit = True
+
+    if self.timer >= 4.0 and self.spacehit == True:
       View.removescene(self)
       pygame.mixer.music.unpause()

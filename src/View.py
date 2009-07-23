@@ -61,6 +61,7 @@ def addscene(scene):
 
 def update():
   global opacity
+
   if goingout != []:
     if opacity < 255:
       opacity += 20

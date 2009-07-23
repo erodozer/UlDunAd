@@ -36,19 +36,11 @@ class Library(Layer):
     self.townname = self.engine.town
 
     self.library = os.path.join("Data", "Towns", self.townname, "Library")
-    self.libraryback = None
-    self.librarian = None
-    self.booktex = None
-    self.bookcover = None
 
-    if os.path.isfile(os.path.join(self.library, "library.png")):
-      self.libraryback = self.engine.loadImage(os.path.join(self.library, "library.png"))
-    if os.path.isfile(os.path.join(self.libary, "librarian.png")):
-      self.librarian = self.engine.loadImage(os.path.join(self.library, "librarian.png"))
-    if os.path.isfile(os.path.join(self.libary, "book.png")):
-      self.booktex = self.engine.loadImage(os.path.join(self.library, "book.png"))
-    if os.path.isfile(os.path.join(self.libary, "bookcover.png")):
-      self.bookcover = self.engine.loadImage(os.path.join(self.library, "bookcover.png"))
+    self.libraryback = self.engine.loadImage(os.path.join(self.library, "library.png"))
+    self.librarian = self.engine.loadImage(os.path.join(self.library, "librarian.png"))
+    self.booktex = self.engine.loadImage(os.path.join(self.library, "book.png"))
+    self.bookcover = self.engine.loadImage(os.path.join(self.library, "bookcover.png"))
 
     self.secondarybutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
     self.secondarybuttonactive = self.engine.loadImage(os.path.join("Data", "secondarymenubuttonactive.png"))
@@ -71,7 +63,7 @@ class Library(Layer):
     if self.booktex != None:
       self.engine.drawImage(self.booktex)
 
-    book = open(os.path.join(self.library, self.book + ".txt"))
+    book = open(os.path.join("..", self.library, self.book + ".txt"))
     book.seek(0)
     booklines = []
     for line in book.read().splitlines():
@@ -96,7 +88,7 @@ class Library(Layer):
     active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (560, 205), scale = (150,45))
     if active == True:
       if flag == True:
-        open(os.path.join(self.library, self.book + ".txt")).close()
+        open(os.path.join("..", self.library, self.book + ".txt")).close()
         self.book = None
         self.lineindex = 0
         self.booklines = None
@@ -142,6 +134,8 @@ class Library(Layer):
     buttonfont = self.engine.renderFont("default.ttf", "Read", (530, 425))
 
   def update(self):
+    self.engine.screenfade((0,0,0,255))
+
     if self.libraryback != None:
       self.engine.drawImage(self.libraryback, scale = (640,480))
     if self.librarian != None:
@@ -169,10 +163,8 @@ class Library(Layer):
     elif self.enterdialog == 1 and self.active == False:
       self.engine.renderTextbox("default.ttf", ("We have many books here, which would you like to check out?", ""), size = 18)
       for i, choice in enumerate(["Take a Look", "Leave"]):
-        button = self.engine.drawImage(self.secondarybutton, coord= (120, 128 + (26*(i-self.index))), scale = (220,24))
-        active, flag = self.engine.mousecol(button)
+        active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (120, 128 + (26*i)), scale = (220,24))
         if active == True:
-          button = self.engine.drawImage(self.secondarybuttonactive, coord= (120, 128 + (26*(i-self.index))), scale = (220,24)) 
           if flag == True:
             if i == 0:
               if self.books != []:
@@ -185,7 +177,7 @@ class Library(Layer):
               View.addscene(Towns())
 
     
-        buttonfont = self.engine.renderFont("default.ttf", choice, (120, 128 + (26*(i-self.index))))
+        buttonfont = self.engine.renderFont("default.ttf", choice, (120, 128 + (26*i)))
 
 
     elif self.enterdialog == 2:
