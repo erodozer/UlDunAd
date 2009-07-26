@@ -71,7 +71,7 @@ def main():
         break  # no more events this frame
       elif event.type == QUIT:
         GameEngine.finished = True
-        Sound().stopmusic()
+        Sound().stop()
         break
       elif event.type == KEYDOWN:
         GameEngine.processKeyPress(event)

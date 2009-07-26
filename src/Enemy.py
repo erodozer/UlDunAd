@@ -44,6 +44,13 @@ class Enemy:
     self.lvl = self.enemyini.__getattr__("lvl", "int")
     self.image = self.enemyini.__getattr__("image")
 
+    #item drops and rate of drop per item
+    self.loot = self.enemyini.__getattr__("loot").replace(" ", "").split(",")
+    self.lootchances = self.enemyini.__getattr__("lootchances").replace(" ", "").split(",")
+    if self.loot == [''] or self.lootchances == ['']:
+      self.lootchances = None
+      self.loot = None
+
     #these are very important for battle
     self.currentatb = 0
     self.defending = False

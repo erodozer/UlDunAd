@@ -74,11 +74,13 @@ class MenuSystem(Layer):
   def showInventory(self):
     for key, char in GameEngine.getKeyPresses():
       if key == K_LEFT:
+        self.index = 0
         if self.whichcharacter - 1 > -1:
           self.whichcharacter -= 1
         else:
           self.whichcharacter = len(self.party)-1
       if key == K_RIGHT:
+        self.index = 0
         if self.whichcharacter + 1 < len(self.party):
           self.whichcharacter += 1
         else:
@@ -140,11 +142,13 @@ class MenuSystem(Layer):
   def showSpells(self):
     for key, char in GameEngine.getKeyPresses():
       if key == K_LEFT:
+        self.index = 0
         if self.whichcharacter - 1 > -1:
           self.whichcharacter -= 1
         else:
           self.whichcharacter = len(self.party)-1
       if key == K_RIGHT:
+        self.index = 0
         if self.whichcharacter + 1 < len(self.party):
           self.whichcharacter += 1
         else:

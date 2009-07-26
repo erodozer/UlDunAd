@@ -611,11 +611,20 @@ class VictoryScene(Layer):
       self.party.append(Player(partymember))
       self.levelup.append("False")
 
+
     self.enemies = Configuration(os.path.join("..", "Data", "Enemies", "Formations", formation)).formation.enemies.split(", ")  
     self.enemy = []
     self.enemyko = []
     for enemy in self.enemies:
       self.enemy.append(Enemy(str(enemy)))
+
+    self.items = []
+    for i, enemy in enumerate(self.enemy):
+      if enemy.loot != None and enemy.lootchances != None:
+        for i, item in enumerate(enemy.loot):
+          chance = random.randint(0, 100)
+          if chance >= 0 and chance <= int(enemy.lootchances[i]):
+            self.items.append(item)
 
     self.expbar = self.engine.loadImage(os.path.join("Data", "expbar.png"))
     self.barback = self.engine.loadImage(os.path.join("Data", "barback.png"))
@@ -626,6 +635,9 @@ class VictoryScene(Layer):
     self.button = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
     self.buttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
+    self.secondarybutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
+    self.secondarybuttonactive = self.engine.loadImage(os.path.join("Data", "secondarymenubuttonactive.png"))
+
     self.enemyexp = 0
     for enemy in self.enemy:
       self.enemyexp += int((enemy.exp/len(self.party))*(multiplier/100))
@@ -634,6 +646,7 @@ class VictoryScene(Layer):
     self.finishupcounting = False
     self.finished = False
 
+    self.notokay = False
 
     GameEngine.resetKeyPresses()
 
@@ -654,6 +667,10 @@ class VictoryScene(Layer):
       self.engine.renderFont("default.ttf", "Finished", (530, 425))
 
     self.engine.renderFont("menu.ttf", "Loot and Drops", (20, 96), size = 28, flags = "Shadow", alignment = 1)
+    for i, item in enumerate(self.items):
+      itemini = Configuration(os.path.join("..", "Data", "Items", item+".ini")).item
+      self.engine.renderFont("default.ttf", itemini.__getattr__("name"), (20, 128+24*i), size = 20, flags = "Shadow", alignment = 1)
+
     self.engine.renderFont("menu.ttf", "Status", (620, 70), size = 32, flags = "Shadow", alignment = 2)
 
     for i, player in enumerate(self.party):
@@ -686,10 +703,8 @@ class VictoryScene(Layer):
       
       if self.levelup[i] == "True":
         self.engine.renderFont("default.ttf", "Level Up!", (480, 155 + (i*100)), size = 30)
-        if player.exp > player.explvl:
+        if player.exp >= player.explvl:
           player.exp = player.exp - player.explvl
-        else:
-          player.exp = 0
 
     if self.countdownexp == True:
       if self.enemyexp > 0:
@@ -711,19 +726,43 @@ class VictoryScene(Layer):
           player.playerini.player.__setattr__("currenthp", player.currenthp)
           player.playerini.player.__setattr__("currenthp", player.currentsp)
           self.levelup[i] = "False"
-        player.playerini.player.__setattr__("exp", player.exp)
-        player.playerini.save()
-        player.knockedout = False
-      self.engine.inbattle = False
-      pygame.mixer.music.fadeout(400)
-      if self.engine.town != None:
-        from Towns import Towns
-        View.removescene(self)
-        View.addscene(Towns())
+        for item in self.items:
+          if i == 0:
+            if len(player.inventory) < 20:
+              player.inventory.append(item)
+            elif len(player.inventory) >= 20 and i+1 < len(self.party):
+              self.party[i+1].inventory.append(item)
+          if i+1 >= len(self.party) and len(player.inventory) >= 20:
+            self.notokay = True
+
+      if self.notokay == True:
+        self.engine.screenfade((0,0,0,120))
+
+        active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (320, 280), scale = (100,48))
+        if active == True:
+          if flag == True:
+            self.notokay = False
+
+        buttonfont = self.engine.renderFont("default.ttf", "OK", (320, 280), size = 16)
+        self.engine.renderMultipleFont("default.ttf", ("Your inventory is full!", "Some items were not picked up"), (320, 212), size = 20, flags = "Shadow")
+
       else:
-        from Maplist import Maplist
-        View.removescene(self)
-        View.addscene(Maplist())
+        self.engine.inbattle = False
+        pygame.mixer.music.fadeout(400)
+        for player in self.party:
+          player.playerini.player.__setattr__("inventory", ", ".join(player.inventory))
+          player.playerini.player.__setattr__("exp", player.exp)
+          player.playerini.save()
+          player.knockedout = False
+
+        if self.engine.town != None:
+          from Towns import Towns
+          View.removescene(self)
+          View.addscene(Towns())
+        else:
+          from Maplist import Maplist
+          View.removescene(self)
+          View.addscene(Maplist())
 
   def clearscene(self):
     del self.levelup, self.finished, self.finishupcounting, self.countdownexp

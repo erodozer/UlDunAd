@@ -80,6 +80,10 @@ class Player:
     if self.playerini.player.__getattr__("spells") == "":
       self.spells = "None"
 
+    self.gold = self.playerini.player.__getattr__("gold", "int")
+    if self.gold == '':
+      self.gold = 0
+
     #these are very important for battle
     self.currentatb = 0
     self.defending = False

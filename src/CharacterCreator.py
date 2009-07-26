@@ -229,6 +229,7 @@ class CharacterCreator(Layer):
             newconf.player.monsterskilled = str(0)
             newconf.player.inventory = str('item001, item001, item001, item002, item002')
             newconf.player.spells = str('')
+            newconf.player.gold = str(250)
             newconf.save()
             View.removescene(self)
             GameEngine.party.append(str(name+".ini"))
