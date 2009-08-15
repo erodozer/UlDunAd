@@ -39,6 +39,7 @@ class Maplist(Layer):
     self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
     self.maps = self.engine.listpath(os.path.join("Data", "Towns"), "searchfile", "town.ini")
+    self.maps.extend(self.engine.listpath(os.path.join("Data", "Towns"), "searchfile", "dungeon.ini"))
     self.formations = self.engine.listpath(os.path.join("Data", "Enemies", "Formations"), "splitfiletype", ".ini")
 
     self.index = 0
@@ -47,7 +48,7 @@ class Maplist(Layer):
       self.formation = random.choice(self.formations)
 
   def update(self):
-    self.engine.drawImage(self.background)
+    self.engine.drawImage(self.background, scale = (640,480))
 
     if self.index < 0:
       self.index = 0
@@ -61,9 +62,14 @@ class Maplist(Layer):
         if active == True:
           if flag == True:
             GameEngine.town = str(self.maps[i])
-            from Towns import Towns
-            View.removescene(self)
-            View.addscene(Towns())
+            if os.path.exists(os.path.join("..","Data", "Towns", self.maps[i], "dungeon.ini")):
+              from Dungeon import Dungeon
+              View.removescene(self)
+              View.addscene(Dungeon())
+            else:
+              from Towns import Towns
+              View.removescene(self)
+              View.addscene(Towns())
           
         buttonfont = self.engine.renderFont("menu.ttf", self.maps[i], (320, 70+(44*(i+1))), size = 24)
 

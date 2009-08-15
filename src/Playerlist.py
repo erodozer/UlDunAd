@@ -49,8 +49,8 @@ class Playerlist(Layer):
     self.flag = False
 
   def update(self):
-    self.engine.drawImage(self.background)
-    self.engine.drawImage(self.background2)
+    self.engine.drawImage(self.background, scale = (640,480))
+    self.engine.drawImage(self.background2, scale = (640,480))
 
     if self.index < 0:
       self.index = 0

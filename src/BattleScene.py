@@ -264,7 +264,7 @@ class BattleScene(Layer):
 
   def renderbattlecircle(self, partymember):
     if self.stop == False:
-      var = 60
+      var = random.randint(30,90)
       self.engine.renderFont("default.ttf", "Press Space to Stop", (320, 64), size = 24)
       if self.playercommand == 1: 
         self.engine.renderFont("default.ttf", "Attack", (320, 96), size = 24) 
@@ -275,12 +275,10 @@ class BattleScene(Layer):
     self.timer += var
     time = math.radians(self.timer/4)
     rotate = self.rotatestart + ((self.timer/7))
-    rotcount = int(rotate/360)
-    rotwatch = rotate - (360*rotcount)
-    timer = 3600 - self.timer
-    if timer <= 0 or self.spacehit == True:
+    timer = float(1800 - self.timer)
+    if timer <= 0.0 or self.spacehit == True:
       self.stop = True
-      if not rotwatch in range(46,314):
+      if int(timer) in range(600, 900):
         if self.playercommand == 1:
           self.attack(1, self.activemember)
         else:
@@ -291,11 +289,11 @@ class BattleScene(Layer):
         self.displayturn("Miss", 1, partymember)
     else:
       if self.playercommand == 1:
-        self.engine.drawImage(self.attackcb, (int(self.formationcoord[self.playertarget][0]), int(self.formationcoord[self.playertarget][1])), scale = (150*(.25*math.sin(time+.5)+1),150*(.25*math.sin(time+.5)+1)))
-        self.engine.drawImage(self.attackct, (int(self.formationcoord[self.playertarget][0]), int(self.formationcoord[self.playertarget][1])), scale = (150*(.25*math.sin(time+.5)+1),150*(.25*math.sin(time+.5)+1)), rot = -rotate)
+        self.engine.drawImage(self.attackcb, (float(int(self.formationcoord[self.playertarget][0])), float(int(self.formationcoord[self.playertarget][1]))), scale = (150,150))
+        self.engine.drawImage(self.attackct, (float(int(self.formationcoord[self.playertarget][0])), float(int(self.formationcoord[self.playertarget][1]))), scale = (150*(timer/900.0),150*(timer/900.0)), rot = -rotate)
       else:
-        self.engine.drawImage(self.attackcb, (320, 240), scale = (150*(.25*math.sin(time+.5)+1),150*(.25*math.sin(time+.5)+1)))
-        self.engine.drawImage(self.attackct, (320, 240), scale = (150*(.25*math.sin(time+.5)+1),150*(.25*math.sin(time+.5)+1)), rot = -rotate)
+        self.engine.drawImage(self.attackcb, (320, 240), scale = (150,150))
+        self.engine.drawImage(self.attackct, (320, 240), scale = (150*(timer/900.0),150*(timer/900.0)), rot = -rotate)
 
   def attack(self, who, partymember):
     if who == 0:
@@ -427,7 +425,7 @@ class BattleScene(Layer):
 
     for i, enemy in enumerate(self.enemy):
       if enemy not in self.enemyko:
-        self.engine.drawImage(self.enemysprite[i], coord = (int(self.formationcoord[i][0]), int(self.formationcoord[i][1])), scaleper = int(self.formationscale[i]))
+        self.engine.drawImage(self.enemysprite[i], coord = (float(int(self.formationcoord[i][0])), float(int(self.formationcoord[i][1]))), scaleper = int(self.formationscale[i]))
       if enemy.currenthp <= 0:
         if enemy not in self.enemyko:
           self.enemyko.append(enemy)
@@ -541,7 +539,7 @@ class BattleScene(Layer):
         elif self.activemember != None and self.selectingenemy == True:
           for i, enemy in enumerate(self.enemy):
             if enemy not in self.enemyko:
-              sprite = self.engine.drawImage(self.enemysprite[i], (int(self.formationcoord[i][0]), int(self.formationcoord[i][1])), blit = False)
+              sprite = self.engine.drawImage(self.enemysprite[i], coord = (float(int(self.formationcoord[i][0])), float(int(self.formationcoord[i][1]))), scaleper = int(self.formationscale[i]), blit = False)
               active, flag = self.engine.mousecol(sprite)
               if active == True:
                 self.engine.drawImage(self.enemynamebar, (320, 32), scale = (640, 64))
@@ -585,9 +583,14 @@ class BattleScene(Layer):
       self.engine.inbattle = False
       pygame.mixer.music.fadeout(400)
       if self.engine.town != None:
-        from Towns import Towns
-        View.removescene(self)
-        View.addscene(Towns())
+        if self.engine.cells == None:
+          from Towns import Towns
+          View.removescene(self)
+          View.addscene(Towns())
+        else:
+          from Dungeon import Dungeon
+          View.removescene(self)
+          View.addscene(Dungeon())
       else:
         from Maplist import Maplist
         View.removescene(self)
@@ -630,7 +633,7 @@ class VictoryScene(Layer):
     self.barback = self.engine.loadImage(os.path.join("Data", "barback.png"))
 
     self.background = self.engine.loadImage(os.path.join("Data", "victorybackground.png"))
-    self.statusbox = self.engine.loadImage(os.path.join("Data", "statusbox.png"))
+    self.statusbox = self.engine.loadImage(os.path.join("Data", "victorystatusbox.png"))
 
     self.button = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
     self.buttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
@@ -639,6 +642,7 @@ class VictoryScene(Layer):
     self.secondarybuttonactive = self.engine.loadImage(os.path.join("Data", "secondarymenubuttonactive.png"))
 
     self.enemyexp = 0
+    self.enemyavglvl = 0
     for enemy in self.enemy:
       self.enemyexp += int((enemy.exp/len(self.party))*(multiplier/100))
 
@@ -658,7 +662,7 @@ class VictoryScene(Layer):
         elif self.countdownexp == True and self.enemyexp > 0:
           self.finishupcounting = True
 
-    self.engine.drawImage(self.background, (320,240), scale = (640,480))
+    self.engine.drawImage(self.background, scale = (640,480))
     
     if self.countdownexp == True and self.enemyexp == 0:  
       active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (530, 425), scale = (150,45))
@@ -756,9 +760,15 @@ class VictoryScene(Layer):
           player.knockedout = False
 
         if self.engine.town != None:
-          from Towns import Towns
-          View.removescene(self)
-          View.addscene(Towns())
+          if self.engine.cells == None:
+            from Towns import Towns
+            View.removescene(self)
+            View.addscene(Towns())
+          else:
+            from Dungeon import Dungeon
+            View.removescene(self)
+            View.addscene(Dungeon())
+            self.engine.currentcell += 1
         else:
           from Maplist import Maplist
           View.removescene(self)
@@ -767,3 +777,4 @@ class VictoryScene(Layer):
   def clearscene(self):
     del self.levelup, self.finished, self.finishupcounting, self.countdownexp
     del self.enemyexp, self.background, self.barback, self.expbar, self.engine
+

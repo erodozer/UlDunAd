@@ -58,6 +58,8 @@ party = []
 enemy = None
 finished = False
 town = None
+cells = None
+currentcell = 1
 
 defaultsettings = False
 
@@ -79,7 +81,7 @@ class Drawing(pygame.sprite.Sprite):
 
     return image
     
-  def drawImage(self, image, coord = (w/2, h/2), scale = None, scaleper = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", blit = True):
+  def drawImage(self, image, coord = (320, 240), scale = None, scaleper = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", blit = True):
     pygame.sprite.Sprite.__init__(self)
 
     width,height = image.get_size()
@@ -95,32 +97,42 @@ class Drawing(pygame.sprite.Sprite):
       image = image.subsurface((start, 0, end, height))
       width,height = image.get_size()
 
+    if scale != None:
+      width = int(float(scale[0])*w*0.0015625)
+      height = int(float(scale[1])*h*0.002083333)
+      image = pygame.transform.smoothscale(image, (width, height))
+    else:
+      width = int(float(width)*w*0.0015625)
+      height = int(float(height)*h*0.002083333)
+      image = pygame.transform.smoothscale(image, (width, height))
+
     if rot != None:
       image = pygame.transform.rotate(image, rot)
       width,height = image.get_size()
-    if scale != None:
-      image = pygame.transform.smoothscale(image, (scale[0], scale[1]))
-      width,height = image.get_size()
-    if scaleper != None:
-      image = pygame.transform.smoothscale(image, (int(width*scaleper/100), int(height*scaleper/100)))
-      width,height = image.get_size()
+    if scaleper != None and scale == None:
+      width = int(float(width*scaleper*.01)*(w*0.0015625))
+      height = int(float(height*scaleper*.01)*(h*0.002083333))
+      image = pygame.transform.smoothscale(image, (width, height))
 
-
-    rect = image.get_rect(topleft=(coord[0] - width/2, coord[1]-height/2))
+    x = float(coord[0])*w*0.0015625 - width*.5
+    y = float(coord[1])*h*0.002083333 - height*.5
+    rect = image.get_rect(topleft=(int(x), int(y)))
 
     if blit == True:
-      screen.blit(image, (coord[0] - width/2, coord[1]-height/2))
+      screen.blit(image, (int(x), int(y)))
 
     return rect
 
-  def drawBar(self, image, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
+  def drawBar(self, image, coord = (320, 240), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
     pygame.sprite.Sprite.__init__(self)
 
     if barcrop > 1:
       barcrop = 1
 
     if scale != None:
-      image = pygame.transform.smoothscale(image, (scale[0], scale[1]))
+      width = int(float(scale[0])*w*0.0015625)
+      height = int(float(scale[1])*h*0.002083333)
+      image = pygame.transform.smoothscale(image, (width, height))
     if rot != None:
       image = pygame.transform.rotate(image, rot)
       width,height = image.get_size()
@@ -138,12 +150,14 @@ class Drawing(pygame.sprite.Sprite):
       image = image.subsurface((start, 0, end, height*barcrop))
       width,height = image.get_size()
 
-    rect = image.get_rect(topleft=(coord[0], coord[1]-height/2))
-
     if direction == "Vertical":
-      screen.blit(image, (coord[0], coord[1]-height/2))
+      x = float(coord[0])*w*0.0015625
+      y = float(coord[1])*h*0.002083333 - height*.5
     else:
-      screen.blit(image, (coord[0]-width/2, coord[1]-height))
+      x = float(coord[0])*w*0.0015625 - width*.5
+      y = float(coord[1])*h*0.002083333 - height
+    rect = image.get_rect(topleft=(int(x), int(y)))
+    screen.blit(image, (int(x), int(y)))
 
     return rect
 
@@ -171,31 +185,33 @@ class Sound:
     pygame.mixer.music.set_volume(volume)
 
 class Font:
-  def renderFont(self, font, text, coord = (w/2,h/2), size = 12, flags = None, alignment = 0, color = (255,255,255)):
-    textfont = pygame.font.Font(os.path.join("..", "Data", font), size)
+  def renderFont(self, font, text, coord = (320,240), size = 12, flags = None, alignment = 0, color = (255,255,255)):
+    textfont = pygame.font.Font(os.path.join("..", "Data", font), size+2)
     width, height = textfont.size(text)
+
+    width = int(float(width)*float(w/800.0))
+    height = int(float(height)*float(h/600.0))
+
+    if alignment == 1:
+      x = int(float(coord[0])*w*0.0015625)
+    elif alignment == 2:
+      x = int(float(coord[0])*w*0.0015625 - width)
+    else:
+      x = int(float(coord[0])*w*0.0015625 - width/2)
+    y = int(float(coord[1])*h*0.002083333-height/2)
+
     if flags == "Shadow":
       renderedfont = textfont.render(text, True, (0,0,0))
-      if alignment == 1:
-        screen.blit(renderedfont, ((coord[0])+2, (coord[1]-height/2)+2))
-      elif alignment == 2:
-        screen.blit(renderedfont, ((coord[0] - width)+2, (coord[1]-height/2)+2))
-      else:
-        screen.blit(renderedfont, ((coord[0] - width/2)+2, (coord[1]-height/2)+2))
-    renderedfont = textfont.render(text, True, color)
-    if alignment == 1:
-      screen.blit(renderedfont, (coord[0], coord[1]-height/2))
-    elif alignment == 2:
-      screen.blit(renderedfont, (coord[0] - width, coord[1]-height/2))
-    else:
-      screen.blit(renderedfont, (coord[0] - width/2, coord[1]-height/2))
+      renderedfont = pygame.transform.smoothscale(renderedfont, (width, height))
+      screen.blit(renderedfont, (x+2, y+2))
 
-  def renderMultipleFont(self, font, text, coord = (w/2,h/2), size = 12, color = (255,255,255)):
-    textfont = pygame.font.Font(os.path.join("..", "Data", font), size)
+    renderedfont = textfont.render(text, True, color)
+    renderedfont = pygame.transform.smoothscale(renderedfont, (width, height))
+    screen.blit(renderedfont, (x, y))
+
+  def renderMultipleFont(self, font, text, coord = (320,240), size = 12, flags = None, alignment = 0):
     for i, textline in enumerate(text):
-      width, height = textfont.size(textline)
-      renderedfont = textfont.render(textline, True, color)
-      screen.blit(renderedfont, (coord[0] - width/2, coord[1]-height/2+((size+3)*i)))
+      self.renderFont(font, textline, coord = (coord[0], coord[1]+((size+3)*i)), size = size, color = (255,255,255), flags = flags, alignment = alignment)
 
   def renderTextbox(self, font, text, size = 12):
     textbox = Drawing().loadImage(os.path.join("Data", "textbox.png"))
@@ -203,7 +219,7 @@ class Font:
     for i, textline in enumerate(text):
       self.renderFont(font, textline, coord = (30, 350+((size+3)*i)), size = size, flags = "Soft Shadow", alignment = 1, color = (0,0,0))
 
-  def renderWrapText(self, font, text, coord = (w/2,h/2), size = 12, width = w/2, alignment = 1):
+  def renderWrapText(self, font, text, coord = (320,240), size = 12, width = 320, alignment = 1):
     x, y = coord
     sentence = ""
     lines = 0
@@ -211,7 +227,7 @@ class Font:
 
     for n, word in enumerate(text.split(" ")):
       w, h = textfont.size(sentence + " " + word)
-      if x + (w/2) > x + width or word == "\n":
+      if x + (320) > x + width or word == "\n":
         w, h = textfont.size(sentence)
         self.renderFont(font, sentence, (x, y), size, alignment = alignment)
         sentence = word
@@ -234,15 +250,15 @@ def loadImage(ImgData, returnnone = True):
   image = Drawing().loadImage(ImgData, returnnone)
   return image
 
-def drawImage(ImgData, coord = (w/2, h/2), scale = None, scaleper = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", blit = True):
+def drawImage(ImgData, coord = (320, 240), scale = None, scaleper = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", blit = True):
   rect = Drawing().drawImage(ImgData, coord, scale, scaleper, rot, frames, currentframe, direction, blit)
   return rect
 
-def drawBar(ImgData, coord = (w/2, h/2), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
+def drawBar(ImgData, coord = (320, 240), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
   rect = Drawing().drawBar(ImgData, coord, scale, rot, frames, currentframe, direction, barcrop)
   return rect
 
-def drawButton(ImgData, ImgData2, coord = (w/2, h/2), scale = None, rot = None, buttons = 1, index = 1, direction = "Vertical", activeshift = 0):
+def drawButton(ImgData, ImgData2, coord = (320, 240), scale = None, rot = None, buttons = 1, index = 1, direction = "Vertical", activeshift = 0):
 
   whichimgdata = ImgData
 
@@ -257,16 +273,16 @@ def drawButton(ImgData, ImgData2, coord = (w/2, h/2), scale = None, rot = None, 
 
   return active, flag
 
-def renderFont(font, text, coord = (w/2,h/2), size = 12, flags = None, alignment = 0, color = (255,255,255)):
+def renderFont(font, text, coord = (320,240), size = 12, flags = None, alignment = 0, color = (255,255,255)):
   Font().renderFont(font,text,coord,size,flags,alignment,color)
 
-def renderMultipleFont(font, text, coord = (w/2,h/2), size = 12):
-  Font().renderMultipleFont(font,text,coord,size)
+def renderMultipleFont(font, text, coord = (320,240), size = 12, flags = None):
+  Font().renderMultipleFont(font,text,coord,size,flags)
 
 def renderTextbox(font, text, size = 12):
   Font().renderTextbox(font,text,size)
 
-def renderWrapText(font, text, coord = (w/2,h/2), size = 12, width = w/2, alignment = 1):
+def renderWrapText(font, text, coord = (320,240), size = 12, width = 320, alignment = 1):
   lines = Font().renderWrapText(font, text, coord, size, width, alignment)
   return lines
 
@@ -331,4 +347,5 @@ def getKeyPresses():
 
 def resetKeyPresses():
   keypresses[:] = []
+
 

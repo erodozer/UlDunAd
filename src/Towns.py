@@ -63,7 +63,7 @@ class Towns(Layer):
     self.enemies = self.townini.enemylist.split(", ")
 
   def update(self):
-    self.engine.drawImage(self.background, scale = (640,480))
+    self.engine.drawImage(self.background)
     self.engine.drawImage(self.sidebar, coord = (100, 240))
 
     for i, choice in enumerate(self.choices):

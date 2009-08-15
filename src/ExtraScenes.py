@@ -50,8 +50,8 @@ class LoadingScene(Layer): #simple loading screen, time wasting but stylish
       self.rotate = 0
 
     if self.loadingImage is not None:
-      self.engine.drawImage(self.loadingImage, coord = (w/2, h/2), rot = -self.rotate) 
-    self.engine.renderFont("default.ttf", self.phrase, coord = (w/2, h - h/10), size = 24)
+      self.engine.drawImage(self.loadingImage, coord = (320, 240), rot = -self.rotate) 
+    self.engine.renderFont("default.ttf", self.phrase, coord = (320, 432), size = 24)
 
     if self.timer < (self.time * 60) and self.engine.loadingscreen == True:
       self.timer += 1
@@ -72,7 +72,6 @@ class TitleScreen(Layer): #title screen to pop up when game starts
     self.spacehit = False
 
   def update(self):
-    w, h = GameEngine.w, GameEngine.h
 
     if self.timer > 1.0 and self.spacehit == False:
       self.timer -= 0.1
@@ -83,11 +82,11 @@ class TitleScreen(Layer): #title screen to pop up when game starts
 
 
     if self.titleImage is not None:
-      self.engine.drawImage(self.titleImage, coord = (w/2, h/2), scale = (w,h))
+      self.engine.drawImage(self.titleImage, coord = (320, 240), scale = (640,480))
 
     self.engine.screenfade((0,0,0,255-(255*(2-self.timer))))
     if self.timer == 1.0:
-      self.engine.renderFont("default.ttf", "Press SPACE", coord = (w/2, h - h/10), size = 32, flags = "Shadow")
+      self.engine.renderFont("default.ttf", "Press SPACE", coord = (320, 432), size = 32, flags = "Shadow")
 
     for key, char in GameEngine.getKeyPresses():
       if key == K_SPACE and self.timer <= 1.1:
