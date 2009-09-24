@@ -38,13 +38,13 @@ class Towns(Layer):
     self.townini = Config.Configuration(os.path.join("..", "Data", "Towns", self.townname, "town.ini")).town
 
     self.background = None
-    if self.townini.background != "None":
-      self.background = self.engine.loadImage(os.path.join("Data", "Towns", self.townname, self.townini.background))
+    if os.path.exists(os.path.join("..", "Data", "Towns", self.townname, "background.png")):
+      self.background = self.engine.loadImage(os.path.join("Data", "Towns", self.townname, "background.png"))
     self.sidebar = self.engine.loadImage(os.path.join("Data", "sidemenu.png"))
 
     self.audio = None
     if self.townini.audio != "None":
-      self.audio = Sound().loadAudio(self.townini.audio)
+      self.audio = Sound().loadAudio(os.path.join("Town", self.townini.audio))
 
     Sound().volume(float(self.engine.townvolume)/10)
 
@@ -55,11 +55,6 @@ class Towns(Layer):
     else:
       self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
 
-    if os.path.exists(os.path.join("..", "Data", "Towns", self.townname, "townbuttonactive.png")) == True:
-      self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "Towns", self.townname, "townbuttonactive.png"))
-    else:
-      self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
-
     self.enemies = self.townini.enemylist.split(", ")
 
   def update(self):
@@ -67,7 +62,7 @@ class Towns(Layer):
     self.engine.drawImage(self.sidebar, coord = (100, 240))
 
     for i, choice in enumerate(self.choices):
-      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (100, 90+(60*i)), scale = (150,45))
+      active, flag = self.engine.drawButton(self.menubutton, coord= (100, 90+(60*i)), scale = (150,45))
       if active == True:
         if flag == True:
           if choice == "Library" or choice == "library":
@@ -90,7 +85,7 @@ class Towns(Layer):
       buttonfont = self.engine.renderFont("default.ttf", choice, (100, 90+(60*i)))
 
     #return button
-    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (100, 420), scale = (150,45))
+    active, flag = self.engine.drawButton(self.menubutton, coord= (100, 420), scale = (150,45))
     if active == True:
       if flag == True:
         from Maplist import Maplist
@@ -102,7 +97,7 @@ class Towns(Layer):
     self.towntitle = self.engine.renderFont("menu.ttf", self.townname, (430, 64), size = 32)
 
   def clearscene(self):
-    del self.towntitle, self.menubuttonactive, self.menubutton
+    del self.towntitle, self.menubutton
     if self.audio != None:
       self.engine.stopmusic()
     del self.audio, self.sidebar, self.background, self.townini, self.townname, self.engine

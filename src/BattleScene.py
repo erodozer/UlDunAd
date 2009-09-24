@@ -23,6 +23,7 @@
 from GameEngine import *
 
 from Player import Player
+from Item import Item
 
 from View import *
 import os
@@ -65,16 +66,7 @@ class BattleScene(Layer):
 
     self.formationscale = self.formationini.scale.split(";")
 
-    self.engine.inbattle = False
-    if os.path.exists(os.path.join("..", "Data", "Audio", "Battle")):
-      self.engine.inbattle = True
-      songs = self.engine.listpath(os.path.join("Data", "Audio", "Battle"), "splitfiletype", "audio")
-      self.audio = Sound().loadAudio(random.choice(songs))
-    else:
-      if os.path.isfile(os.path.join("Data", "Audio", "battle.mp3")):
-        self.audio = Sound().loadAudio("battle.mp3")
-      else:
-        self.audio = None
+    self.engine.inbattle = True
 
     Sound().volume(float(self.engine.battlevolume)/10)
 
@@ -90,18 +82,10 @@ class BattleScene(Layer):
       terrainini = Configuration(os.path.join("Data", "Terrains", terrain + ".ini")).terrain
       self.hue = terrainini.__getattr__("hue").split(",")
 
-    self.button = self.engine.loadImage(os.path.join("Data", "battlebutton.png"))
-    self.buttonactive = self.engine.loadImage(os.path.join("Data", "battlebuttonactive.png"))
+    self.button = self.engine.data.secondarybutton
 
-    self.atb = self.engine.loadImage(os.path.join("Data", "atb.png"))
-    self.atbback = self.engine.loadImage(os.path.join("Data", "atbback.png"))
-
-    self.hpbar = self.engine.loadImage(os.path.join("Data", "hpbar.png"))
-    self.hpback = self.engine.loadImage(os.path.join("Data", "hpbarback.png"))
-
-    self.hud = self.engine.loadImage(os.path.join("Data", "battlehud.png"))
-    self.hudhighlight = self.engine.loadImage(os.path.join("Data", "battlehighlight.png"))
-    self.hudhighlightactive = self.engine.loadImage(os.path.join("Data", "battlehighlightactive.png"))
+    self.bar = self.engine.loadImage(os.path.join("Data", "bars.png"))
+    self.hud = self.engine.loadImage(os.path.join("Data", "charbattlebase.png"))
 
     self.attackcb = self.engine.loadImage(os.path.join("Data", "battlecirclebottom.png"))
     self.attackct = self.engine.loadImage(os.path.join("Data", "battlecircletop.png"))
@@ -121,8 +105,6 @@ class BattleScene(Layer):
     self.spacehit = False
     self.defend = False
     self.attackboost = 0
-
-    self.barframe = 1
 
     self.activemember = None
     self.activeenemy = None
@@ -150,7 +132,7 @@ class BattleScene(Layer):
 
     for i in range(self.index, 4+self.index):
       if i < maxindex:
-        active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (550, 365 + (25*(i-self.index))), scale = (160,25), activeshift = -15)        
+        active, flag = self.engine.drawButton(self.button, coord= (550, 365 + (25*(i-self.index))), scale = (160,25), activeshift = -15)        
         if active == True:
           buttonfont = self.engine.renderFont("default.ttf", commands[i], (535, 365 + (25*(i-self.index))))
           if flag == True:
@@ -165,7 +147,7 @@ class BattleScene(Layer):
         else:
           buttonfont = self.engine.renderFont("default.ttf", commands[i], (550, 365 + (25*i)))
 
-    active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (550, 340), scale = (160,25), activeshift = -15)        
+    active, flag = self.engine.drawButton(self.button, coord= (550, 340), scale = (160,25), activeshift = -15)        
     if active == True:
       buttonfont = self.engine.renderFont("default.ttf", "Return", (535, 340))
       if flag == True:
@@ -181,26 +163,25 @@ class BattleScene(Layer):
 
     for i in range(self.index, 4+self.index):
       if i < maxindex:
-        name = Configuration(os.path.join("..", "Data", "Items", commands[i] + ".ini")).item.__getattr__("name")
-        active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (550, 365 + (25*(i-self.index))), scale = (160,25), activeshift = -15)        
+        item = Item(commands[i])
+        active, flag = self.engine.drawButton(self.button, coord= (550, 365 + (25*(i-self.index))), scale = (160,25), activeshift = -15)        
         if active == True:
-          buttonfont = self.engine.renderFont("default.ttf", name, (535, 365 + (25*(i-self.index))))
+          buttonfont = self.engine.renderFont("default.ttf", item.name, (535, 365 + (25*(i-self.index))))
           if flag == True:
-            self.item = commands[i] + ".ini"
-            self.itemini = Configuration(os.path.join("..", "Data", "Items", self.item)).item
-            self.itemfunction = self.itemini.function.split(".")
-            if self.itemfunction[0] == "Heal":
+            self.item = Item(commands[i])
+            if self.item.function[0] == "Heal":
               self.battlecommand(3, partymember, playertarget = None)
-            elif self.itemfunction[0] == "Damage":
+            elif self.item.function[0] == "Damage":
               self.selectingenemy = True
         else:
-          buttonfont = self.engine.renderFont("default.ttf", name, (550, 365 + (25*(i-self.index))))
+          buttonfont = self.engine.renderFont("default.ttf", item.name, (550, 365 + (25*(i-self.index))))
 
-    active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (550, 340), scale = (160,25), activeshift = -15)        
+    active, flag = self.engine.drawButton(self.button, coord= (550, 340), scale = (160,25), activeshift = -15)        
     if active == True:
       buttonfont = self.engine.renderFont("default.ttf", "Return", (535, 340))
       if flag == True:
         self.selectingitem = False
+        self.item = None
     else:
       buttonfont = self.engine.renderFont("default.ttf", "Return", (550, 340))
 
@@ -222,8 +203,8 @@ class BattleScene(Layer):
     elif i == 1:
       self.attackboost = random.randint(0, self.party[partymember].atk)
     elif i == 3:
-      if self.itemfunction[0] == "Damage":
-        self.attackboost = random.randint(0, int(int(self.itemfunction[2])/5))
+      if self.item.function[0] == "Damage":
+        self.attackboost = random.randint(0, int(int(self.item.function[2])/5))
 
   def enemybattlecommand(self, i):
     self.battle = True
@@ -244,10 +225,10 @@ class BattleScene(Layer):
       elif self.playercommand == 3:
         self.castspell(self.activemember)
       elif self.playercommand == 4:
-        if self.itemfunction[0] == "Heal":
-          self.displayturn(int(self.itemfunction[2]), 1, self.activemember)
+        if self.item.function[0] == "Heal":
+          self.displayturn(int(self.item.function[2]), 1, self.activemember)
         else:
-          self.displayturn(int(self.itemfunction[2]) + self.attackboost, 1, self.activemember)
+          self.displayturn(int(self.item.function[2]) + self.attackboost, 1, self.activemember)
 
 
   def castspell(self, partymember):
@@ -311,9 +292,9 @@ class BattleScene(Layer):
     if who == 1:
       self.engine.screenfade((0,0,0,255-(self.displaydamage*2)))
       if self.playercommand == 4:
-        if self.itemfunction[0] == "Heal":
+        if self.item.function[0] == "Heal":
           self.engine.renderFont("default.ttf", str(damage), (450 + (self.displaydamage/20), 380+(partymember*30)), size = 18, flags = "Shadow", color = (0, 255, 0))
-        elif self.itemfunction[0] == "Damage":
+        elif self.item.function[0] == "Damage":
           self.engine.renderFont("default.ttf", str(damage), (int(self.formationcoord[self.playertarget][0]) - (self.displaydamage/20), int(self.formationcoord[self.playertarget][1])), size = 24, flags = "Shadow")
       else:
         self.engine.renderFont("default.ttf", str(damage), (int(self.formationcoord[self.playertarget][0]) - (self.displaydamage/20), int(self.formationcoord[self.playertarget][1])), size = 24, flags = "Shadow")
@@ -330,15 +311,19 @@ class BattleScene(Layer):
         self.party[partymember].currenthp -= damage
       else:
         if self.playercommand == 4:
-          if self.itemfunction[0] == "Heal":
-            if self.itemfunction[1] == "HP":
+          if self.item.function[0] == "Heal":
+            if self.item.function[1] == "HP":
               self.party[partymember].currenthp += damage
-            elif self.itemfunction[1] == "SP":
+              if self.party[partymember].currenthp > self.party[partymember].hp:
+                self.party[partymember].currenthp = self.party[partymember].hp
+            elif self.item.function[1] == "SP":
               self.party[partymember].currentsp += damage
-          elif self.itemfunction[0] == "Damage":
-            if self.itemfunction[1] == "HP":
+              if self.party[partymember].currentsp > self.party[partymember].sp:
+                self.party[partymember].currentsp = self.party[partymember].sp
+          elif self.item.function[0] == "Damage":
+            if self.item.function[1] == "HP":
               self.enemy[self.playertarget].currenthp -= damage
-            elif self.itemfunction[1] == "SP":
+            elif self.item.function[1] == "SP":
               self.enemy[self.playertarget].currentsp -= damage
         else:
           self.enemy[self.playertarget].currenthp -= damage
@@ -371,11 +356,8 @@ class BattleScene(Layer):
       self.spelldamage = None
     if i == 4:
       if self.roll == 1:
-        self.party[self.activemember].inventory.remove(self.item.split(".ini")[0])
+        self.party[self.activemember].inventory.remove(self.item.ininame)
       self.item = None
-      self.itemini = None
-      self.itemanimation = None
-      self.itemfunction = None
 
     if self.roll == 0:
       self.enemy[self.activeenemy].currentatb = 0
@@ -434,8 +416,6 @@ class BattleScene(Layer):
     if self.hue != None:
       self.engine.screenfade((int(self.hue[0]),int(self.hue[1]),int(self.hue[2]),50))
 
-    self.engine.drawImage(self.hud, (225,500), scale = (450, 280))
-
     self.engine.drawImage(self.bonusbarback, (50, 208), scale = (30,245))
     self.engine.drawBar(self.bonusbarfill, (50, 328), scale = (30,245), barcrop = (float(self.multiplier)/float(100.0)), direction = "Horizontal")
     self.engine.drawImage(self.bonusbar, (50, 195), scale = (100,290))
@@ -445,51 +425,44 @@ class BattleScene(Layer):
         player.currenthp = 0
 
       if self.activemember == i:
-        self.engine.drawImage(self.hudhighlightactive, (225,383+(i*30)), scale = (450, 28))
+        self.engine.drawImage(self.hud, (108+(i*213),418), scale = (212, 124), frames = 2, currentframe = 2)
       else:
-        self.engine.drawImage(self.hudhighlight, (225,383+(i*30)), scale = (450, 28))
-
-      self.engine.drawBar(self.atbback, (10, 390+(i*30)), scale = (200,6))
-      self.engine.drawBar(self.atb, (10, 390+(i*30)), scale = (200,6), barcrop = (float(player.currentatb)/int(300)))
-
-      self.engine.drawBar(self.hpback, (335, 390+(i*30)), scale = (95,6))
-      self.engine.drawBar(self.hpbar, (335, 390+(i*30)), scale = (95,180), barcrop = (float(player.currentsp)/int(player.sp)), frames = 30, currentframe = self.barframe)
-
-      self.engine.drawBar(self.hpback, (215, 390+(i*30)), scale = (115,6))
-      self.engine.drawBar(self.hpbar, (215, 390+(i*30)), scale = (115,180), barcrop = (float(player.currenthp)/int(player.hp)), frames = 30, currentframe = self.barframe)
-
-      self.engine.renderFont("default.ttf", str(player.currenthp) + "/" + str(player.hp), (330, 380+(i*30)), size = 18, flags = "Shadow", alignment = 2)
-      self.engine.renderFont("default.ttf", "HP", (215, 380+(i*30)), size = 18, flags = "Shadow", alignment = 1)
-
-      self.engine.renderFont("default.ttf", str(player.currentsp) + "/" + str(player.sp), (430, 380+(i*30)), size = 18, flags = "Shadow", alignment = 2)
-      self.engine.renderFont("default.ttf", "SP", (335, 380+(i*30)), size = 18, flags = "Shadow", alignment = 1)
+        self.engine.drawImage(self.hud, (108+(i*213),418), scale = (212, 124), frames = 2, currentframe = 1)
 
       if player.knockedout == True:
-        self.engine.renderFont("default.ttf", str(player.name), (10, 380+(i*30)), size = 18, flags = "Shadow", alignment = 1, color = (255,0,0))
+        self.engine.renderFont("default.ttf", str(player.name), (110+(i*213), 465), size = 16, flags = "Shadow", color = (255,0,0))
       else:
-        self.engine.renderFont("default.ttf", str(player.name), (10, 380+(i*30)), size = 18, flags = "Shadow", alignment = 1)
+        self.engine.renderFont("default.ttf", str(player.name), (110+(i*213), 465), size = 16, flags = "Shadow")
+
+      #ATB Bar
+      self.engine.drawBar(self.bar, (15+(i*213), 442), scale = (175,15), frames = 6, currentframe = 5)
+      self.engine.drawBar(self.bar, (15+(i*213), 442), scale = (175,15), barcrop = float(player.currentatb)/int(300), frames = 6, currentframe = 6)
+
+      #HP Bar
+      self.engine.drawBar(self.bar, (45+(i*213), 395), scale = (150,15), frames = 6, currentframe = 1)
+      self.engine.drawBar(self.bar, (45+(i*213), 395), scale = (150,15), barcrop = (float(player.currenthp)/int(player.hp)), frames = 6, currentframe = 2)
+
+      self.engine.renderFont("default.ttf", str(player.currenthp) + "/" + str(player.hp), (128+(i*213), 395), size = 14, flags = "Shadow", alignment = 0)
+      self.engine.renderFont("default.ttf", "HP", (25+(i*213), 395), size = 14, flags = "Shadow", alignment = 1)
+
+      #SP Bar
+      self.engine.drawBar(self.bar, (45+(i*213), 410), scale = (150,15), frames = 6, currentframe = 3)
+      self.engine.drawBar(self.bar, (45+(i*213), 410), scale = (150,15), barcrop = (float(player.currentsp)/int(player.sp)), frames = 6, currentframe = 4)
+
+      self.engine.renderFont("default.ttf", str(player.currentsp) + "/" + str(player.sp), (128+(i*213), 410), size = 14, flags = "Shadow", alignment = 0)
+      self.engine.renderFont("default.ttf", "SP", (25+(i*213), 410), size = 14, flags = "Shadow", alignment = 1)
+
 
       if player.currenthp == 0:
         player.knockedout = True
         if player not in self.partyko:
           self.partyko.append(player)
-            
-    if len(self.party) == len(self.partyko):
-      for player in self.party:
-        player.playerini.player.__setattr__("currenthp", int(1))
-        player.knockedout = False
-        player.playerini.player.__setattr__("currentsp", player.currentsp)
-        player.playerini.player.__setattr__("monsterskilled", player.monsterskilled + 1)
-        player.playerini.save()
-      from Maplist import Maplist
-      View.removescene(self)
-      View.addscene(Maplist())
 
     for key, char in GameEngine.getKeyPresses():
       if key == K_SPACE and self.battle == True:
         self.spacehit = True
       if key == K_LEFT and (self.selectingitem == True or self.selectingspell == True):
-        if self.index - 5 > 0:
+        if self.index - 5 >= 0:
           self.index -= 5
       if key == K_RIGHT and (self.selectingitem == True or self.selectingspell == True):
         if self.selectingitem == True:
@@ -502,19 +475,18 @@ class BattleScene(Layer):
 
     commands = ["Attack", "Defend", "Skills", "Item", "Flee"]
     if self.battle == False:
-      if self.barframe < 30:
-        self.barframe += .5
-      else:
-        self.barframe = 1
 
       self.updateATB()
+            
+      if len(self.party) == len(self.partyko):
+        self.endscene("flee")
+
       if not len(self.enemy) == len(self.enemyko):
         self.fade = False
         if self.activemember != None and self.selectingspell == False and self.selectingenemy == False and self.selectingitem == False:
           for i, choice in enumerate(commands):
-            active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (550, 365 + (25*i)), scale = (160,25), activeshift = -15)
+            active, flag = self.engine.drawButton(self.button, coord= (550, 200 + (25*i)), scale = (160,25))
             if active == True:
-              buttonfont = self.engine.renderFont("default.ttf", choice, (535, 365 + (25*i)))
               if flag == True: 
                 if i == 0:
                   self.selectingenemy = True
@@ -530,8 +502,7 @@ class BattleScene(Layer):
                     self.index = 0
                 elif i == 4:
                   self.endscene("flee")
-            else:
-              buttonfont = self.engine.renderFont("default.ttf", choice, (550, 365 + (25*i)))
+            buttonfont = self.engine.renderFont("default.ttf", choice, (550, 200 + (25*i)))
         elif self.activemember != None and self.selectingspell == True and self.selectingenemy == False:
           self.showspells(self.activemember)
         elif self.activemember != None and self.selectingitem == True and self.selectingenemy == False:
@@ -601,8 +572,8 @@ class BattleScene(Layer):
 
     del self.displaydamage, self.timer, self.rotatestart, self.fade, self.stop, self.spacehit
     del self.attackcb, self.attackct, self.battle, self.playercommand, self.enemycommand
-    del self.button, self.buttonactive, self.hpbar, self.hpback, self.atb, self.atbback, self.background
-    del self.audio, self.party, self.enemy, self.engine
+    del self.button, self.bar, self.background
+    del self.party, self.enemy, self.engine
 
 class VictoryScene(Layer):
   def __init__(self, multiplier, formation):
@@ -629,17 +600,14 @@ class VictoryScene(Layer):
           if chance >= 0 and chance <= int(enemy.lootchances[i]):
             self.items.append(item)
 
-    self.expbar = self.engine.loadImage(os.path.join("Data", "expbar.png"))
-    self.barback = self.engine.loadImage(os.path.join("Data", "barback.png"))
+    self.bar = self.engine.loadImage(os.path.join("Data", "bars.png"))
 
     self.background = self.engine.loadImage(os.path.join("Data", "victorybackground.png"))
     self.statusbox = self.engine.loadImage(os.path.join("Data", "victorystatusbox.png"))
 
     self.button = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
-    self.buttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
     self.secondarybutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
-    self.secondarybuttonactive = self.engine.loadImage(os.path.join("Data", "secondarymenubuttonactive.png"))
 
     self.enemyexp = 0
     self.enemyavglvl = 0
@@ -665,7 +633,7 @@ class VictoryScene(Layer):
     self.engine.drawImage(self.background, scale = (640,480))
     
     if self.countdownexp == True and self.enemyexp == 0:  
-      active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (530, 425), scale = (150,45))
+      active, flag = self.engine.drawButton(self.button, coord= (530, 425), scale = (150,45))
       if flag == True:
         self.finished = True
       self.engine.renderFont("default.ttf", "Finished", (530, 425))
@@ -688,8 +656,8 @@ class VictoryScene(Layer):
       self.engine.renderFont("default.ttf", str(self.enemyexp), (350, 140 + (i*100)), size = 24, flags = "Shadow", alignment = 1)
 
 
-      self.engine.drawBar(self.barback, (350, 155 + (i*100)), scale = (260,15))
-      self.engine.drawBar(self.expbar, (350, 155 + (i*100)), scale = ((float(player.exp)/float(player.explvl))*260,5))
+      self.engine.drawBar(self.bar, (350, 155 + (i*100)), scale = (260,15), frames = 6, currentframe = 5)
+      self.engine.drawBar(self.bar, (350, 155 + (i*100)), scale = ((float(player.exp)/float(player.explvl))*260, 15), frames = 6, currentframe = 6)
 
       if self.countdownexp == True:
         if self.enemyexp > 0:
@@ -709,6 +677,7 @@ class VictoryScene(Layer):
         self.engine.renderFont("default.ttf", "Level Up!", (480, 155 + (i*100)), size = 30)
         if player.exp >= player.explvl:
           player.exp = player.exp - player.explvl
+          player.lvl += 1
 
     if self.countdownexp == True:
       if self.enemyexp > 0:
@@ -723,7 +692,6 @@ class VictoryScene(Layer):
     if self.finished == True:
       for i, player in enumerate(self.party):
         if self.levelup[i] == "True":
-          player.lvl += 1
           player.currenthp = player.hp
           player.currentsp = player.sp        
           player.playerini.player.__setattr__("lvl", player.lvl)
@@ -742,7 +710,7 @@ class VictoryScene(Layer):
       if self.notokay == True:
         self.engine.screenfade((0,0,0,120))
 
-        active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (320, 280), scale = (100,48))
+        active, flag = self.engine.drawButton(self.secondarybutton, coord= (320, 280), scale = (100,48))
         if active == True:
           if flag == True:
             self.notokay = False
@@ -776,5 +744,5 @@ class VictoryScene(Layer):
 
   def clearscene(self):
     del self.levelup, self.finished, self.finishupcounting, self.countdownexp
-    del self.enemyexp, self.background, self.barback, self.expbar, self.engine
+    del self.enemyexp, self.background, self.bar, self.engine
 

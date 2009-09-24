@@ -33,7 +33,8 @@ class Player:
     self.playerini = Configuration(os.path.join("..", "Data", "Players", player))
 
     self.name = player.split(".ini")[0]
-    self.raceini = Configuration(os.path.join("..", "Data", "Races", str(self.playerini.player.race))).race
+    self.race = self.playerini.player.race.split(".ini")[0] 
+    self.raceini = Configuration(os.path.join("..", "Data", "Races", self.race + ".ini")).race
 
     self.levelcurve = self.raceini.__getattr__("levelcurve").replace(" ", "").split(",")
     for i, num in enumerate(self.levelcurve):

@@ -47,18 +47,13 @@ class CharacterCreator(Layer):
     self.othercommands = ["Clear", "Delete", "Confirm"]
     self.background = self.engine.loadImage(os.path.join("Data", "characterbackground.png"))
     
-    self.textbutton = self.engine.loadImage(os.path.join("Data", "textbutton.png"))
-    self.textbuttonactive = self.engine.loadImage(os.path.join("Data", "textbuttonactive.png"))
-
-    self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
-    self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
+    self.textbutton = self.engine.data.textbutton
+    self.racebutton = self.engine.data.secondarymenubutton
+    self.menubutton = self.engine.data.defaultbutton
 
     self.typingname = False
     self.racechooser = False
     self.classchooser = False
-
-    self.racebutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
-    self.racebuttonactive = self.engine.loadImage(os.path.join("Data", "secondarymenubuttonactive.png"))
 
     GameEngine.resetKeyPresses()
 
@@ -71,14 +66,14 @@ class CharacterCreator(Layer):
       self.engine.renderFont("default.ttf", "_", (112 + i*34, 77), size = 32)
 
     for i in range(0,26):
-      active, flag = self.engine.drawButton(self.textbutton, self.textbuttonactive, coord= (218 + (36*(i%9)) , 164+(36*(i/9))), scale = (32,32))
+      active, flag = self.engine.drawButton(self.textbutton, coord= (218 + (36*(i%9)) , 164+(36*(i/9))), scale = (32,32))
       if active == True:
         if flag == True and len(self.name) < 13:
           self.name.append(chr(97+i).upper())
 
       buttonfont = self.engine.renderFont("default.ttf", chr(97+i).upper(), (218 + (36*(i%9)) , 164+(36*(i/9))), size = 24)
 
-      active, flag = self.engine.drawButton(self.textbutton, self.textbuttonactive, coord= (218 + (36*(i%9)) , 272+(36*(i/9))), scale = (32,32))
+      active, flag = self.engine.drawButton(self.textbutton, coord= (218 + (36*(i%9)) , 272+(36*(i/9))), scale = (32,32))
       if active == True:
         if flag == True and len(self.name) < 13:
           self.name.append(chr(97+i))
@@ -86,7 +81,7 @@ class CharacterCreator(Layer):
       buttonfont = self.engine.renderFont("default.ttf", chr(97+i), (218 + (36*(i%9)) , 272+(36*(i/9))), size = 24)
 
     for i, choice in enumerate(self.othercommands):
-      active, flag = self.engine.drawButton(self.textbutton, self.textbuttonactive, coord= (90, 186 + (76*i)), scale = (150,44))
+      active, flag = self.engine.drawButton(self.textbutton, coord= (90, 186 + (76*i)), scale = (150,44))
       if active == True:
         if flag == True:
           if i == 0:
@@ -102,7 +97,7 @@ class CharacterCreator(Layer):
       buttonfont = self.engine.renderFont("default.ttf", str(choice), (90, 186 + (76*i)), size = 24)
 
     for i in range(0,2):
-      active, flag = self.engine.drawButton(self.textbutton, self.textbuttonactive, coord= (218+(36*8), 236 + (108*i)), scale = (32,32))
+      active, flag = self.engine.drawButton(self.textbutton, coord= (218+(36*8), 236 + (108*i)), scale = (32,32))
       if active == True:
         if flag == True:
           self.name.append(" ")
@@ -126,7 +121,7 @@ class CharacterCreator(Layer):
     self.races = self.engine.listpath(os.path.join("Data", "Races"), "splitfiletype", ".ini")
 
     for i, choice in enumerate(self.races):
-      active, flag = self.engine.drawButton(self.racebutton, self.racebuttonactive, coord= (320, 64+(48*i)), scale = (200,32))
+      active, flag = self.engine.drawButton(self.racebutton, coord= (320, 64+(48*i)), scale = (200,32))
       if active == True:
         if flag == True:
           self.race = choice
@@ -140,7 +135,7 @@ class CharacterCreator(Layer):
     self.classes = self.engine.listpath(os.path.join("Data", "Classes"), "splitfiletype", ".ini")
 
     for i, choice in enumerate(self.classes):
-      active, flag = self.engine.drawButton(self.racebutton, self.racebuttonactive, coord= (320, 64+(48*i)), scale = (200,32))
+      active, flag = self.engine.drawButton(self.racebutton, coord= (320, 64+(48*i)), scale = (200,32))
       if active == True:
         if flag == True:
           self.playerclass = choice
@@ -170,7 +165,7 @@ class CharacterCreator(Layer):
     elif self.classchooser == True:
       self.drawClassMenu()
     else:
-      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (90, 100), scale = (150,45))
+      active, flag = self.engine.drawButton(self.menubutton, coord= (90, 100), scale = (150,45))
       if active == True:
         if flag == True:
           self.typingname = True
@@ -183,7 +178,7 @@ class CharacterCreator(Layer):
 
       self.engine.renderFont("default.ttf", "Create A Character", (170, 70), size = 24)
 
-      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (90, 150), scale = (150,45))
+      active, flag = self.engine.drawButton(self.menubutton, coord= (90, 150), scale = (150,45))
       if active == True:
         if flag == True:
           self.racechooser = True
@@ -194,9 +189,8 @@ class CharacterCreator(Layer):
       name = self.race.split(".")
       namefont = self.engine.renderFont("default.ttf", name[0], (380, 150), size = 32)
 
-      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (90, 200), scale = (150,45))
+      active, flag = self.engine.drawButton(self.menubutton, coord= (90, 200), scale = (150,45))
       if active == True:
-        button = self.engine.drawImage(self.menubuttonactive, coord= (90, 200), scale = (150,45))
         if flag == True:
           self.classchooser = True
 
@@ -212,7 +206,7 @@ class CharacterCreator(Layer):
         self.engine.renderFont("default.ttf", str(stat), (280, 240 + (i*32)), size = 24)
 
       name = string.join(self.name, '')
-      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (470, 420), scale = (150,45))
+      active, flag = self.engine.drawButton(self.menubutton, coord= (470, 420), scale = (150,45))
       if active == True:
         if flag == True:
           if name != "":

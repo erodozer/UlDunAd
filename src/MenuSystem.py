@@ -50,14 +50,11 @@ class MenuSystem(Layer):
 
     self.statusbox = self.engine.loadImage(os.path.join("Data", "statusbox.png"))
 
-    self.button = self.engine.loadImage(os.path.join("Data", "menubutton.png"))
-    self.buttonactive = self.engine.loadImage(os.path.join("Data", "menubuttonactive.png"))
+    self.button = self.engine.data.menubutton
+    self.secondarymenubutton = self.engine.data.secondarymenubutton
+    self.secondarybutton = self.engine.data.secondarybutton
 
-    self.secondarybutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
-    self.secondarybuttonactive = self.engine.loadImage(os.path.join("Data", "secondarymenubuttonactive.png"))
-
-    self.hpbar = self.engine.loadImage(os.path.join("Data", "hpbar.png"))
-    self.hpbarback = self.engine.loadImage(os.path.join("Data", "hpbarback.png"))
+    self.bar = self.engine.loadImage(os.path.join("Data", "bars.png"))
     self.barframe = 1
 
     self.currentlayer = "Main"
@@ -98,7 +95,7 @@ class MenuSystem(Layer):
       for i in range(self.index, 10+self.index):
         if i < maxindex:
           itemini = Configuration(os.path.join("..", "Data", "Items", str(partyinv.inventory[i])+".ini")).item
-          active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (120, 128 + (26*(i-self.index))), scale = (220,24))
+          active, flag = self.engine.drawButton(self.secondarymenubutton, coord= (120, 128 + (26*(i-self.index))), scale = (220,24))
           if active == True:
             itemimage = self.engine.loadImage(os.path.join("Data", "Items", str(partyinv.inventory[i])+".png"))
             if itemimage != None:
@@ -108,7 +105,7 @@ class MenuSystem(Layer):
     
           buttonfont = self.engine.renderFont("default.ttf", itemini.__getattr__("name"), (120, 128 + (26*(i-self.index))))
 
-    active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (120, 132 + (26*10)), scale = (220,24))
+    active, flag = self.engine.drawButton(self.secondarymenubutton, coord= (120, 132 + (26*10)), scale = (220,24))
     if active == True:
       if flag == True:
         if self.index + 10 < maxindex:
@@ -116,7 +113,7 @@ class MenuSystem(Layer):
     
     buttonfont = self.engine.renderFont("default.ttf", "Down", (120, 132 + (26*10)))
 
-    active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (120, 128 + (30*-1)), scale = (220,24))
+    active, flag = self.engine.drawButton(self.secondarymenubutton, coord= (120, 128 + (30*-1)), scale = (220,24))
     if active == True:
       if flag == True:
         if self.index - 10 >= 0:
@@ -126,7 +123,7 @@ class MenuSystem(Layer):
 
     mainchoices = ["Sort", "Return"]
     for i, choice in enumerate(mainchoices):
-      active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (240 + (180*i), 448), scale = (160,32))
+      active, flag = self.engine.drawButton(self.secondarybutton, coord= (240 + (180*i), 448), scale = (160,32))
       if active == True:
         if flag == True:
           if i == 0:
@@ -138,6 +135,55 @@ class MenuSystem(Layer):
             partyinv.playerini.save()
     
       buttonfont = self.engine.renderFont("default.ttf", choice, (240 + (180*i), 448))
+
+  def showStatus(self):
+    for key, char in GameEngine.getKeyPresses():
+      if key == K_LEFT:
+        self.index = 0
+        if self.whichcharacter - 1 > -1:
+          self.whichcharacter -= 1
+        else:
+          self.whichcharacter = len(self.party)-1
+      if key == K_RIGHT:
+        self.index = 0
+        if self.whichcharacter + 1 < len(self.party):
+          self.whichcharacter += 1
+        else:
+          self.whichcharacter = 0    
+
+    self.engine.drawImage(self.background, scale = (640,480))
+
+    player = self.party[self.whichcharacter]
+
+    self.engine.renderFont("menu.ttf", str(player.name), (630, 56), size = 32, flags = "Shadow", alignment = 2)
+    self.engine.renderFont("menu.ttf", "Press LEFT or RIGHT to change character status lists", (630, 80), size = 18, flags = "Shadow", alignment = 2)
+    
+    self.statbars = [["HP", str(player.currenthp) + "/" + str(player.hp)], ["SP", str(player.currentsp) + "/" + str(player.sp)], ["EXP", str(player.exp) + "/" + str(player.explvl)]]
+    self.stattitles = [["ATK", player.atk], ["DEF", player.defn], ["SPD", player.spd], ["MAG", player.mag], ["EVD", player.evd]]
+    self.titles = [["Class", player.playerclass], ["Race", player.race], ["Level", player.lvl]]
+
+    for i in range(len(self.titles)):
+      self.engine.renderFont("default.ttf", self.titles[i][0], (20, 128+(i*28)), size = 18, flags = "Shadow", alignment = 1)
+      self.engine.renderFont("default.ttf", str(self.titles[i][1]), (200, 128+(i*28)), size = 18, flags = "Shadow", alignment = 2)
+    
+    for i in range(len(self.statbars)):
+      self.engine.drawBar(self.bar, (45, 212+(i*28)), scale = (150,15), frames = 6, currentframe = (2*i)+1)
+      self.engine.drawBar(self.bar, (45, 212+(i*28)), scale = (150,15), barcrop = (float(player.currentsp)/int(player.sp)), frames = 6, currentframe = (2*i)+2)
+      self.engine.renderFont("default.ttf", self.statbars[i][0], (20, 212+(i*28)), size = 18, flags = "Shadow", alignment = 1)
+      self.engine.renderFont("default.ttf", self.statbars[i][1], (200, 212+(i*28)), size = 18, flags = "Shadow", alignment = 2)
+   
+      
+    for i in range(len(self.stattitles)):
+      self.engine.renderFont("default.ttf", self.stattitles[i][0], (400, 128+(i*28)), size = 18, flags = "Shadow", alignment = 0)
+      self.engine.renderFont("default.ttf", str(self.stattitles[i][1]), (600, 128+(i*28)), size = 18, flags = "Shadow", alignment = 2)
+
+    active, flag = self.engine.drawButton(self.secondarybutton, coord= (500, 448), scale = (160,32))
+    if active == True:
+      if flag == True:
+        self.currentlayer = "Main"
+        self.updatescene = None
+    
+    buttonfont = self.engine.renderFont("default.ttf", "Return", (500, 448))
 
   def showSpells(self):
     for key, char in GameEngine.getKeyPresses():
@@ -166,7 +212,7 @@ class MenuSystem(Layer):
       for i in range(self.index, 6+self.index):
         if i < maxindex:
           spellini = Configuration(os.path.join("..", "Data", "Spells", str(partyspell.spells[i])+".ini")).spell
-          active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (120, 128 + (38*(i-self.index))), scale = (220,36))
+          active, flag = self.engine.drawButton(self.secondarymenubutton, coord= (120, 128 + (38*(i-self.index))), scale = (220,36))
           if active == True:
             if os.path.exists(os.path.join("..", "Data", "Spells", spellini.__getattr__("element")+".png")):
               spellimage = self.engine.loadImage(os.path.join("Data", "Spells", str(spellini.__getattr__("element"))+".png"))
@@ -177,7 +223,7 @@ class MenuSystem(Layer):
     else:
       self.engine.renderMultipleFont("default.ttf", (str(partyspell.name), "has no spells"), (120, 240), size = 24)
 
-    active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (120, 132 + (26*10)), scale = (220,24))
+    active, flag = self.engine.drawButton(self.secondarymenubutton, coord= (120, 132 + (26*10)), scale = (220,24))
     if active == True:
       if flag == True:
         if self.index + 6 < maxindex:
@@ -185,7 +231,7 @@ class MenuSystem(Layer):
     
     buttonfont = self.engine.renderFont("default.ttf", "Down", (120, 132 + (26*10)))
 
-    active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (120, 128 + (30*-1)), scale = (220,24))
+    active, flag = self.engine.drawButton(self.secondarymenubutton, coord= (120, 128 + (30*-1)), scale = (220,24))
     if active == True:
       if flag == True:
         if self.index - 6 >= 0:
@@ -193,7 +239,7 @@ class MenuSystem(Layer):
     
     buttonfont = self.engine.renderFont("default.ttf", "Up", (120, 128 + (30*-1)))
 
-    active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (320, 448), scale = (160,32))
+    active, flag = self.engine.drawButton(self.secondarybutton, coord= (320, 448), scale = (160,32))
     if active == True:
       if flag == True:
         self.currentlayer = "Main"
@@ -216,7 +262,7 @@ class MenuSystem(Layer):
                      ["wait", "active"]]
     correspondingoptions = [self.engine.resolution, self.engine.volume, self.engine.townvolume, self.engine.battlevolume, self.engine.battlemode]
     for i, choice in enumerate(choices):
-      active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (120, 128 + (52*i)), scale = (220,48))
+      active, flag = self.engine.drawButton(self.secondarymenubutton, coord= (120, 128 + (52*i)), scale = (220,48))
       if ((active == True and self.optionselected == False) or (self.whichoption == i and self.optionselected == True)) and self.engine.defaultsettings == False:
         renderhelpfont = self.engine.renderFont("default.ttf", choicehelp[i], (630, 408), alignment = 2)
         if flag == True and self.optionselected == False:
@@ -238,7 +284,7 @@ class MenuSystem(Layer):
 
     mainchoices = ["Default", "Return"]
     for i, choice in enumerate(mainchoices):
-      active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (240 + (180*i), 448), scale = (160,32))
+      active, flag = self.engine.drawButton(self.secondarybutton, coord= (240 + (180*i), 448), scale = (160,32))
       if (active == True and self.optionselected == False):
         if i == 0 and self.engine.defaultsettings == False:
           self.engine.renderFont("default.ttf", "Once default is hit you may not change the options until UlDunAd is restarted", (320, 408))
@@ -298,6 +344,8 @@ class MenuSystem(Layer):
         self.showInventory()
       elif self.updatescene == 1:
         self.showSpells()
+      elif self.updatescene == 3:
+        self.showStatus()
       elif self.updatescene == 5:
         self.showSettings()
     else:
@@ -325,7 +373,7 @@ class MenuSystem(Layer):
         self.engine.renderFont("default.ttf", str(player.exp) + "/" +str(player.explvl), (630, 150+(i*100)), size = 16, flags = "Shadow", alignment = 2)
 
       for i, choice in enumerate(self.choices):
-        active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (90, 96+(40*i)), scale = (180,32))
+        active, flag = self.engine.drawButton(self.button, coord= (90, 96+(40*i)), scale = (180,32))
         if active == True and self.quitactive == False:
           renderhelpfont = self.engine.renderFont("default.ttf", self.help[i], (630, 448), alignment = 2)
           if flag == True:
@@ -335,6 +383,9 @@ class MenuSystem(Layer):
             elif i == 1:
               self.updatescene = i
               self.currentlayer = "Spells"
+            elif i == 3:
+              self.updatescene = i
+              self.currentlayer = "Status"
             elif i == 4:
               self.changeactive = True
             elif i == 5:
@@ -356,7 +407,7 @@ class MenuSystem(Layer):
       self.engine.screenfade((150,150,150,130))
 
       for i, choice in enumerate(['Yes', 'No']):
-        active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (265+(120*i), 280), scale = (100,48))
+        active, flag = self.engine.drawButton(self.secondarymenubutton, coord= (265+(120*i), 280), scale = (100,48))
         if active == True:
           if flag == True:
             if i == 0:
@@ -371,7 +422,7 @@ class MenuSystem(Layer):
       self.engine.screenfade((150,150,150,130))
 
       for i, choice in enumerate(['Yes', 'No']):
-        active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (265+(120*i), 280), scale = (100,48))
+        active, flag = self.engine.drawButton(self.secondarymenubutton, coord= (265+(120*i), 280), scale = (100,48))
         if active == True:
           if flag == True:
             if i == 0:

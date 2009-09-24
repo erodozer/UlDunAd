@@ -29,6 +29,8 @@ from pygame.locals import *
 import math
 import Config
 
+from Data import Data
+
 if not os.path.exists(os.path.join("uldunad.ini")):
   Config.Configuration(os.path.join("uldunad.ini")).save()
   uldunadini = Config.Configuration(os.path.join("uldunad.ini"))
@@ -60,12 +62,15 @@ finished = False
 town = None
 cells = None
 currentcell = 1
+battlesongs = []
 
 defaultsettings = False
 
 mousepos = (0, 0)
 clicks = []
 keypresses = []
+
+data = None
 
 class Drawing(pygame.sprite.Sprite):
 
@@ -129,14 +134,6 @@ class Drawing(pygame.sprite.Sprite):
     if barcrop > 1:
       barcrop = 1
 
-    if scale != None:
-      width = int(float(scale[0])*w*0.0015625)
-      height = int(float(scale[1])*h*0.002083333)
-      image = pygame.transform.smoothscale(image, (width, height))
-    if rot != None:
-      image = pygame.transform.rotate(image, rot)
-      width,height = image.get_size()
-
     width,height = image.get_size()
 
     if direction == "Vertical":
@@ -150,12 +147,24 @@ class Drawing(pygame.sprite.Sprite):
       image = image.subsurface((start, 0, end, height*barcrop))
       width,height = image.get_size()
 
+    if scale != None:
+      if direction == "Vertical":
+        width = int(float(scale[0])*w*0.0015625*barcrop)
+        height = int(float(scale[1])*h*0.002083333)
+      else:
+        width = int(float(scale[0])*w*0.0015625)
+        height = int(float(scale[1])*h*0.002083333*barcrop)
+      image = pygame.transform.smoothscale(image, (width, height))
+    if rot != None:
+      image = pygame.transform.rotate(image, rot)
+      width,height = image.get_size()
+
     if direction == "Vertical":
-      x = float(coord[0])*w*0.0015625
-      y = float(coord[1])*h*0.002083333 - height*.5
+      x = float(coord[0])
+      y = float(coord[1]) - height*.5
     else:
-      x = float(coord[0])*w*0.0015625 - width*.5
-      y = float(coord[1])*h*0.002083333 - height
+      x = float(coord[0]) - width*.5
+      y = float(coord[1]) - height
     rect = image.get_rect(topleft=(int(x), int(y)))
     screen.blit(image, (int(x), int(y)))
 
@@ -164,10 +173,7 @@ class Drawing(pygame.sprite.Sprite):
 class Sound:
   def loadAudio(self, AudioFile, queue = False):
     global inbattle
-    if inbattle == True:
-      audiopath = os.path.join("..", "Data", "Audio", "Battle", AudioFile)
-    else:
-      audiopath = os.path.join("..", "Data", "Audio", AudioFile)
+    audiopath = os.path.join("..", AudioFile)
 
     if os.path.exists(os.path.join(audiopath)):
       if queue == True:
@@ -258,7 +264,7 @@ def drawBar(ImgData, coord = (320, 240), scale = None, rot = None, frames = 1, c
   rect = Drawing().drawBar(ImgData, coord, scale, rot, frames, currentframe, direction, barcrop)
   return rect
 
-def drawButton(ImgData, ImgData2, coord = (320, 240), scale = None, rot = None, buttons = 1, index = 1, direction = "Vertical", activeshift = 0):
+def drawButton(ImgData, coord = (320, 240), scale = None, rot = None, buttons = 1, index = 1, direction = "Vertical", activeshift = 0):
 
   whichimgdata = ImgData
 
@@ -267,9 +273,9 @@ def drawButton(ImgData, ImgData2, coord = (320, 240), scale = None, rot = None, 
   active = rect.collidepoint(*mousepos)
   flag = any(rect.collidepoint(clickx, clicky) for clickx, clicky in clicks)
   if active == True:
-    Drawing().drawImage(ImgData2, (coord[0]+activeshift, coord[1]), scale, 100, rot, buttons, index, direction)
+    Drawing().drawImage(ImgData, (coord[0]+activeshift, coord[1]), scale, rot, frames = 2, currentframe = 2, direction = direction)
   else:
-    Drawing().drawImage(ImgData, coord, scale, 100, rot, buttons, index, direction)
+    Drawing().drawImage(ImgData, coord, scale, rot, frames = 2, currentframe = 1, direction = direction)
 
   return active, flag
 
@@ -305,7 +311,7 @@ def listpath(path, condition = "splitfiletype", value = ".ini", flag = None):
     if condition == "splitfiletype":
       if value == "audio":
         if os.path.splitext(name)[1].lower() == ".mp3" or os.path.splitext(name)[1].lower() == ".ogg" or os.path.splitext(name)[1].lower() == ".m4a" or os.path.splitext(name)[1].lower() == ".flac" or os.path.splitext(name)[1].lower() == ".aac":
-          items.append(name)
+          items.append(os.path.join(path, name))
       else:
         if os.path.splitext(name)[1].lower() == value:
           if flag == "filename":

@@ -43,9 +43,7 @@ class Library(Layer):
     self.bookcover = self.engine.loadImage(os.path.join(self.library, "bookcover.png"))
 
     self.secondarybutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
-    self.secondarybuttonactive = self.engine.loadImage(os.path.join("Data", "secondarymenubuttonactive.png"))
     self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
-    self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
     self.enterdialog = 0
 
@@ -85,7 +83,7 @@ class Library(Layer):
     self.engine.renderFont("menu.ttf", str(self.book), coord = (435, 50), size = 18, alignment = 2, color = (0,0,0))
 
 
-    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (560, 205), scale = (150,45))
+    active, flag = self.engine.drawButton(self.menubutton, coord= (560, 205), scale = (150,45))
     if active == True:
       if flag == True:
         open(os.path.join("..", self.library, self.book + ".txt")).close()
@@ -94,14 +92,14 @@ class Library(Layer):
         self.booklines = None
     buttonfont = self.engine.renderFont("default.ttf", "Return", (560, 205))
 
-    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (560, 75), scale = (150,45))
+    active, flag = self.engine.drawButton(self.menubutton, coord= (560, 75), scale = (150,45))
     if active == True:
       if flag == True:
         if self.lineindex + 25 < lines:
           self.lineindex += 25
     buttonfont = self.engine.renderFont("default.ttf", "Next Page", (560, 75))
 
-    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (560, 130), scale = (150,45))
+    active, flag = self.engine.drawButton(self.menubutton, coord= (560, 130), scale = (150,45))
     if active == True:
       if flag == True:
         if self.lineindex - 25 >= 0:
@@ -120,13 +118,13 @@ class Library(Layer):
    
     self.engine.renderFont("menu.ttf", self.books[self.index], (320, 260), size = 18)
 
-    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (110, 425), scale = (150,45))
+    active, flag = self.engine.drawButton(self.menubutton, coord= (110, 425), scale = (150,45))
     if active == True:
       if flag == True:
         self.active = False
     buttonfont = self.engine.renderFont("default.ttf", "Return", (110, 425))
 
-    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (530, 425), scale = (150,45))
+    active, flag = self.engine.drawButton(self.menubutton, coord= (530, 425), scale = (150,45))
     if active == True:
       if flag == True:
         self.book = self.books[self.index]
@@ -163,7 +161,7 @@ class Library(Layer):
     elif self.enterdialog == 1 and self.active == False:
       self.engine.renderTextbox("default.ttf", ("We have many books here, which would you like to check out?", ""), size = 18)
       for i, choice in enumerate(["Take a Look", "Leave"]):
-        active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (120, 128 + (26*i)), scale = (220,24))
+        active, flag = self.engine.drawButton(self.secondarybutton, coord= (120, 128 + (26*i)), scale = (220,24))
         if active == True:
           if flag == True:
             if i == 0:

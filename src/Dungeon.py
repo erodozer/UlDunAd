@@ -53,10 +53,8 @@ class Dungeon(Layer):
 #      self.audio = Sound().loadAudio(self.dungeonini.audio)
 
     self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
-    self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
     self.secondarybutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
-    self.secondarybuttonactive = self.engine.loadImage(os.path.join("Data", "secondarymenubuttonactive.png"))
 
 
     Sound().volume(float(self.engine.volume)/10)
@@ -94,7 +92,7 @@ class Dungeon(Layer):
       if self.engine.cells[self.engine.currentcell].split(":")[0] == "gold":
         self.engine.screenfade((0,0,0,130))
 
-        active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (320, 280), scale = (100,48))
+        active, flag = self.engine.drawButton(self.secondarybutton, coord= (320, 280), scale = (100,48))
         if flag == True:
           self.party[0].playerini.player.__setattr__("gold", self.party[0].gold + int(self.engine.cells[self.engine.currentcell].split(":")[1]))
           self.party[0].playerini.save()
@@ -107,7 +105,7 @@ class Dungeon(Layer):
         if self.notokay == True:
           self.engine.screenfade((0,0,0,120))
 
-          active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (320, 280), scale = (100,48))
+          active, flag = self.engine.drawButton(self.secondarybutton, coord= (320, 280), scale = (100,48))
           if active == True:
             if flag == True:
               self.notokay = False
@@ -117,7 +115,7 @@ class Dungeon(Layer):
         else:
           self.engine.screenfade((0,0,0,130))
  
-          active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (320, 280), scale = (100,48))
+          active, flag = self.engine.drawButton(self.secondarybutton, coord= (320, 280), scale = (100,48))
           if flag == True:
             self.party[0].playerini.save()
             self.cellactivated = False
@@ -155,14 +153,14 @@ class Dungeon(Layer):
         View.addscene(LoadingScene("Preparing Battle", 4.5))
 
     else:
-      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (320, 420), scale = (200,45))
+      active, flag = self.engine.drawButton(self.menubutton, coord= (320, 420), scale = (200,45))
       if flag == True:
         self.cellactivated = True
       self.engine.renderFont("default.ttf", "Go to Next Cell", (320, 420))
 
 
       #return button
-      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (100, 420), scale = (150,45))
+      active, flag = self.engine.drawButton(self.menubutton, coord= (100, 420), scale = (150,45))
       if active == True:
         if flag == True:
           from Maplist import Maplist

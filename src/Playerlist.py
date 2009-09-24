@@ -32,10 +32,8 @@ class Playerlist(Layer):
     self.background = self.engine.loadImage(os.path.join("Data", "mapbackground.png"))
     self.background2 = self.engine.loadImage(os.path.join("Data", "mapmenu.png"))
 
-    self.button = self.engine.loadImage(os.path.join("Data", "mapmenubutton.png"))
-    self.buttonactive = self.engine.loadImage(os.path.join("Data", "mapmenubuttonactive.png"))
-    self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
-    self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
+    self.button = self.engine.data.secondarymenubutton
+    self.menubutton = self.engine.data.defaultbutton
 
     self.players = self.engine.listpath(os.path.join("Data", "Players"), "splitfiletype", ".ini", "filename")
 
@@ -61,7 +59,7 @@ class Playerlist(Layer):
     for i in range(self.index, 7+self.index):
       if i < maxindex:
 
-        active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 70 + (44*(i-self.index+1))), scale = (200,32))
+        active, flag = self.engine.drawButton(self.button, coord= (320, 70 + (44*(i-self.index+1))), scale = (200,32))
         if active == True and self.selecting == True:
           if flag == True:
             if len(self.partybuilt) < 3:
@@ -82,14 +80,14 @@ class Playerlist(Layer):
     if self.flag == True:
       self.engine.renderFont("menu.ttf", "That character is already in your party!", (320, 32), size = 24)
 
-    active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 64), scale = (200,32))
+    active, flag = self.engine.drawButton(self.button, coord= (320, 64), scale = (200,32))
     if active == True and self.selecting == True:
       if flag == True:
         if self.index - 7 >= 0:
           self.index -= 7
     buttonfont = self.engine.renderFont("menu.ttf", "-UP-", (320, 64), size = 24)
 
-    active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 432), scale = (200,32))
+    active, flag = self.engine.drawButton(self.button, coord= (320, 432), scale = (200,32))
     if active == True and self.selecting == True:
       if flag == True:
         if self.index + 7 < maxindex:
@@ -97,7 +95,7 @@ class Playerlist(Layer):
     buttonfont = self.engine.renderFont("menu.ttf", "-DOWN-", (320, 432), size = 24)
 
     if self.partyactive == True and self.partybuilding == True and len(self.partybuilt) > 0:
-      active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (530, 425), scale = (150,45))
+      active, flag = self.engine.drawButton(self.menubutton, coord= (530, 425), scale = (150,45))
       if active == True:
         if flag == True:
           self.donebuilding = True
@@ -109,7 +107,7 @@ class Playerlist(Layer):
         self.selecting = False
         self.engine.screenfade((0,0,0,130))
         for i, choice in enumerate(['Yes', 'No']):
-          active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (75+(490*i), 200), scale = (100,48))
+          active, flag = self.engine.drawButton(self.button, coord= (75+(490*i), 200), scale = (100,48))
           if active == True:
             if flag == True:
               if i == 0:
@@ -128,7 +126,7 @@ class Playerlist(Layer):
         self.selecting = False
         self.engine.screenfade((0,0,0,130))
         for i, choice in enumerate(['Yes', 'No']):
-          active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (75+(490*i), 200), scale = (100,48))
+          active, flag = self.engine.drawButton(self.button, coord= (75+(490*i), 200), scale = (100,48))
           if active == True:
             if flag == True:
               if i == 0:

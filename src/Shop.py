@@ -49,10 +49,8 @@ class Shop(Layer):
       self.items = None
 
     self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
-    self.menubuttonactive = self.engine.loadImage(os.path.join("Data", "defaultbuttonactive.png"))
 
     self.secondarybutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
-    self.secondarybuttonactive = self.engine.loadImage(os.path.join("Data", "secondarymenubuttonactive.png"))
 
     self.windows = self.engine.loadImage(os.path.join("Data", "shop.png"))
 
@@ -82,7 +80,7 @@ class Shop(Layer):
     for i in range(self.index, 5+self.index):
       if i < maxindex:
         itemini = Configuration(os.path.join("..", "Data", "Items", str(self.items[i])+".ini")).item
-        active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (208, 90 + (26*(i-self.index))), scale = (270,24))
+        active, flag = self.engine.drawButton(self.secondarybutton, coord= (208, 90 + (26*(i-self.index))), scale = (270,24))
         if active == True:
           highlighted = True
           itemimage = self.engine.loadImage(os.path.join("Data", "Items", str(self.items[i])+".png"))
@@ -103,7 +101,7 @@ class Shop(Layer):
       if itemimage != None:
         self.engine.drawImage(itemimage, coord= (155, 360), scale = (150,150))
 
-    active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (208, 230), scale = (220,24))
+    active, flag = self.engine.drawButton(self.secondarybutton, coord= (208, 230), scale = (220,24))
     if active == True:
       if flag == True and self.purchaseflag == False:
         if self.index + 5 < maxindex:
@@ -111,7 +109,7 @@ class Shop(Layer):
     
     buttonfont = self.engine.renderFont("default.ttf", "Down", (208, 230))
 
-    active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (208, 60), scale = (220,24))
+    active, flag = self.engine.drawButton(self.secondarybutton, coord= (208, 60), scale = (220,24))
     if active == True:
       if flag == True and self.purchaseflag == False:
         if self.index - 5 >= 0:
@@ -119,7 +117,7 @@ class Shop(Layer):
     
     buttonfont = self.engine.renderFont("default.ttf", "Up", (208, 60))
 
-    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (505, 420), scale = (150,45))
+    active, flag = self.engine.drawButton(self.menubutton, coord= (505, 420), scale = (150,45))
     if active == True:
       if flag == True and self.selecteditem != None and self.purchaseflag == False:
         self.purchaseflag = True    
@@ -129,7 +127,7 @@ class Shop(Layer):
       self.engine.screenfade((150,150,150,130))
 
       for i, choice in enumerate(['Yes', 'No']):
-        active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (265+(120*i), 280), scale = (100,48))
+        active, flag = self.engine.drawButton(self.secondarybutton, coord= (265+(120*i), 280), scale = (100,48))
         if active == True:
           if flag == True:
             if i == 0:
@@ -148,7 +146,7 @@ class Shop(Layer):
     if self.toomuchflag == True:
       self.engine.screenfade((0,0,0,120))
 
-      active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (320, 280), scale = (100,48))
+      active, flag = self.engine.drawButton(self.secondarybutton, coord= (320, 280), scale = (100,48))
       if active == True:
         if flag == True:
           self.toomuchflag = False
@@ -176,7 +174,7 @@ class Shop(Layer):
     for i in range(self.index, 5+self.index):
       if i < maxindex:
         itemini = Configuration(os.path.join("..", "Data", "Items", str(self.party[whichplayer].inventory[i])+".ini")).item
-        active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (208, 90 + (26*(i-self.index))), scale = (270,24))
+        active, flag = self.engine.drawButton(self.secondarybutton, coord= (208, 90 + (26*(i-self.index))), scale = (270,24))
         if active == True:
           highlighted = True
           itemimage = self.engine.loadImage(os.path.join("Data", "Items", str(self.party[whichplayer].inventory[i])+".png"))
@@ -199,7 +197,7 @@ class Shop(Layer):
       if itemimage != None:
         self.engine.drawImage(itemimage, coord= (155, 360), scale = (150,150))
 
-    active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (208, 230), scale = (220,24))
+    active, flag = self.engine.drawButton(self.secondarybutton, coord= (208, 230), scale = (220,24))
     if active == True:
       if flag == True and self.purchaseflag == False:
         if self.index + 5 < maxindex:
@@ -207,7 +205,7 @@ class Shop(Layer):
     
     buttonfont = self.engine.renderFont("default.ttf", "Down", (208, 230))
 
-    active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (208, 60), scale = (220,24))
+    active, flag = self.engine.drawButton(self.secondarybutton, coord= (208, 60), scale = (220,24))
     if active == True:
       if flag == True and self.purchaseflag == False:
         if self.index - 5 >= 0:
@@ -215,7 +213,7 @@ class Shop(Layer):
     
     buttonfont = self.engine.renderFont("default.ttf", "Up", (208, 60))
 
-    active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord= (505, 420), scale = (150,45))
+    active, flag = self.engine.drawButton(self.menubutton, coord= (505, 420), scale = (150,45))
     if active == True:
       if flag == True and self.selecteditem != None and self.purchaseflag == False:
         self.purchaseflag = True    
@@ -225,7 +223,7 @@ class Shop(Layer):
       self.engine.screenfade((150,150,150,130))
 
       for i, choice in enumerate(['Yes', 'No']):
-        active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (265+(120*i), 280), scale = (100,48))
+        active, flag = self.engine.drawButton(self.secondarybutton, coord= (265+(120*i), 280), scale = (100,48))
         if active == True:
           if flag == True:
             if i == 0:
@@ -264,7 +262,7 @@ class Shop(Layer):
     if self.selectedchoice == 0:
       self.engine.renderFont("default.ttf", "Welcome", (480,48), size = 32)
       for i, choice in enumerate(self.choices):
-        active, flag = self.engine.drawButton(self.menubutton, self.menubuttonactive, coord = (95 + (200*i), 400), scale = (150, 45))
+        active, flag = self.engine.drawButton(self.menubutton, coord = (95 + (200*i), 400), scale = (150, 45))
         if active == True:
           if flag == True:
             self.selectedchoice = i+1
@@ -278,7 +276,7 @@ class Shop(Layer):
       else:
         self.engine.screenfade((0,0,0,120))
 
-        active, flag = self.engine.drawButton(self.secondarybutton, self.secondarybuttonactive, coord= (320, 280), scale = (100,48))
+        active, flag = self.engine.drawButton(self.secondarybutton, coord= (320, 280), scale = (100,48))
         if active == True:
           if flag == True:
             self.selectedchoice = 0

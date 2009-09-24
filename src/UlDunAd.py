@@ -32,6 +32,8 @@ import Config
 
 from GameEngine import *
 import GameEngine
+
+from Data import Data
   
 FPS = 60
 
@@ -41,7 +43,6 @@ def main():
     video_flags = FULLSCREEN
   else:
     video_flags = 0
-
 
   pygame.mixer.pre_init(44100)
 
@@ -57,11 +58,19 @@ def main():
 
   GameEngine.screen = window
 
+  GameEngine.data = Data(Drawing())
+
   View.startup()
 
   fpsClock = pygame.time.Clock()
 
-  songs = GameEngine.listpath(os.path.join("Data", "Audio"), "splitfiletype", "audio")
+  GameEngine.battlesongs = GameEngine.listpath(os.path.join("Data", "Audio", "Battle"), "splitfiletype", "audio")
+
+  songpaths = ["Dungeon", "Town"]
+  songs = []
+  songs.extend(GameEngine.listpath(os.path.join("Data", "Audio"), "splitfiletype", "audio"))
+  songs.extend(GameEngine.listpath(os.path.join("Data", "Audio", songpaths[0]), "splitfiletype", "audio"))
+  songs.extend(GameEngine.listpath(os.path.join("Data", "Audio", songpaths[1]), "splitfiletype", "audio"))
 
   while not GameEngine.finished:
     # main event loop
@@ -83,13 +92,12 @@ def main():
 
     pygame.mixer.music.set_endevent(USEREVENT)
     if (pygame.event.poll().type == USEREVENT or pygame.mixer.music.get_busy() == False) and GameEngine.party != []:
-      if GameEngine.inbattle == True:
-        songs = GameEngine.listpath(os.path.join("Data", "Audio", "Battle"), "splitfiletype", "audio")
-      else:
-        songs = GameEngine.listpath(os.path.join("Data", "Audio"), "splitfiletype", "audio")
 
-      if songs != []:
-        Sound().loadAudio(random.choice(songs))
+      if GameEngine.inbattle == True:
+        Sound().loadAudio(random.choice(GameEngine.battlesongs))
+      else:
+        if songs != []:
+          Sound().loadAudio(random.choice(songs))
 
     View.update()
 

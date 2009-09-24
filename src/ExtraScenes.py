@@ -57,6 +57,7 @@ class LoadingScene(Layer): #simple loading screen, time wasting but stylish
       self.timer += 1
     else:
       View.removescene(self)
+      pygame.mixer.music.fadeout(400)
       pygame.mixer.music.unpause()
 
 class TitleScreen(Layer): #title screen to pop up when game starts

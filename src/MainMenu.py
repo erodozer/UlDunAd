@@ -36,8 +36,7 @@ class MainMenu:
     #self.audio = self.engine.loadAudio("Town001.mp3")
     self.choices = ["New Game", "Continue", "Quit"]
 
-    self.button = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
-    self.buttonactive = self.engine.loadImage(os.path.join("Data", "secondarymenubuttonactive.png"))
+    self.button = self.engine.data.secondarymenubutton
 
     self.bar = self.engine.loadImage(os.path.join("Data", "dividerbar.png"))
 
@@ -52,7 +51,7 @@ class MainMenu:
     self.engine.drawImage(self.bar, coord = (320, 100+285), scale = (550, 3))
 
     for i, choice in enumerate(self.choices):
-      active, flag = self.engine.drawButton(self.button, self.buttonactive, coord= (320, 250 + 90*i), scale = (550, 80))
+      active, flag = self.engine.drawButton(self.button, coord= (320, 250 + 90*i), scale = (550, 80))
       if active == True:
         if flag == True:
           if i == 0:
@@ -71,4 +70,4 @@ class MainMenu:
       buttonfont = GameEngine.renderFont("default.ttf", str(choice), (320, 250 + 90*i), size = 32)
 
   def clearscene(self):
-    del self.button, self.buttonactive, self.engine, self.choices
+    del self.button, self.engine, self.choices
