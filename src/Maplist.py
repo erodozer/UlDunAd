@@ -39,7 +39,7 @@ class Maplist(Layer):
     self.maps = self.engine.listpath(os.path.join("Data", "Towns"), "searchfile", "town.ini")
     self.maps.extend(self.engine.listpath(os.path.join("Data", "Towns"), "searchfile", "dungeon.ini"))
     self.formations = self.engine.listpath(os.path.join("Data", "Enemies", "Formations"), "splitfiletype", ".ini")
-    self.mapinfo = self.engine.loadImage(os.path.join("Data", "mapinfo.png"))
+    self.mapinfo = self.engine.makeWindow(scale = (310, 356))
 
     self.index = 0
     self.showmaps = False
@@ -66,7 +66,7 @@ class Maplist(Layer):
           
           buttonfont = self.engine.renderFont("default.ttf", self.maps[i], (70, 70+(36*(i+1))), size = 16, flags = "Shadow", alignment = 1)
 
-      self.engine.drawImage(self.mapinfo, coord = (480, 220), scale = (310,356))
+      self.engine.drawWindow(self.mapinfo, coord = (480, 220))
   
       if self.selectedmap != None:
         self.engine.renderFont("default.ttf", self.selectedmap, (480, 70), size = 24, flags = "Shadow")

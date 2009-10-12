@@ -26,6 +26,7 @@ import GameEngine
 from Config import *
 import os
 import math
+import random
 
 class Player:
   def __init__(self, player = GameEngine.party[0]):
@@ -52,22 +53,23 @@ class Player:
 
     self.lvl = self.playerini.player.__getattr__("lvl", "int")
 
-    self.hp = self.raceini.__getattr__("hp", "int") + self.classini.__getattr__("hp", "int") + int(self.levelcurve[0]*(self.lvl-1)) + int(self.classcurve[0]*(self.lvl-1))
+    self.hp = self.playerini.player.__getattr__("hp", "int") + int(self.levelcurve[0]*(self.lvl-1)) + int(self.classcurve[0]*(self.lvl-1))
     self.currenthp = self.playerini.player.__getattr__("currenthp", "int")
     if self.currenthp > self.hp:
       self.currenthp = self.hp
       self.playerini.save()
-    self.sp = self.raceini.__getattr__("sp", "int") + self.classini.__getattr__("sp", "int") + int(self.levelcurve[1]*(self.lvl-1)) + int(self.classcurve[1]*(self.lvl-1))
+
+    self.sp = self.playerini.player.__getattr__("sp", "int") + int(self.levelcurve[1]*(self.lvl-1)) + int(self.classcurve[1]*(self.lvl-1))
     self.currentsp = self.playerini.player.__getattr__("currentsp", "int")
     if self.currentsp > self.sp:
       self.currentsp = self.sp
       self.playerini.save()
 
-    self.atk = self.raceini.__getattr__("atk", "int") + self.classini.__getattr__("atk", "int") + int(self.levelcurve[2]*(self.lvl-1)) + int(self.classcurve[2]*(self.lvl-1))
-    self.defn = self.raceini.__getattr__("defn", "int") + self.classini.__getattr__("defn", "int") + int(self.levelcurve[3]*(self.lvl-1)) + int(self.classcurve[3]*(self.lvl-1))
-    self.spd = self.raceini.__getattr__("spd", "int") + self.classini.__getattr__("spd", "int") + int(self.levelcurve[4]*(self.lvl-1)) + int(self.classcurve[4]*(self.lvl-1))
-    self.mag = self.raceini.__getattr__("mag", "int") + self.classini.__getattr__("mag", "int") + int(self.levelcurve[5]*(self.lvl-1)) + int(self.classcurve[5]*(self.lvl-1))
-    self.evd = self.raceini.__getattr__("evd", "int") + self.classini.__getattr__("evd", "int") + int(self.levelcurve[6]*(self.lvl-1)) + int(self.classcurve[6]*(self.lvl-1))
+    self.atk = self.playerini.player.__getattr__("atk", "int") + int(self.levelcurve[2]*(self.lvl-1)) + int(self.classcurve[2]*(self.lvl-1))
+    self.defn = self.playerini.player.__getattr__("defn", "int") + int(self.levelcurve[3]*(self.lvl-1)) + int(self.classcurve[3]*(self.lvl-1))
+    self.spd = self.playerini.player.__getattr__("spd", "int") + int(self.levelcurve[4]*(self.lvl-1)) + int(self.classcurve[4]*(self.lvl-1))
+    self.mag = self.playerini.player.__getattr__("mag", "int") + int(self.levelcurve[5]*(self.lvl-1)) + int(self.classcurve[5]*(self.lvl-1))
+    self.evd = self.playerini.player.__getattr__("evd", "int") + int(self.levelcurve[6]*(self.lvl-1)) + int(self.classcurve[6]*(self.lvl-1))
 
     self.weapon = self.playerini.player.weapon
     self.armor = self.playerini.player.armor
@@ -86,7 +88,7 @@ class Player:
       self.gold = 0
 
     #these are very important for battle
-    self.currentatb = 0
+    self.currentatb = random.int(0,100)
     self.defending = False
     self.knockedout = False
 

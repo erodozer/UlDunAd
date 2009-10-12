@@ -42,8 +42,8 @@ class Library(Layer):
     self.booktex = self.engine.loadImage(os.path.join(self.library, "book.png"))
     self.bookcover = self.engine.loadImage(os.path.join(self.library, "bookcover.png"))
 
-    self.secondarybutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
-    self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
+    self.secondarybutton = self.engine.data.secondarybutton
+    self.menubutton = self.engine.data.defaultbutton
 
     self.enterdialog = 0
 

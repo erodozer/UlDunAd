@@ -26,6 +26,7 @@ import GameEngine
 from Config import *
 import os
 import math
+import random
 
 class Enemy:
   def __init__(self, enemy):
@@ -52,7 +53,7 @@ class Enemy:
       self.loot = None
 
     #these are very important for battle
-    self.currentatb = 0
+    self.currentatb = random.int(0,100)
     self.defending = False
     self.currenthp = self.hp
     self.currentsp = self.sp

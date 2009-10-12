@@ -293,16 +293,16 @@ class BattleScene(Layer):
       self.engine.screenfade((0,0,0,255-(self.displaydamage*2)))
       if self.playercommand == 4:
         if self.item.function[0] == "Heal":
-          self.engine.renderFont("default.ttf", str(damage), (450 + (self.displaydamage/20), 380+(partymember*30)), size = 18, flags = "Shadow", color = (0, 255, 0))
+          self.engine.renderFont("default.ttf", str(damage), (160 + (partymember*213) + (self.displaydamage/20), 395), size = 18, flags = "Shadow", color = (0, 255, 0))
         elif self.item.function[0] == "Damage":
           self.engine.renderFont("default.ttf", str(damage), (int(self.formationcoord[self.playertarget][0]) - (self.displaydamage/20), int(self.formationcoord[self.playertarget][1])), size = 24, flags = "Shadow")
       else:
         self.engine.renderFont("default.ttf", str(damage), (int(self.formationcoord[self.playertarget][0]) - (self.displaydamage/20), int(self.formationcoord[self.playertarget][1])), size = 24, flags = "Shadow")
         if self.playercommand == 3:
-          self.engine.renderFont("default.ttf", self.spellini.cost, (450 + (self.displaydamage/20), 380+(partymember*30)), size = 18, flags = "Shadow")
+          self.engine.renderFont("default.ttf", self.spellini.cost, (160 + (partymember*213) + (self.displaydamage/20), 410), size = 18, flags = "Shadow")
 
     else:
-      self.engine.renderFont("default.ttf", str(damage), (450 + (self.displaydamage/20), 380+(partymember*30)), size = 16, flags = "Shadow")
+      self.engine.renderFont("default.ttf", str(damage), (160 + (partymember*213) + (self.displaydamage/20), 395), size = 16, flags = "Shadow")
 
     if self.displaydamage >= 500:
       if damage == "Miss":
@@ -656,8 +656,8 @@ class VictoryScene(Layer):
       self.engine.renderFont("default.ttf", str(self.enemyexp), (350, 140 + (i*100)), size = 24, flags = "Shadow", alignment = 1)
 
 
-      self.engine.drawBar(self.bar, (350, 155 + (i*100)), scale = (260,15), frames = 6, currentframe = 5)
-      self.engine.drawBar(self.bar, (350, 155 + (i*100)), scale = ((float(player.exp)/float(player.explvl))*260, 15), frames = 6, currentframe = 6)
+      self.engine.drawBar(self.bar, (350, 155 + (i*100)), scale = (260, 15), frames = 6, currentframe = 5)
+      self.engine.drawBar(self.bar, (350, 155 + (i*100)), scale = (260, 15), barcrop = (float(player.exp)/float(player.explvl)), frames = 6, currentframe = 6)
 
       if self.countdownexp == True:
         if self.enemyexp > 0:

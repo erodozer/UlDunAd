@@ -33,4 +33,7 @@ class Data:
     self.menubutton = Drawing.loadImage(os.path.join("Data", "menubutton.png"))
     self.secondarymenubutton = Drawing.loadImage(os.path.join("Data", "secondarymenubutton.png"))
     self.textbutton = Drawing.loadImage(os.path.join("Data", "textbutton.png"))
+    self.bigtextbutton = Drawing.loadImage(os.path.join("Data", "bigtextbutton.png"))
+
+    self.window = Drawing.loadImage(os.path.join("Data", "window.png"))
 

@@ -21,16 +21,17 @@
 #####################################################################
 
 #these are scenes that aren't entirely neccessary to gameplay
-#they are however required for the game to run and look cool
-#who knows, maybe in the future some of these will become
+#they are, however, required for the game to run and look cool.
+#Who knows, maybe in the future some of these will become
 #important scenes for the game
 
 from GameEngine import *
+import random
 
 from View import *
 
 class LoadingScene(Layer): #simple loading screen, time wasting but stylish
-  def __init__(self, phrase = "", time = 2.0):
+  def __init__(self, phrase = "", time = 5.0):
     self.engine = GameEngine
     self.phrase = phrase
     self.time = time
@@ -41,6 +42,7 @@ class LoadingScene(Layer): #simple loading screen, time wasting but stylish
     self.rotate = 0
     self.timer = 0
     pygame.mixer.music.pause()
+    self.bar = self.engine.loadImage(os.path.join("Data", "bars.png"))
   def update(self):
     w, h = GameEngine.w, GameEngine.h
     self.engine.screenfade((0,0,0,255))
@@ -49,12 +51,15 @@ class LoadingScene(Layer): #simple loading screen, time wasting but stylish
     else:
       self.rotate = 0
 
+    self.engine.drawBar(self.bar, (45, 460), scale = (450,15), frames = 6, currentframe = 5)
+    self.engine.drawBar(self.bar, (45, 460), scale = (450,15), barcrop = (float(self.timer)/int(self.time * 60)), frames = 6, currentframe = 6)
+
     if self.loadingImage is not None:
-      self.engine.drawImage(self.loadingImage, coord = (320, 240), rot = -self.rotate) 
+      self.engine.drawImage(self.loadingImage, coord = (550, 390), scale = (90,90), rot = -self.rotate) 
     self.engine.renderFont("default.ttf", self.phrase, coord = (320, 432), size = 24)
 
     if self.timer < (self.time * 60) and self.engine.loadingscreen == True:
-      self.timer += 1
+      self.timer += random.randint(0, 4)
     else:
       View.removescene(self)
       pygame.mixer.music.fadeout(400)

@@ -72,10 +72,8 @@ keypresses = []
 
 data = None
 
-class Drawing(pygame.sprite.Sprite):
-
+class Drawing:
   def loadImage(self, ImgData, returnnone = True):
-    pygame.sprite.Sprite.__init__(self)
     if returnnone == True:
       if os.path.exists(os.path.join("..", ImgData)):
         image = pygame.image.load(os.path.join("..", ImgData)).convert_alpha()
@@ -87,7 +85,6 @@ class Drawing(pygame.sprite.Sprite):
     return image
     
   def drawImage(self, image, coord = (320, 240), scale = None, scaleper = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", blit = True):
-    pygame.sprite.Sprite.__init__(self)
 
     width,height = image.get_size()
 
@@ -129,7 +126,6 @@ class Drawing(pygame.sprite.Sprite):
     return rect
 
   def drawBar(self, image, coord = (320, 240), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
-    pygame.sprite.Sprite.__init__(self)
 
     if barcrop > 1:
       barcrop = 1
@@ -169,6 +165,76 @@ class Drawing(pygame.sprite.Sprite):
     screen.blit(image, (int(x), int(y)))
 
     return rect
+
+  def makeWindow(self, scale):
+    image = data.window
+
+    width,height = image.get_size()
+
+    windowrect = pygame.Surface((scale[0],scale[1]))
+    ssurfaces = []
+    ssurfacepos = [[32, 32], #center 
+                   [32, 0], #top
+                   [32, scale[1]-32], #bottom
+                   [0, 32], #left
+                   [scale[0]-32, 32], #right
+                   [0,0], #tl corner
+                   [0, scale[1]-32], #bl corner
+                   [scale[0]-32, 0], #tr corner
+                   [scale[0]-32, scale[1]-32]] #br corner
+
+    wid = (0, width*.33333, width*.66666)
+    hgt = (0, height*.33333, height*.66666)
+
+    #center
+    ssurfaces.append(image.subsurface((wid[1], hgt[1], width*.33333, height*.33333)))
+
+    #top
+    ssurfaces.append(image.subsurface((wid[1], hgt[0], width*.33333, height*.33333)))
+    #bottom
+    ssurfaces.append(image.subsurface((wid[1], hgt[2], width*.33333, height*.33333)))
+
+    #left side
+    ssurfaces.append(image.subsurface((wid[0], hgt[1], width*.33333, height*.33333)))
+    #right side
+    ssurfaces.append(image.subsurface((wid[2], hgt[1], width*.33333, height*.33333)))
+
+    #top-left corner
+    ssurfaces.append(image.subsurface((wid[0], hgt[0], width*.33333, height*.33333)))
+    #bottom-left corner
+    ssurfaces.append(image.subsurface((wid[0], hgt[2], width*.33333, height*.33333)))
+    #top-right corner
+    ssurfaces.append(image.subsurface((wid[2], hgt[0], width*.33333, height*.33333)))
+    #bottom-right corner
+    ssurfaces.append(image.subsurface((wid[2], hgt[2], width*.33333, height*.33333)))
+    
+    for i in range(9):
+      if i == 0:#center
+        ssurfaces[i] = pygame.transform.smoothscale(ssurfaces[i], (scale[0] - 64, scale[1] - 64))
+      elif i <= 2 and i > 0: #left and right sides
+        ssurfaces[i] = pygame.transform.smoothscale(ssurfaces[i], (scale[0] - 64, 32))
+      elif i <= 4 and i > 2: #top and bottom sides
+        ssurfaces[i] = pygame.transform.smoothscale(ssurfaces[i], (32, scale[1] - 64))
+      else: #corners
+        ssurfaces[i] = pygame.transform.smoothscale(ssurfaces[i], (32, 32))
+
+      windowrect.blit(ssurfaces[i], (ssurfacepos[i][0], ssurfacepos[i][1]))
+
+    return windowrect
+
+  def drawWindow(self, window, coord):
+    image = window
+    width,height = image.get_size()
+
+    width = int(float(width)*w*0.0015625)
+    height = int(float(height)*h*0.002083333)
+    image = pygame.transform.smoothscale(image, (width, height))
+
+    x = float(coord[0])*w*0.0015625 - width*.5
+    y = float(coord[1])*h*0.002083333 - height*.5
+    rect = image.get_rect(topleft=(int(x), int(y)))
+
+    screen.blit(image, (int(x), int(y)))
 
 class Sound:
   def loadAudio(self, AudioFile, queue = False):
@@ -278,6 +344,13 @@ def drawButton(ImgData, coord = (320, 240), scale = None, rot = None, buttons = 
     Drawing().drawImage(ImgData, coord, scale, rot, frames = 2, currentframe = 1, direction = direction)
 
   return active, flag
+
+def makeWindow(scale):
+  window = Drawing().makeWindow(scale)
+  return window
+
+def drawWindow(window, coord):
+  Drawing().drawWindow(window, coord)
 
 def renderFont(font, text, coord = (320,240), size = 12, flags = None, alignment = 0, color = (255,255,255)):
   Font().renderFont(font,text,coord,size,flags,alignment,color)

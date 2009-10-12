@@ -43,12 +43,16 @@ class MainMenu:
     from ExtraScenes import TitleScreen
     View.addscene(TitleScreen())
 
+    self.window = self.engine.makeWindow((300,200))
+
   def update(self):
     self.engine.drawImage(self.background, scale = (640,480))
     w, h = self.engine.w, self.engine.h
 
     self.engine.drawImage(self.bar, coord = (320, 100+195), scale = (550, 3))
     self.engine.drawImage(self.bar, coord = (320, 100+285), scale = (550, 3))
+
+    self.engine.drawWindow(self.window, coord = (320, 100))
 
     for i, choice in enumerate(self.choices):
       active, flag = self.engine.drawButton(self.button, coord= (320, 250 + 90*i), scale = (550, 80))

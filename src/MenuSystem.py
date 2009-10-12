@@ -158,7 +158,7 @@ class MenuSystem(Layer):
     self.engine.renderFont("menu.ttf", str(player.name), (630, 56), size = 32, flags = "Shadow", alignment = 2)
     self.engine.renderFont("menu.ttf", "Press LEFT or RIGHT to change character status lists", (630, 80), size = 18, flags = "Shadow", alignment = 2)
     
-    self.statbars = [["HP", str(player.currenthp) + "/" + str(player.hp)], ["SP", str(player.currentsp) + "/" + str(player.sp)], ["EXP", str(player.exp) + "/" + str(player.explvl)]]
+    self.statbars = [["HP", player.currenthp, player.hp], ["SP", player.currentsp, player.sp], ["EXP", player.exp, player.explvl]]
     self.stattitles = [["ATK", player.atk], ["DEF", player.defn], ["SPD", player.spd], ["MAG", player.mag], ["EVD", player.evd]]
     self.titles = [["Class", player.playerclass], ["Race", player.race], ["Level", player.lvl]]
 
@@ -168,9 +168,9 @@ class MenuSystem(Layer):
     
     for i in range(len(self.statbars)):
       self.engine.drawBar(self.bar, (45, 212+(i*28)), scale = (150,15), frames = 6, currentframe = (2*i)+1)
-      self.engine.drawBar(self.bar, (45, 212+(i*28)), scale = (150,15), barcrop = (float(player.currentsp)/int(player.sp)), frames = 6, currentframe = (2*i)+2)
+      self.engine.drawBar(self.bar, (45, 212+(i*28)), scale = (150,15), barcrop = (float(self.statbars[i][1])/int(self.statbars[i][2])), frames = 6, currentframe = (2*i)+2)
       self.engine.renderFont("default.ttf", self.statbars[i][0], (20, 212+(i*28)), size = 18, flags = "Shadow", alignment = 1)
-      self.engine.renderFont("default.ttf", self.statbars[i][1], (200, 212+(i*28)), size = 18, flags = "Shadow", alignment = 2)
+      self.engine.renderFont("default.ttf", str(self.statbars[i][1]) + "/" + str(self.statbars[i][2]), (200, 212+(i*28)), size = 18, flags = "Shadow", alignment = 2)
    
       
     for i in range(len(self.stattitles)):
