@@ -55,7 +55,7 @@ class MainMenu:
     self.engine.drawWindow(self.window, coord = (320, 100))
 
     for i, choice in enumerate(self.choices):
-      active, flag = self.engine.drawButton(self.button, coord= (320, 250 + 90*i), scale = (550, 80))
+      active, flag = self.engine.drawButton(self.button, "default.ttf", str(choice), size = 32, coord= (320, 250 + 90*i), scale = (550, 80))
       if active == True:
         if flag == True:
           if i == 0:
@@ -71,7 +71,6 @@ class MainMenu:
 
           elif i == 2:
              GameEngine.finished = True
-      buttonfont = GameEngine.renderFont("default.ttf", str(choice), (320, 250 + 90*i), size = 32)
 
   def clearscene(self):
     del self.button, self.engine, self.choices

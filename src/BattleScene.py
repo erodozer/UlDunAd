@@ -87,8 +87,7 @@ class BattleScene(Layer):
     self.bar = self.engine.loadImage(os.path.join("Data", "bars.png"))
     self.hud = self.engine.loadImage(os.path.join("Data", "charbattlebase.png"))
 
-    self.attackcb = self.engine.loadImage(os.path.join("Data", "battlecirclebottom.png"))
-    self.attackct = self.engine.loadImage(os.path.join("Data", "battlecircletop.png"))
+    self.attackcircle = self.engine.loadImage(os.path.join("Data", "battlecircle.png"))
 
     self.enemynamebar = self.engine.loadImage(os.path.join("Data", "enemynamebar.png"))
 
@@ -270,11 +269,11 @@ class BattleScene(Layer):
         self.displayturn("Miss", 1, partymember)
     else:
       if self.playercommand == 1:
-        self.engine.drawImage(self.attackcb, (float(int(self.formationcoord[self.playertarget][0])), float(int(self.formationcoord[self.playertarget][1]))), scale = (150,150))
-        self.engine.drawImage(self.attackct, (float(int(self.formationcoord[self.playertarget][0])), float(int(self.formationcoord[self.playertarget][1]))), scale = (150*(timer/900.0),150*(timer/900.0)), rot = -rotate)
+        self.engine.drawImage(self.attackcircle, (float(int(self.formationcoord[self.playertarget][0])), float(int(self.formationcoord[self.playertarget][1]))), scale = (150,150), direction = "Horizontal", frames = 2, currentframe = 1)
+        self.engine.drawImage(self.attackcircle, (float(int(self.formationcoord[self.playertarget][0])), float(int(self.formationcoord[self.playertarget][1]))), scale = (150*(timer/900.0),150*(timer/900.0)), rot = -rotate, direction = "Horizontal", frames = 2, currentframe = 2)
       else:
-        self.engine.drawImage(self.attackcb, (320, 240), scale = (150,150))
-        self.engine.drawImage(self.attackct, (320, 240), scale = (150*(timer/900.0),150*(timer/900.0)), rot = -rotate)
+        self.engine.drawImage(self.attackcircle, (320, 240), scale = (150,150), direction = "Horizontal", frames = 2, currentframe = 1)
+        self.engine.drawImage(self.attackcircle, (320, 240), scale = (150*(timer/900.0),150*(timer/900.0)), rot = -rotate,  direction = "Horizontal", frames = 2, currentframe = 2)
 
   def attack(self, who, partymember):
     if who == 0:
@@ -571,7 +570,7 @@ class BattleScene(Layer):
   def clearscene(self):
 
     del self.displaydamage, self.timer, self.rotatestart, self.fade, self.stop, self.spacehit
-    del self.attackcb, self.attackct, self.battle, self.playercommand, self.enemycommand
+    del self.attackcircle, self.battle, self.playercommand, self.enemycommand
     del self.button, self.bar, self.background
     del self.party, self.enemy, self.engine
 

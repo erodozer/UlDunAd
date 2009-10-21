@@ -48,14 +48,10 @@ class Dungeon(Layer):
     except:
       self.background = None
 
-    self.audio = None
-#    if self.dungeonini.__getattr__("audio") != ("None" or ""):
-#      self.audio = Sound().loadAudio(self.dungeonini.audio)
+    self.audio = Sound().loadAudio(os.path.join("Data", "Towns", self.dungeonname, self.dungeonini.audio))
 
-    self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
-
-    self.secondarybutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
-
+    self.menubutton = self.engine.data.secondarybutton
+    self.secondarybutton = self.engine.data.secondarybutton
 
     Sound().volume(float(self.engine.volume)/10)
 
@@ -153,14 +149,13 @@ class Dungeon(Layer):
         View.addscene(LoadingScene("Preparing Battle", 4.5))
 
     else:
-      active, flag = self.engine.drawButton(self.menubutton, coord= (320, 420), scale = (200,45))
+      active, flag = self.engine.drawButton(self.menubutton, font = "default.ttf", text = "Go to Next Cell", coord= (100, 380), scale = (178,36))
       if flag == True:
         self.cellactivated = True
-      self.engine.renderFont("default.ttf", "Go to Next Cell", (320, 420))
 
 
       #return button
-      active, flag = self.engine.drawButton(self.menubutton, coord= (100, 420), scale = (150,45))
+      active, flag = self.engine.drawButton(self.menubutton, font = "default.ttf", text = "Return", coord= (100, 420), scale = (178,36))
       if active == True:
         if flag == True:
           from Maplist import Maplist
@@ -169,7 +164,6 @@ class Dungeon(Layer):
           self.engine.town = None
           self.engine.currentcell += 1
           self.engine.cells = None
-      self.engine.renderFont("default.ttf", "Return", (100, 420))
 
   def clearscene(self):
     del self.audio, self.background, self.dungeonini, self.dungeonname, self.engine

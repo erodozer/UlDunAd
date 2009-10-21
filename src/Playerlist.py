@@ -59,7 +59,7 @@ class Playerlist(Layer):
     for i in range(self.index, 7+self.index):
       if i < maxindex:
 
-        active, flag = self.engine.drawButton(self.button, coord= (320, 70 + (44*(i-self.index+1))), scale = (200,32))
+        active, flag = self.engine.drawButton(self.button, "menu.ttf", self.players[i], size = 24, coord= (320, 70 + (44*(i-self.index+1))), scale = (200,32))
         if active == True and self.selecting == True:
           if flag == True:
             if len(self.partybuilt) < 3:
@@ -75,31 +75,26 @@ class Playerlist(Layer):
                   self.partybuilt.remove(-1)
                 self.donebuilding = True
 
-        buttonfont = self.engine.renderFont("menu.ttf", self.players[i], (320, 70+(44*(i-self.index+1))), size = 24)
-
     if self.flag == True:
       self.engine.renderFont("menu.ttf", "That character is already in your party!", (320, 32), size = 24)
 
-    active, flag = self.engine.drawButton(self.button, coord= (320, 64), scale = (200,32))
+    active, flag = self.engine.drawButton(self.button, "menu.ttf", "-UP-", size = 24, coord= (320, 64), scale = (200,32))
     if active == True and self.selecting == True:
       if flag == True:
         if self.index - 7 >= 0:
           self.index -= 7
-    buttonfont = self.engine.renderFont("menu.ttf", "-UP-", (320, 64), size = 24)
 
-    active, flag = self.engine.drawButton(self.button, coord= (320, 432), scale = (200,32))
+    active, flag = self.engine.drawButton(self.button, "menu.ttf", "-DOWN-", size = 24, coord= (320, 432), scale = (200,32))
     if active == True and self.selecting == True:
       if flag == True:
         if self.index + 7 < maxindex:
           self.index += 7
-    buttonfont = self.engine.renderFont("menu.ttf", "-DOWN-", (320, 432), size = 24)
 
     if self.partyactive == True and self.partybuilding == True and len(self.partybuilt) > 0:
-      active, flag = self.engine.drawButton(self.menubutton, coord= (530, 425), scale = (150,45))
+      active, flag = self.engine.drawButton(self.menubutton, "default.ttf", "Done", coord= (530, 425), scale = (150,45))
       if active == True:
         if flag == True:
           self.donebuilding = True
-      buttonfont = self.engine.renderFont("default.ttf", "Done", (530, 425))
 
     if self.partyactive == True:
 
@@ -107,7 +102,7 @@ class Playerlist(Layer):
         self.selecting = False
         self.engine.screenfade((0,0,0,130))
         for i, choice in enumerate(['Yes', 'No']):
-          active, flag = self.engine.drawButton(self.button, coord= (75+(490*i), 200), scale = (100,48))
+          active, flag = self.engine.drawButton(self.button, "default.ttf", choice, size = 18, coord= (75+(490*i), 200), scale = (100,48))
           if active == True:
             if flag == True:
               if i == 0:
@@ -119,14 +114,13 @@ class Playerlist(Layer):
                 View.removescene(self)
                 View.addscene(Maplist())
                   
-          buttonfont = self.engine.renderFont("default.ttf", choice, (75+(490*i), 200), size = 16)
         self.engine.renderFont("default.ttf", "Do you wish to build a party?", (320, 120), size = 20, flags = "Shadow")
 
       elif self.donebuilding == True:
         self.selecting = False
         self.engine.screenfade((0,0,0,130))
         for i, choice in enumerate(['Yes', 'No']):
-          active, flag = self.engine.drawButton(self.button, coord= (75+(490*i), 200), scale = (100,48))
+          active, flag = self.engine.drawButton(self.button, "default.ttf", choice, size = 18, coord= (75+(490*i), 200), scale = (100,48))
           if active == True:
             if flag == True:
               if i == 0:
@@ -138,9 +132,7 @@ class Playerlist(Layer):
                 self.donebuilding = False
                 self.selecting = True
                 self.partybuilt = []
-                
-                  
-          buttonfont = self.engine.renderFont("default.ttf", choice, (75+(490*i), 200), size = 16)
+                                  
         self.engine.renderFont("default.ttf", "Is this the party you want?", (320, 120), size = 20, flags = "Shadow")
 
         for i, partymember in enumerate(self.partybuilt):

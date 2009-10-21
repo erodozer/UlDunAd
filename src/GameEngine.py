@@ -286,10 +286,10 @@ class Font:
       self.renderFont(font, textline, coord = (coord[0], coord[1]+((size+3)*i)), size = size, color = (255,255,255), flags = flags, alignment = alignment)
 
   def renderTextbox(self, font, text, size = 12):
-    textbox = Drawing().loadImage(os.path.join("Data", "textbox.png"))
-    Drawing().drawImage(textbox, coord = (320, 400), scale = (w, 160))
-    for i, textline in enumerate(text):
-      self.renderFont(font, textline, coord = (30, 350+((size+3)*i)), size = size, flags = "Soft Shadow", alignment = 1, color = (0,0,0))
+    textbox = Drawing().makeWindow((640, 150))
+    Drawing().drawWindow(textbox, (320,405))
+
+    self.renderMultipleFont(font, text, coord = (30, 360), size = size, flags = "Shadow", alignment = 1)
 
   def renderWrapText(self, font, text, coord = (320,240), size = 12, width = 320, alignment = 1):
     x, y = coord
@@ -330,7 +330,7 @@ def drawBar(ImgData, coord = (320, 240), scale = None, rot = None, frames = 1, c
   rect = Drawing().drawBar(ImgData, coord, scale, rot, frames, currentframe, direction, barcrop)
   return rect
 
-def drawButton(ImgData, coord = (320, 240), scale = None, rot = None, buttons = 1, index = 1, direction = "Vertical", activeshift = 0):
+def drawButton(ImgData, font = "default.ttf", text = "", coord = (320, 240), scale = None, size = 12, rot = None, buttons = 1, index = 1, direction = "Vertical", activeshift = 0):
 
   whichimgdata = ImgData
 
@@ -343,6 +343,7 @@ def drawButton(ImgData, coord = (320, 240), scale = None, rot = None, buttons = 
   else:
     Drawing().drawImage(ImgData, coord, scale, rot, frames = 2, currentframe = 1, direction = direction)
 
+  renderFont(font, text, coord, size)
   return active, flag
 
 def makeWindow(scale):
@@ -352,7 +353,7 @@ def makeWindow(scale):
 def drawWindow(window, coord):
   Drawing().drawWindow(window, coord)
 
-def renderFont(font, text, coord = (320,240), size = 12, flags = None, alignment = 0, color = (255,255,255)):
+def renderFont(font = "default.ttf", text = "", coord = (320,240), size = 12, flags = None, alignment = 0, color = (255,255,255)):
   Font().renderFont(font,text,coord,size,flags,alignment,color)
 
 def renderMultipleFont(font, text, coord = (320,240), size = 12, flags = None):

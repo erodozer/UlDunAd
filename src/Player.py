@@ -88,7 +88,7 @@ class Player:
       self.gold = 0
 
     #these are very important for battle
-    self.currentatb = random.int(0,100)
+    self.currentatb = random.randint(0,100)
     self.defending = False
     self.knockedout = False
 

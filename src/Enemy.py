@@ -53,7 +53,7 @@ class Enemy:
       self.loot = None
 
     #these are very important for battle
-    self.currentatb = random.int(0,100)
+    self.currentatb = random.randint(0,100)
     self.defending = False
     self.currenthp = self.hp
     self.currentsp = self.sp
