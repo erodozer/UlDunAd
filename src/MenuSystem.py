@@ -238,7 +238,7 @@ class MenuSystem(Layer):
     correspondingoptions = [self.engine.resolution, self.engine.volume, self.engine.townvolume, self.engine.battlevolume, self.engine.battlemode]
     for i, choice in enumerate(choices):
       active, flag = self.engine.drawButton(self.secondarymenubutton, "default.ttf", choice, size = 20, coord= (120, 128 + (52*i)), scale = (220,48))
-      if ((active == True and self.optionselected == False) or (self.whichoption == i and self.optionselected == True)) and self.engine.defaultsettings == False:
+      if ((active == True and self.optionselected == False) or (self.whichoption == i and self.optionselected == True)) and Engine.defaultsettings == False:
         renderhelpfont = self.engine.renderFont("default.ttf", choicehelp[i], (630, 408), alignment = 2)
         if flag == True and self.optionselected == False:
           self.optionselected = True
@@ -252,7 +252,7 @@ class MenuSystem(Layer):
       self.engine.renderFont("default.ttf", ">", (550, 128 + (52*self.whichoption)), size = 20)
     if self.optionselected == True:
       self.engine.renderFont("default.ttf", "Press SPACE when you are satisfied with the current value selected", (10, 424), alignment = 1)
-    if self.engine.defaultsettings == True:
+    if Engine.defaultsettings == True:
       self.engine.renderFont("default.ttf", "Default settings has been hit, you must restart before you can change settings again.", (320, 408))
 
 
@@ -260,7 +260,7 @@ class MenuSystem(Layer):
     for i, choice in enumerate(mainchoices):
       active, flag = self.engine.drawButton(self.secondarybutton, "default.ttf", choice, coord= (240 + (180*i), 448), scale = (160,32))
       if (active == True and self.optionselected == False):
-        if i == 0 and self.engine.defaultsettings == False:
+        if i == 0 and Engine.defaultsettings == False:
           self.engine.renderFont("default.ttf", "Once default is hit you may not change the options until UlDunAd is restarted", (320, 408))
         if flag == True:
           if i == 0:

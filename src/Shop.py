@@ -278,10 +278,9 @@ class Shop(Layer):
 
     elif self.selectedchoice == 3:
       for player in self.party:
-        player.playerini.player.__setattr__("inventory", ", ".join(player.inventory))
-        player.playerini.player.__setattr__("gold", player.gold)
+        player.updateINI()
 
-      import Towns
-      self.engine.changescene(self, Towns)
+      from Towns import Towns
+      self.engine.changescene(self, Towns())
 
 

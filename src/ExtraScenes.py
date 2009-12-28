@@ -13,8 +13,8 @@
 #Who knows, maybe in the future some of these will become
 #important scenes for the game
 
-import GameEngine
-from GameEngine import *
+import Engine
+from Engine import *
 import random
 
 import Input

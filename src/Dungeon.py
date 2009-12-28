@@ -62,7 +62,7 @@ class Dungeon(Layer):
     self.engine.drawImage(self.background, scale = (640,480))
 
     self.engine.renderFont("menu.ttf", self.dungeonname, (320, 44), size = 40, flags = "Shadow")
-    if self.engine.currentcell > (self.cells):
+    if Engine.currentcell > (self.cells):
       self.engine.renderFont("default.ttf", "Dungeon Cleared", (320, 90), size = 18)
     else:
       self.engine.renderFont("default.ttf", "Cell " + str(Engine.currentcell) + " of " + str(self.cells), (320, 90), size = 18)

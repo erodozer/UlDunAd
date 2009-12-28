@@ -8,7 +8,7 @@
 #
 #=======================================================#
 
-from GameEngine import GameEngine
+from Engine import GameEngine
 
 from Config import *
 import os

@@ -8,7 +8,8 @@
 #
 #=======================================================#
 
-from GameEngine import GameEngine
+from Engine import GameEngine
+import Actor
 
 from View import *
 
@@ -30,7 +31,7 @@ class CharacterCreator(Layer):
 
     self.loadplayerini()
 
-    self.capson = True
+    self.capson = False
 
     self.name = []
 
@@ -132,7 +133,7 @@ class CharacterCreator(Layer):
 
   def drawRaceMenu(self):
 
-    self.races = self.engine.listpath(os.path.join("Data", "Races"), "splitfiletype", ".ini")
+    self.races = self.engine.listpath(os.path.join("Data", "Actors", "Races"), "splitfiletype", ".ini")
 
     for i, choice in enumerate(self.races):
       active, flag = self.engine.drawButton(self.racebutton, coord= (320, 64+(48*i)), scale = (200,32))
@@ -146,7 +147,7 @@ class CharacterCreator(Layer):
 
   def drawClassMenu(self):
 
-    self.classes = self.engine.listpath(os.path.join("Data", "Classes"), "splitfiletype", ".ini")
+    self.classes = self.engine.listpath(os.path.join("Data", "Actors", "Classes"), "splitfiletype", ".ini")
 
     for i, choice in enumerate(self.classes):
       active, flag = self.engine.drawButton(self.racebutton, coord= (320, 64+(48*i)), scale = (200,32))
@@ -158,8 +159,8 @@ class CharacterCreator(Layer):
       buttonfont = self.engine.renderFont("menu.ttf", str(choice.split(".ini")[0]), (320, 64+(48*i)), size = 24)  
   
   def loadplayerini(self):
-    raceini = Config.Configuration(os.path.join("..", "Data", "Races", self.race)).race
-    classini = Config.Configuration(os.path.join("..", "Data", "Classes", self.playerclass)).defclass
+    raceini = Config.Configuration(os.path.join("Data", "Actors", "Races", self.race)).race
+    classini = Config.Configuration(os.path.join("Data", "Actors", "Classes", self.playerclass)).defclass
     self.stat = []
     self.hp = self.stat.append(int(raceini.hp) + int(classini.hp))
     self.sp =  self.stat.append(int(raceini.sp) + int(classini.sp))
@@ -170,8 +171,8 @@ class CharacterCreator(Layer):
     self.evd =  self.stat.append(int(raceini.evd) + int(classini.evd))
  
   def endcreation(self, name):
-    Config.Configuration(os.path.join("..", "Data", "Players", name + ".ini")).save()
-    newconf = Config.Configuration(os.path.join("..", "Data", "Players", name + ".ini"))
+    Config.Configuration(os.path.join("Data", "Actors", "Players", name + ".ini")).save()
+    newconf = Config.Configuration(os.path.join("Data", "Actors", "Players", name + ".ini"))
     newconf.player.lvl = str(1)
     newconf.player.race = str(self.race)
     newconf.player.playerclass = str(self.playerclass)
@@ -187,7 +188,7 @@ class CharacterCreator(Layer):
     newconf.player.spells = str('')
     newconf.player.gold = str(250)
     newconf.save()
-    self.engine.party.append(str(name+".ini"))
+    Actor.party.append(str(name+".ini"))
     from Maplist import Maplist
     self.engine.changescene(self, Maplist())
 

@@ -14,8 +14,8 @@ import pygame
 
 from pygame.locals import *
 
-import GameEngine
-from GameEngine import GameEngine
+import Engine
+from Engine import GameEngine
 
 from Resources import *
 import Resources
@@ -52,7 +52,7 @@ class View:
     pygame.display.set_caption(caption)
 
     Resources.w, Resources.h, Resources.screen = engine.w, engine.h, screen
-    Sound().inbattle, Sound().vol = engine.inbattle, engine.volume
+    Sound().inbattle, Sound().vol = Engine.inbattle, engine.volume
 
     GameEngine.data = Data()
 

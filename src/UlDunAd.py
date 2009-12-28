@@ -61,7 +61,7 @@ class Main(object):
     pygame.mixer.music.set_endevent(USEREVENT)
     if (pygame.event.poll().type == USEREVENT or pygame.mixer.music.get_busy() == False) and Actor.party != []:
 
-      if Engine.inbattle == True:
+      if Engine.inbattle == True and self.battlesongs != []:
         Sound().loadAudio(random.choice(self.battlesongs))
       else:
         if self.songs != []:
