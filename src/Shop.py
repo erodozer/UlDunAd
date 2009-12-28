@@ -1,37 +1,30 @@
-#####################################################################
-# -*- coding: iso-8859-1 -*-                                        #
-#                                                                   #
-# UlDunAd - Ultimate Dungeon Adventure                              #
-# Copyright (C) 2009 Blazingamer(n_hydock@comcast.net               #
-#                                                                   #
-# This program is free software; you can redistribute it and/or     #
-# modify it under the terms of the GNU General Public License       #
-# as published by the Free Software Foundation; either version 3    #
-# of the License, or (at your option) any later version.            #
-#                                                                   #
-# This program is distributed in the hope that it will be useful,   #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of    #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the     #
-# GNU General Public License for more details.                      #
-#                                                                   #
-# You should have received a copy of the GNU General Public License #
-# along with this program; if not, write to the Free Software       #
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,        # 
-# MA  02110-1301, USA.                                              #
-#####################################################################
+#=======================================================#
+#
+# UlDunAd - Ultimate Dungeon Adventure
+# Copyright (C) 2009 Blazingamer/n_hydock@comcast.net
+#       http://code.google.com/p/uldunad/
+# Licensed under the GNU General Public License V3
+#      http://www.gnu.org/licenses/gpl.html
+#
+#=======================================================#
 
-import GameEngine
-import View
+from Engine import GameEngine
+
 from View import *
 
 from Config import Configuration
 
-from Player import Player
+import Actor
+from Actor import Player
+
+from Object import Item
+
+import Input
 
 class Shop(Layer):
   def __init__(self, shopini):
 
-    self.engine = GameEngine
+    self.engine = GameEngine()
     self.shopini = shopini
 
     self.engine.loadImage(os.path.join("Data", "menubackground.png"))
@@ -40,19 +33,16 @@ class Shop(Layer):
 
     self.selectedchoice = 0
 
-    self.party = []
-    for partymember in self.engine.party:
-      self.party.append(Player(partymember))
+    self.party = [Player(partymember) for partymember in Actor.party]
 
     self.items = self.shopini.townchoice.__getattr__("items").replace(" ", "").split(",")
     if self.items == ['']:
       self.items = None
 
-    self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
+    self.menubutton = self.engine.data.defaultbutton
+    self.secondarybutton = self.engine.data.secondarymenubutton
 
-    self.secondarybutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
-
-    self.windows = self.engine.loadImage(os.path.join("Data", "shop.png"))
+    self.windows = self.engine.loadImage(os.path.join("Data", "Interface", "shop.png"))
 
     self.index = 0
     self.selecteditem = None
@@ -79,25 +69,24 @@ class Shop(Layer):
     highlighted = False
     for i in range(self.index, 5+self.index):
       if i < maxindex:
-        itemini = Configuration(os.path.join("..", "Data", "Items", str(self.items[i])+".ini")).item
+        item = Item(self.items[i])
         active, flag = self.engine.drawButton(self.secondarybutton, coord= (208, 90 + (26*(i-self.index))), scale = (270,24))
         if active == True:
           highlighted = True
-          itemimage = self.engine.loadImage(os.path.join("Data", "Items", str(self.items[i])+".png"))
-          if itemimage != None:
-            self.engine.drawImage(itemimage, coord= (155, 360), scale = (150,150))
+          if item.image != None:
+            self.engine.drawImage(item.image, coord= (155, 360), scale = (150,150))
           if flag == True and self.purchaseflag == False:
             self.selecteditem = i
         if self.selecteditem == i:
           self.engine.renderFont("default.ttf", "*", (75, 95 + (26*(i-self.index))), size = 24)
 
     
-        self.engine.renderFont("default.ttf", itemini.__getattr__("name"), (80, 90 + (26*(i-self.index))), size = 16, alignment = 1)
-        self.engine.renderFont("default.ttf", itemini.__getattr__("worth") + "G", (335, 90 + (26*(i-self.index))), size = 16, alignment = 2)
+        self.engine.renderFont("default.ttf", item.name, (80, 90 + (26*(i-self.index))), size = 16, alignment = 1)
+        self.engine.renderFont("default.ttf", str(item.worth) + "G", (335, 90 + (26*(i-self.index))), size = 16, alignment = 2)
 
 
     if self.selecteditem != None and highlighted == False:
-      itemimage = self.engine.loadImage(os.path.join("Data", "Items", str(self.items[self.selecteditem])+".png"))
+      itemimage = Item(self.items[self.selecteditem]).image
       if itemimage != None:
         self.engine.drawImage(itemimage, coord= (155, 360), scale = (150,150))
 
@@ -131,9 +120,9 @@ class Shop(Layer):
         if active == True:
           if flag == True:
             if i == 0:
-              if len(self.party[whichplayer].inventory) < 20 and self.party[whichplayer].gold >= itemini.__getattr__("worth", "int"):
+              if len(self.party[whichplayer].inventory) < 20 and self.party[whichplayer].gold >= Item(self.items[self.selecteditem]).worth:
                 self.party[whichplayer].inventory.append(self.items[self.selecteditem])
-                self.party[whichplayer].gold -= itemini.__getattr__("worth", "int")
+                self.party[whichplayer].gold -= Item(self.items[self.selecteditem]).worth
               else:
                 self.toomuchflag = True
               self.purchaseflag = False
@@ -173,27 +162,26 @@ class Shop(Layer):
     highlighted = False
     for i in range(self.index, 5+self.index):
       if i < maxindex:
-        itemini = Configuration(os.path.join("..", "Data", "Items", str(self.party[whichplayer].inventory[i])+".ini")).item
+        item = Item(str(self.party[whichplayer].inventory[i]))
         active, flag = self.engine.drawButton(self.secondarybutton, coord= (208, 90 + (26*(i-self.index))), scale = (270,24))
         if active == True:
           highlighted = True
-          itemimage = self.engine.loadImage(os.path.join("Data", "Items", str(self.party[whichplayer].inventory[i])+".png"))
-          if itemimage != None:
-            self.engine.drawImage(itemimage, coord= (155, 360), scale = (150,150))
+          if item.image != None:
+            self.engine.drawImage(item.image, coord= (155, 360), scale = (150,150))
           if flag == True and self.purchaseflag == False:
             self.selecteditem = i
         if self.selecteditem == i:
           self.engine.renderFont("default.ttf", "*", (75, 95 + (26*(i-self.index))), size = 24)
 
     
-        self.engine.renderFont("default.ttf", itemini.__getattr__("name"), (80, 90 + (26*(i-self.index))), size = 16, alignment = 1)
-        self.engine.renderFont("default.ttf", str(int(itemini.__getattr__("worth", "int")/2)) + "G", (335, 90 + (26*(i-self.index))), size = 16, alignment = 2)
+        self.engine.renderFont("default.ttf", item.name, (80, 90 + (26*(i-self.index))), size = 16, alignment = 1)
+        self.engine.renderFont("default.ttf", str(item.worth/2) + "G", (335, 90 + (26*(i-self.index))), size = 16, alignment = 2)
 
     if maxindex == 0:
       self.engine.renderFont("default.ttf", "Your inventory is empty", (208, 168), size = 16, alignment = 2)
      
     if self.selecteditem != None and highlighted == False:
-      itemimage = self.engine.loadImage(os.path.join("Data", "Items", str(self.party[whichplayer].inventory[self.selecteditem])+".png"))
+      itemimage = Item(str(self.party[whichplayer].inventory[self.selecteditem])).image
       if itemimage != None:
         self.engine.drawImage(itemimage, coord= (155, 360), scale = (150,150))
 
@@ -227,8 +215,8 @@ class Shop(Layer):
         if active == True:
           if flag == True:
             if i == 0:
-              self.party[whichplayer].inventory.remove(self.party[whichplayer].inventory[self.selecteditem])
-              self.party[whichplayer].gold += (itemini.__getattr__("worth", "int")/2)
+              self.party[whichplayer].gold += (Item(str(self.party[whichplayer].inventory[self.selecteditem])).worth/2)
+              self.party[whichplayer].inventory.remove(str(self.party[whichplayer].inventory[self.selecteditem]))
               self.purchaseflag = False
               self.selecteditem = None
             else:
@@ -240,7 +228,7 @@ class Shop(Layer):
   def update(self):
     self.engine.screenfade((0,0,0,255))
     if self.selectedchoice != 0:
-      for key, char in GameEngine.getKeyPresses():
+      for key, char in Input.getKeyPresses():
         if key == K_LEFT:
           self.index = 0
           if self.whichcharacter - 1 > -1:
@@ -294,6 +282,6 @@ class Shop(Layer):
         player.playerini.player.__setattr__("gold", player.gold)
 
       import Towns
-      View.removescene(self)
-      View.addscene(Towns.Towns())
+      self.engine.changescene(self, Towns)
+
 

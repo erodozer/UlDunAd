@@ -1,26 +1,14 @@
-#####################################################################
-# -*- coding: iso-8859-1 -*-                                        #
-#                                                                   #
-# UlDunAd - Ultimate Dungeon Adventure                              #
-# Copyright (C) 2009 Blazingamer(n_hydock@comcast.net               #
-#                                                                   #
-# This program is free software; you can redistribute it and/or     #
-# modify it under the terms of the GNU General Public License       #
-# as published by the Free Software Foundation; either version 3    #
-# of the License, or (at your option) any later version.            #
-#                                                                   #
-# This program is distributed in the hope that it will be useful,   #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of    #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the     #
-# GNU General Public License for more details.                      #
-#                                                                   #
-# You should have received a copy of the GNU General Public License #
-# along with this program; if not, write to the Free Software       #
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,        #
-# MA  02110-1301, USA.                                              #
-#####################################################################
+#=======================================================#
+#
+# UlDunAd - Ultimate Dungeon Adventure
+# Copyright (C) 2009 Blazingamer/n_hydock@comcast.net
+#       http://code.google.com/p/uldunad/
+# Licensed under the GNU General Public License V3
+#      http://www.gnu.org/licenses/gpl.html
+#
+#=======================================================#
 
-import GameEngine
+from GameEngine import GameEngine
 
 from View import *
 
@@ -29,10 +17,12 @@ import Config
 import string
 from pygame.locals import *
 
+import Input
+
 class CharacterCreator(Layer):
 
   def __init__(self):
-    self.engine = GameEngine
+    self.engine = GameEngine()
     self.race = "Hume.ini"
     self.playerclass = "Warrior.ini"
 
@@ -60,11 +50,11 @@ class CharacterCreator(Layer):
     self.racechooser = False
     self.classchooser = False
 
-    GameEngine.resetKeyPresses()
+    Input.resetKeyPresses()
 
   def TypeName(self):
 
-    for key, char in GameEngine.getKeyPresses():
+    for key, char in Input.getKeyPresses():
       if len(self.name) < 13:
         if (char >= 'a' and char <= 'z') or (char >= 'A' and char <= 'Z'):
           self.name.append(char)
@@ -197,10 +187,9 @@ class CharacterCreator(Layer):
     newconf.player.spells = str('')
     newconf.player.gold = str(250)
     newconf.save()
-    View.removescene(self)
-    GameEngine.party.append(str(name+".ini"))
+    self.engine.party.append(str(name+".ini"))
     from Maplist import Maplist
-    View.addscene(Maplist())
+    self.engine.changescene(self, Maplist())
 
   def update(self):
     self.engine.drawImage(self.background, scale = (640,480))

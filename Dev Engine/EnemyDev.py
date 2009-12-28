@@ -108,7 +108,7 @@ class drawMainWindow(wx.Frame):
     name = self.name.GetValue()
 
     if name.strip() != "":
-      enemypath = os.path.join("..", "Data", "Enemies")
+      enemypath = os.path.join("..", "Data", "Actors", "Enemies")
       Config.Configuration(os.path.join(enemypath, "Info", name + ".ini")).save()
       enemyini = Config.Configuration(os.path.join(enemypath, "Info", name + ".ini"))
 

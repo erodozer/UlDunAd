@@ -1,112 +1,81 @@
-#####################################################################
-# -*- coding: iso-8859-1 -*-                                        #
-#                                                                   #
-# UlDunAd - Ultimate Dungeon Adventure                              #
-# Copyright (C) 2009 Blazingamer(n_hydock@comcast.net               #
-#                                                                   #
-# This program is free software; you can redistribute it and/or     #
-# modify it under the terms of the GNU General Public License       #
-# as published by the Free Software Foundation; either version 3    #
-# of the License, or (at your option) any later version.            #
-#                                                                   #
-# This program is distributed in the hope that it will be useful,   #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of    #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the     #
-# GNU General Public License for more details.                      #
-#                                                                   #
-# You should have received a copy of the GNU General Public License #
-# along with this program; if not, write to the Free Software       #
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,        #
-# MA  02110-1301, USA.                                              #
-#####################################################################
+#=======================================================#
+#
+# UlDunAd - Ultimate Dungeon Adventure
+# Copyright (C) 2009 Blazingamer/n_hydock@comcast.net
+#       http://code.google.com/p/uldunad/
+# Licensed under the GNU General Public License V3
+#      http://www.gnu.org/licenses/gpl.html
+#
+#=======================================================#
 
+import Log
 
 import os
 import sys
 import pygame
 from pygame.locals import *
-import View
 import os
 import random
 import Config
 
-from GameEngine import *
-import GameEngine
+from Resources import *
 
-from Data import Data
-  
+from View import View
+import Engine
+from Engine import GameEngine
+import Input
+import Actor
+
 FPS = 60
+video_flags = 0
+caption = 'UlDunAd - Ultimate Dungeon Adventure'
 
-def main():
-  #video_flags = DOUBLEBUF|OPENGL
-  if GameEngine.fullscreen == "F":
-    video_flags = FULLSCREEN
-  else:
-    video_flags = 0
+class Main(object):
+  def __init__(self, caption, flags):
 
-  pygame.mixer.pre_init(44100)
+    pygame.mixer.pre_init(44100)
 
-  pygame.init()
+    pygame.init()
 
-  os.environ['SDL_VIDEO_WINDOW_POS'] = 'center'
+    os.environ['SDL_VIDEO_WINDOW_POS'] = 'center'
 
-  window = pygame.display.set_mode((GameEngine.w,GameEngine.h), video_flags)
+    GameEngine().__init__()
 
-  icon = pygame.image.load(os.path.join('..', 'uldunadicon.png')).convert_alpha()
-  pygame.display.set_icon(icon)
-  pygame.display.set_caption('UlDunAd - Ultimate Dungeon Adventure')
+    self.fpsClock = pygame.time.Clock()
 
-  GameEngine.screen = window
 
-  GameEngine.data = Data(Drawing())
+    songpaths = ["Dungeon", "Town"]
+    self.songs = []
+    self.songs.extend(GameEngine().listpath(os.path.join("Data", "Audio"), "splitfiletype", "audio"))
+    self.songs.extend(GameEngine().listpath(os.path.join("Data", "Audio", songpaths[0]), "splitfiletype", "audio"))
+    self.songs.extend(GameEngine().listpath(os.path.join("Data", "Audio", songpaths[1]), "splitfiletype", "audio"))
+    self.battlesongs = GameEngine().listpath(os.path.join("Data", "Audio", "Battle"), "splitfiletype", "audio")
 
-  View.startup()
+    View().startup(caption, flags)
 
-  fpsClock = pygame.time.Clock()
-
-  GameEngine.battlesongs = GameEngine.listpath(os.path.join("Data", "Audio", "Battle"), "splitfiletype", "audio")
-
-  songpaths = ["Dungeon", "Town"]
-  songs = []
-  songs.extend(GameEngine.listpath(os.path.join("Data", "Audio"), "splitfiletype", "audio"))
-  songs.extend(GameEngine.listpath(os.path.join("Data", "Audio", songpaths[0]), "splitfiletype", "audio"))
-  songs.extend(GameEngine.listpath(os.path.join("Data", "Audio", songpaths[1]), "splitfiletype", "audio"))
-
-  while not GameEngine.finished:
+  def run(self):
     # main event loop
-    while True:
-      event = pygame.event.poll()
-      if event.type == NOEVENT:
-        break  # no more events this frame
-      elif event.type == QUIT:
-        GameEngine.finished = True
-        Sound().stop()
-        break
-      elif event.type == KEYDOWN:
-        GameEngine.processKeyPress(event)
-      elif event.type == MOUSEMOTION:
-        GameEngine.processMouseMove(event.pos)
-      elif event.type == MOUSEBUTTONDOWN:
-        if event.button == 1:
-          GameEngine.processClick()
+    Input.update()
+    GameEngine().finished = Input.finished
 
     pygame.mixer.music.set_endevent(USEREVENT)
-    if (pygame.event.poll().type == USEREVENT or pygame.mixer.music.get_busy() == False) and GameEngine.party != []:
+    if (pygame.event.poll().type == USEREVENT or pygame.mixer.music.get_busy() == False) and Actor.party != []:
 
-      if GameEngine.inbattle == True:
-        Sound().loadAudio(random.choice(GameEngine.battlesongs))
+      if Engine.inbattle == True:
+        Sound().loadAudio(random.choice(self.battlesongs))
       else:
-        if songs != []:
-          Sound().loadAudio(random.choice(songs))
+        if self.songs != []:
+          Sound().loadAudio(random.choice(self.songs))
 
-    View.update()
+    View().update()
 
     pygame.display.update()
-    GameEngine.resetClick()
+    Input.resetClick()
 
-    fpsClock.tick(FPS)
+    self.fpsClock.tick(FPS)
 
-  return
+game = Main(caption, video_flags)
+while not GameEngine().finished:
+  game.run()
 
-if __name__=="__main__":
-    main()
+

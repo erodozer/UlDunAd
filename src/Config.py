@@ -1,27 +1,18 @@
-#####################################################################
-# -*- coding: iso-8859-1 -*-                                        #
-#                                                                   #
-# UlDunAd - Ultimate Dungeon Adventure                              #
-# Copyright (C) 2009 Blazingamer(n_hydock@comcast.net               #
-#                                                                   #
-# This program is free software; you can redistribute it and/or     #
-# modify it under the terms of the GNU General Public License       #
-# as published by the Free Software Foundation; either version 3    #
-# of the License, or (at your option) any later version.            #
-#                                                                   #
-# This program is distributed in the hope that it will be useful,   #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of    #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the     #
-# GNU General Public License for more details.                      #
-#                                                                   #
-# You should have received a copy of the GNU General Public License #
-# along with this program; if not, write to the Free Software       #
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,        #
-# MA  02110-1301, USA.                                              #
-#####################################################################
+#=======================================================#
+#
+# UlDunAd - Ultimate Dungeon Adventure
+# Copyright (C) 2009 Blazingamer/n_hydock@comcast.net
+#       http://code.google.com/p/uldunad/
+# Licensed under the GNU General Public License V3
+#      http://www.gnu.org/licenses/gpl.html
+#
+#=======================================================#
 
 from ConfigParser import SafeConfigParser
 from StringIO import StringIO
+
+import os
+import sys
 
 class Configuration:
     def __init__ (self, fileName):
@@ -50,12 +41,12 @@ class Configuration:
         return result
 
     def save (self):
-        self.parser.write(open(self.fileName, 'w'))
+        self.parser.write(open(os.path.join("..", self.fileName), 'w'))
 
     def revert (self):
         for section in self.parser.sections():
             self.parser.remove_section(section)
-        self.parser.read(self.fileName)
+        self.parser.read(os.path.join("..", self.fileName))
 
 
 class Section:

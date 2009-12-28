@@ -1,76 +1,37 @@
-#####################################################################
-# -*- coding: iso-8859-1 -*-                                        #
-#                                                                   #
-# UlDunAd - Ultimate Dungeon Adventure                              #
-# Copyright (C) 2009 Blazingamer(n_hydock@comcast.net               #
-#                                                                   #
-# This program is free software; you can redistribute it and/or     #
-# modify it under the terms of the GNU General Public License       #
-# as published by the Free Software Foundation; either version 3    #
-# of the License, or (at your option) any later version.            #
-#                                                                   #
-# This program is distributed in the hope that it will be useful,   #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of    #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the     #
-# GNU General Public License for more details.                      #
-#                                                                   #
-# You should have received a copy of the GNU General Public License #
-# along with this program; if not, write to the Free Software       #
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,        #
-# MA  02110-1301, USA.                                              #
-#####################################################################
-
+#=======================================================#
+#
+# UlDunAd - Ultimate Dungeon Adventure
+# Copyright (C) 2009 Blazingamer/n_hydock@comcast.net
+#       http://code.google.com/p/uldunad/
+# Licensed under the GNU General Public License V3
+#      http://www.gnu.org/licenses/gpl.html
+#
+#=======================================================#
 
 import os
 import sys
 import pygame
 from pygame.locals import *
 
-import math
-import Config
+screen = pygame.Surface((0,0))
+w, h = 0, 0
 
-from Data import Data
+class Data:
+  def __init__(self):
 
-if not os.path.exists(os.path.join("uldunad.ini")):
-  Config.Configuration(os.path.join("uldunad.ini")).save()
-  uldunadini = Config.Configuration(os.path.join("uldunad.ini"))
-  uldunadini.video.__setattr__("resolution", str(640) + str("x") + str(480) + str("x") + str("W"))
-  uldunadini.audio.__setattr__("volume", str(10))
-  uldunadini.audio.__setattr__("battlevolume", str(10))
-  uldunadini.audio.__setattr__("townvolume", str(10))
-  uldunadini.gameplay.__setattr__("battlemode", str("wait"))
-  uldunadini.gameplay.__setattr__("loadingscreen", str("True"))
-  uldunadini.save()
-else:
-  uldunadini = Config.Configuration(os.path.join("uldunad.ini"))
+    path = os.path.join("Data", "Interface")
+    self.battlebutton = Drawing().loadImage(os.path.join(path, "battlebutton.png"))
+    self.mapbutton = Drawing().loadImage(os.path.join(path, "mapmenubutton.png"))
+    self.secondarybutton = Drawing().loadImage(os.path.join(path, "secondarybutton.png"))
+    self.defaultbutton = Drawing().loadImage(os.path.join(path, "defaultbutton.png"))
+    self.menubutton = Drawing().loadImage(os.path.join(path, "menubutton.png"))
+    self.secondarymenubutton = Drawing().loadImage(os.path.join(path, "secondarymenubutton.png"))
+    self.textbutton = Drawing().loadImage(os.path.join(path, "textbutton.png"))
+    self.bigtextbutton = Drawing().loadImage(os.path.join(path, "bigtextbutton.png"))
+    self.menuwindowbutton = Drawing().loadImage(os.path.join(path, "menuWindowbutton.png"))
 
-w, h, fullscreen = uldunadini.video.__getattr__("resolution").split("x")
-resolution = uldunadini.video.__getattr__("resolution")
-battlemode = uldunadini.gameplay.__getattr__("battlemode")
-loadingscreen = uldunadini.gameplay.__getattr__("loadingscreen", "bool")
-volume = uldunadini.audio.__getattr__("volume")
-battlevolume = uldunadini.audio.__getattr__("battlevolume")
-townvolume = uldunadini.audio.__getattr__("townvolume")
-
-w, h = int(w), int(h)
-
-inbattle = None
-screen = None
-party = []
-enemy = None
-finished = False
-town = None
-cells = None
-currentcell = 1
-battlesongs = []
-
-defaultsettings = False
-
-mousepos = (0, 0)
-clicks = []
-keypresses = []
-
-data = None
+    self.window = Drawing().loadImage(os.path.join(path, "window.png"))
+    self.menuWindow = Drawing().loadImage(os.path.join(path, "menuWindow.png"))
 
 class Drawing:
   def loadImage(self, ImgData, returnnone = True):
@@ -85,6 +46,9 @@ class Drawing:
     return image
     
   def drawImage(self, image, coord = (320, 240), scale = None, scaleper = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", blit = True):
+
+    if image == None:
+      return
 
     width,height = image.get_size()
 
@@ -120,7 +84,7 @@ class Drawing:
     y = float(coord[1])*h*0.002083333 - height*.5
     rect = image.get_rect(topleft=(int(x), int(y)))
 
-    if blit == True:
+    if blit == True and screen != None:
       screen.blit(image, (int(x), int(y)))
 
     return rect
@@ -131,6 +95,11 @@ class Drawing:
       barcrop = 1
 
     width,height = image.get_size()
+
+    if scale < 0:
+      scale = 0
+    if barcrop < 0:
+      barcrop = 0
 
     if direction == "Vertical":
       start = (int(currentframe)-1)*(height/frames)
@@ -156,18 +125,22 @@ class Drawing:
       width,height = image.get_size()
 
     if direction == "Vertical":
-      x = float(coord[0])
-      y = float(coord[1]) - height*.5
+      x = float(coord[0])*w*0.0015625
+      y = float(coord[1])*h*0.002083333 - height*.5
     else:
-      x = float(coord[0]) - width*.5
-      y = float(coord[1]) - height
+      x = float(coord[0])*w*0.0015625 - width*.5
+      y = float(coord[1])*h*0.002083333
+
     rect = image.get_rect(topleft=(int(x), int(y)))
-    screen.blit(image, (int(x), int(y)))
+    if screen != None:
+      screen.blit(image, (int(x), int(y)))
 
     return rect
 
-  def makeWindow(self, scale):
-    image = data.window
+  def makeWindow(self, scale, image = None):
+
+    if image == None:
+      image = self.loadImage(os.path.join("Data", "Interface", "window.png"))
 
     width,height = image.get_size()
 
@@ -207,14 +180,21 @@ class Drawing:
     ssurfaces.append(image.subsurface((wid[2], hgt[0], width*.33333, height*.33333)))
     #bottom-right corner
     ssurfaces.append(image.subsurface((wid[2], hgt[2], width*.33333, height*.33333)))
+
+    scalex, scaley = scale
+    if scale[0] - 64 < 0:
+      scalex = 64
+    if scale[1] - 64 < 0:
+      scaley = 64
     
     for i in range(9):
+
       if i == 0:#center
-        ssurfaces[i] = pygame.transform.smoothscale(ssurfaces[i], (scale[0] - 64, scale[1] - 64))
+        ssurfaces[i] = pygame.transform.smoothscale(ssurfaces[i], (scalex - 64, scaley - 64))
       elif i <= 2 and i > 0: #left and right sides
-        ssurfaces[i] = pygame.transform.smoothscale(ssurfaces[i], (scale[0] - 64, 32))
+        ssurfaces[i] = pygame.transform.smoothscale(ssurfaces[i], (scalex - 64, 32))
       elif i <= 4 and i > 2: #top and bottom sides
-        ssurfaces[i] = pygame.transform.smoothscale(ssurfaces[i], (32, scale[1] - 64))
+        ssurfaces[i] = pygame.transform.smoothscale(ssurfaces[i], (32, scaley - 64))
       else: #corners
         ssurfaces[i] = pygame.transform.smoothscale(ssurfaces[i], (32, 32))
 
@@ -234,13 +214,32 @@ class Drawing:
     y = float(coord[1])*h*0.002083333 - height*.5
     rect = image.get_rect(topleft=(int(x), int(y)))
 
-    screen.blit(image, (int(x), int(y)))
+    if screen != None:
+      screen.blit(image, (int(x), int(y)))
+
+  def screenfade(self, color):
+    surface = pygame.Surface((w, h))
+    alpha = color[3]
+    if color[3] < 0:
+      alpha = 0
+    elif color[3] > 255:
+      alpha = 255
+    surface.set_alpha(alpha)
+    surface.fill((color[0],color[1],color[2]))
+
+    screen.blit(surface,(0,0))
 
 class Sound:
-  def loadAudio(self, AudioFile, queue = False):
-    global inbattle
+  def __init__(self):
+    self.inbattle = False
+    self.vol = 10
+
+  def loadAudio(self, AudioFile, queue = False, volume = None):
     audiopath = os.path.join("..", AudioFile)
 
+    if volume != None:
+      self.volume(volume/10)
+    
     if os.path.exists(os.path.join(audiopath)):
       if queue == True:
         pygame.mixer.music.queue(audiopath)
@@ -258,7 +257,7 @@ class Sound:
 
 class Font:
   def renderFont(self, font, text, coord = (320,240), size = 12, flags = None, alignment = 0, color = (255,255,255)):
-    textfont = pygame.font.Font(os.path.join("..", "Data", font), size+2)
+    textfont = pygame.font.Font(os.path.join("..", "Data", "Interface", "Fonts", font), size+2)
     width, height = textfont.size(text)
 
     width = int(float(width)*float(w/800.0))
@@ -317,115 +316,3 @@ class Font:
       lines += 1
    
     return lines
-
-def loadImage(ImgData, returnnone = True):
-  image = Drawing().loadImage(ImgData, returnnone)
-  return image
-
-def drawImage(ImgData, coord = (320, 240), scale = None, scaleper = None, rot = None, frames = 1, currentframe = 1, direction = "Horizontal", blit = True):
-  rect = Drawing().drawImage(ImgData, coord, scale, scaleper, rot, frames, currentframe, direction, blit)
-  return rect
-
-def drawBar(ImgData, coord = (320, 240), scale = None, rot = None, frames = 1, currentframe = 1, direction = "Vertical", barcrop = 1):
-  rect = Drawing().drawBar(ImgData, coord, scale, rot, frames, currentframe, direction, barcrop)
-  return rect
-
-def drawButton(ImgData, font = "default.ttf", text = "", coord = (320, 240), scale = None, size = 12, rot = None, buttons = 1, index = 1, direction = "Vertical", activeshift = 0):
-
-  whichimgdata = ImgData
-
-  rect = Drawing().drawImage(ImgData, coord, scale, 100, rot, buttons, index, direction, blit = False)
-
-  active = rect.collidepoint(*mousepos)
-  flag = any(rect.collidepoint(clickx, clicky) for clickx, clicky in clicks)
-  if active == True:
-    Drawing().drawImage(ImgData, (coord[0]+activeshift, coord[1]), scale, rot, frames = 2, currentframe = 2, direction = direction)
-  else:
-    Drawing().drawImage(ImgData, coord, scale, rot, frames = 2, currentframe = 1, direction = direction)
-
-  renderFont(font, text, coord, size)
-  return active, flag
-
-def makeWindow(scale):
-  window = Drawing().makeWindow(scale)
-  return window
-
-def drawWindow(window, coord):
-  Drawing().drawWindow(window, coord)
-
-def renderFont(font = "default.ttf", text = "", coord = (320,240), size = 12, flags = None, alignment = 0, color = (255,255,255)):
-  Font().renderFont(font,text,coord,size,flags,alignment,color)
-
-def renderMultipleFont(font, text, coord = (320,240), size = 12, flags = None):
-  Font().renderMultipleFont(font,text,coord,size,flags)
-
-def renderTextbox(font, text, size = 12):
-  Font().renderTextbox(font,text,size)
-
-def renderWrapText(font, text, coord = (320,240), size = 12, width = 320, alignment = 1):
-  lines = Font().renderWrapText(font, text, coord, size, width, alignment)
-  return lines
-
-def screenfade(color):
-  surface = pygame.Surface((w, h))
-  alpha = color[3]
-  if color[3] < 0:
-    alpha = 0
-  elif color[3] > 255:
-    alpha = 255
-  surface.set_alpha(alpha)
-  surface.fill((color[0],color[1],color[2]))
-
-  screen.blit(surface,(0,0))
-
-def listpath(path, condition = "splitfiletype", value = ".ini", flag = None):
-  items = []
-  listitems = os.listdir(os.path.join("..", path))
-  for name in listitems:
-    if condition == "splitfiletype":
-      if value == "audio":
-        if os.path.splitext(name)[1].lower() == ".mp3" or os.path.splitext(name)[1].lower() == ".ogg" or os.path.splitext(name)[1].lower() == ".m4a" or os.path.splitext(name)[1].lower() == ".flac" or os.path.splitext(name)[1].lower() == ".aac":
-          items.append(os.path.join(path, name))
-      else:
-        if os.path.splitext(name)[1].lower() == value:
-          if flag == "filename":
-            items.append(os.path.splitext(name)[0])
-          else:
-            items.append(name)
-    elif condition == "searchfile":
-      if os.path.exists(os.path.join("..", path,name,value)):
-        items.append(name)
-
-  return items  
-
-def mousecol(rect): #for use in a scene's update command
-  active = rect.collidepoint(*mousepos)
-  flag = any(rect.collidepoint(clickx, clicky) for clickx, clicky in clicks)
-
-  return active, flag
-
-def processMouseMove(newpos):
-  global mousepos
-  mousepos = newpos
-
-def processClick():
-  clicks.append(mousepos)
-
-def resetClick():
-  clicks[:] = []
-
-def processKeyPress(press):
-  global finished
-  if press.key == K_ESCAPE:
-    finished = True
-    return
-  keypresses.append((press.key, press.unicode))
-
-def getKeyPresses():
-  while len(keypresses):
-    yield keypresses.pop(0)
-
-def resetKeyPresses():
-  keypresses[:] = []
-
-

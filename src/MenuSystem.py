@@ -1,41 +1,33 @@
-#####################################################################
-# -*- coding: iso-8859-1 -*-                                        #
-#                                                                   #
-# UlDunAd - Ultimate Dungeon Adventure                              #
-# Copyright (C) 2009 Blazingamer(n_hydock@comcast.net               #
-#                                                                   #
-# This program is free software; you can redistribute it and/or     #
-# modify it under the terms of the GNU General Public License       #
-# as published by the Free Software Foundation; either version 3    #
-# of the License, or (at your option) any later version.            #
-#                                                                   #
-# This program is distributed in the hope that it will be useful,   #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of    #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the     #
-# GNU General Public License for more details.                      #
-#                                                                   #
-# You should have received a copy of the GNU General Public License #
-# along with this program; if not, write to the Free Software       #
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,        #
-# MA  02110-1301, USA.                                              #
-#####################################################################
+#=======================================================#
+#
+# UlDunAd - Ultimate Dungeon Adventure
+# Copyright (C) 2009 Blazingamer/n_hydock@comcast.net
+#       http://code.google.com/p/uldunad/
+# Licensed under the GNU General Public License V3
+#      http://www.gnu.org/licenses/gpl.html
+#
+#=======================================================#
 
-
-import GameEngine
+import Engine
+from Engine import GameEngine
 
 import View
 from View import *
 
-from Player import Player
+import Actor
+from Actor import Player
+from Object import Item
 
 from Config import *
       
+import Input
+
 class MenuSystem(Layer):
   def __init__(self):
-    self.engine = GameEngine
+    self.engine = GameEngine()
 
     self.party = []
-    for i, partymember in enumerate(self.engine.party):
+    for i, partymember in enumerate(Actor.party):
       self.party.append(Player(partymember))
 
     self.choices = ["Inventory", "Spells", "Equipment", "Status", "Change Character", "Settings", "Quit Game", "Exit Menu"]
@@ -46,15 +38,17 @@ class MenuSystem(Layer):
                  "Don't like the current feel of gameplay?  Change it up a bit to your preference",
                  "I guess you've had enough for today I suppose", "Return to your game"]
 
-    self.background = self.engine.loadImage(os.path.join("Data", "menubackground.png"))
+    self.menu = self.engine.createMenu(self.engine.data.menuWindow, self.engine.data.menuwindowbutton, self.choices, (90, 240), 200, 34)
 
-    self.statusbox = self.engine.loadImage(os.path.join("Data", "statusbox.png"))
+    self.background = self.engine.loadImage(os.path.join("Data", "Interface", "Menu", "menubackground.png"))
+
+    self.statusbox = self.engine.loadImage(os.path.join("Data", "Interface", "Menu", "statusbox.png"))
 
     self.button = self.engine.data.menubutton
     self.secondarymenubutton = self.engine.data.secondarymenubutton
     self.secondarybutton = self.engine.data.secondarybutton
 
-    self.bar = self.engine.loadImage(os.path.join("Data", "bars.png"))
+    self.bar = self.engine.loadImage(os.path.join("Data", "Interface", "bars.png"))
     self.barframe = 1
 
     self.currentlayer = "Main"
@@ -69,7 +63,7 @@ class MenuSystem(Layer):
     self.whichoption = 0
 
   def showInventory(self):
-    for key, char in GameEngine.getKeyPresses():
+    for key, char in Input.getKeyPresses():
       if key == K_LEFT:
         self.index = 0
         if self.whichcharacter - 1 > -1:
@@ -92,14 +86,12 @@ class MenuSystem(Layer):
 
     if partyinv.inventory[0] != 'None':
       maxindex = len(partyinv.inventory)
+      items = [Item(n) for n in partyinv.inventory]
       for i in range(self.index, 10+self.index):
         if i < maxindex:
-          itemini = Configuration(os.path.join("..", "Data", "Items", str(partyinv.inventory[i])+".ini")).item
-          active, flag = self.engine.drawButton(self.secondarymenubutton, "default.ttf", itemini.__getattr__("name"), coord= (120, 128 + (26*(i-self.index))), scale = (220,24))
+          active, flag = self.engine.drawButton(self.secondarymenubutton, "default.ttf", items[i].name, coord= (120, 128 + (26*(i-self.index))), scale = (220,24))
           if active == True:
-            itemimage = self.engine.loadImage(os.path.join("Data", "Items", str(partyinv.inventory[i])+".png"))
-            if itemimage != None:
-              self.engine.drawImage(itemimage, coord= (465, 165), scale = (150,150))
+            self.engine.drawImage(items[i].image, coord= (465, 165), scale = (150,150))
             if flag == True:
               pass
 
@@ -125,11 +117,10 @@ class MenuSystem(Layer):
           elif i == 1:
             self.currentlayer = "Main"
             self.updatescene = None
-            partyinv.playerini.player.__setattr__("inventory", ", ".join(partyinv.inventory))
-            partyinv.playerini.save()
+            partyinv.updateINI()
 
   def showStatus(self):
-    for key, char in GameEngine.getKeyPresses():
+    for key, char in Input.getKeyPresses():
       if key == K_LEFT:
         self.index = 0
         if self.whichcharacter - 1 > -1:
@@ -176,7 +167,7 @@ class MenuSystem(Layer):
         self.updatescene = None
 
   def showSpells(self):
-    for key, char in GameEngine.getKeyPresses():
+    for key, char in Input.getKeyPresses():
       if key == K_LEFT:
         self.index = 0
         if self.whichcharacter - 1 > -1:
@@ -273,25 +264,25 @@ class MenuSystem(Layer):
           self.engine.renderFont("default.ttf", "Once default is hit you may not change the options until UlDunAd is restarted", (320, 408))
         if flag == True:
           if i == 0:
-            self.engine.uldunadini.video.__setattr__("resolution", str(640) + str("x") + str(480))
-            self.engine.uldunadini.audio.__setattr__("volume", str(10))
-            self.engine.uldunadini.audio.__setattr__("battlevolume", str(10))
-            self.engine.uldunadini.audio.__setattr__("townvolume", str(10))
-            self.engine.uldunadini.gameplay.__setattr__("battlemode", str("wait"))
-            self.engine.uldunadini.save()
-            self.engine.defaultsettings = True
+            Engine.uldunadini.video.__setattr__("resolution", str(640) + "x" + str(480)+ "x" + "W")
+            Engine.uldunadini.audio.__setattr__("volume", str(10))
+            Engine.uldunadini.audio.__setattr__("battlevolume", str(10))
+            Engine.uldunadini.audio.__setattr__("townvolume", str(10))
+            Engine.uldunadini.gameplay.__setattr__("battlemode", str("wait"))
+            Engine.uldunadini.save()
+            Engine.defaultsettings = True
           elif i == 1:
-            if self.engine.defaultsettings == False:
-              self.engine.uldunadini.video.__setattr__("resolution", str(self.engine.resolution))
-              self.engine.uldunadini.audio.__setattr__("volume", str(self.engine.volume))
-              self.engine.uldunadini.audio.__setattr__("battlevolume", str(self.engine.battlevolume))
-              self.engine.uldunadini.audio.__setattr__("townvolume", str(self.engine.townvolume))
-              self.engine.uldunadini.gameplay.__setattr__("battlemode", str(self.engine.battlemode))
-              self.engine.uldunadini.save()
+            if Engine.defaultsettings == False:
+              Engine.uldunadini.video.__setattr__("resolution", str(self.engine.resolution))
+              Engine.uldunadini.audio.__setattr__("volume", str(self.engine.volume))
+              Engine.uldunadini.audio.__setattr__("battlevolume", str(self.engine.battlevolume))
+              Engine.uldunadini.audio.__setattr__("townvolume", str(self.engine.townvolume))
+              Engine.uldunadini.gameplay.__setattr__("battlemode", str(self.engine.battlemode))
+              Engine.uldunadini.save()
             self.currentlayer = "Main"
             self.updatescene = None
 
-    for key, char in GameEngine.getKeyPresses():
+    for key, char in Input.getKeyPresses():
       if self.optionselected == True:
         if key == K_LEFT and (choiceoptions[self.whichoption].index(correspondingoptions[self.whichoption])-1 > -1 and self.optionselected == True):
           if self.whichoption == 0:
@@ -353,31 +344,30 @@ class MenuSystem(Layer):
         self.engine.renderFont("default.ttf", str("Exp to Lvl:"), (540, 130+(i*100)), size = 16, flags = "Shadow", alignment = 1)
         self.engine.renderFont("default.ttf", str(player.exp) + "/" +str(player.explvl), (630, 150+(i*100)), size = 16, flags = "Shadow", alignment = 2)
 
-      for i, choice in enumerate(self.choices):
-        active, flag = self.engine.drawButton(self.button, "default.ttf", choice, coord= (90, 96+(40*i)), scale = (180,32))
-        if active == True and self.quitactive == False:
-          renderhelpfont = self.engine.renderFont("default.ttf", self.help[i], (630, 448), alignment = 2)
-          if flag == True:
-            if i == 0:
-              self.updatescene = i
-              self.currentlayer = "Inventory"
-            elif i == 1:
-              self.updatescene = i
-              self.currentlayer = "Spells"
-            elif i == 3:
-              self.updatescene = i
-              self.currentlayer = "Status"
-            elif i == 4:
-              self.changeactive = True
-            elif i == 5:
-              self.updatescene = i
-              self.currentlayer = "Settings"
-            elif i == 6:
-              self.quitactive = True
-            elif i == 7:
-              from Maplist import Maplist
-              View.removescene(self)
-              View.addscene(Maplist())
+        buttons = self.engine.drawMenu(self.menu)
+        if self.quitactive == False:
+          for i in range(len(buttons)):
+            if buttons[i][0]:
+              renderhelpfont = self.engine.renderFont("default.ttf", self.help[i], (630, 448), alignment = 2)
+          if buttons[0][1]:
+            self.updatescene = 0
+            self.currentlayer = "Inventory"
+          elif buttons[1][1]:
+            self.updatescene = 1
+            self.currentlayer = "Spells"
+          elif buttons[3][1]:
+            self.updatescene = 3
+            self.currentlayer = "Status"
+          elif buttons[4][1]:
+            self.changeactive = True
+          elif buttons[5][1]:
+            self.updatescene = 5
+            self.currentlayer = "Settings"
+          elif buttons[6][1]:
+            self.quitactive = True
+          elif buttons[7][1]:
+            from Maplist import Maplist
+            self.engine.changescene(self, Maplist())
 
     self.engine.renderFont("menu.ttf", self.currentlayer, (30, 48), size = 48, flags = "Shadow", alignment = 1)
 
@@ -389,7 +379,7 @@ class MenuSystem(Layer):
         if active == True:
           if flag == True:
             if i == 0:
-              GameEngine.finished = True
+              Input.finished = True
             else:
               self.quitactive = False
     
@@ -404,8 +394,7 @@ class MenuSystem(Layer):
           if flag == True:
             if i == 0:
               from Playerlist import Playerlist
-              View.removescene(self)
-              View.addscene(Playerlist())
+              self.engine.changescene(self, Playerlist())
             else:
               self.changeactive = False
     

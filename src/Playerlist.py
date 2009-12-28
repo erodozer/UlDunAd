@@ -1,41 +1,30 @@
-#####################################################################
-# -*- coding: iso-8859-1 -*-                                        #
-#                                                                   #
-# UlDunAd - Ultimate Dungeon Adventure                              #
-# Copyright (C) 2009 Blazingamer(n_hydock@comcast.net               #
-#                                                                   #
-# This program is free software; you can redistribute it and/or     #
-# modify it under the terms of the GNU General Public License       #
-# as published by the Free Software Foundation; either version 3    #
-# of the License, or (at your option) any later version.            #
-#                                                                   #
-# This program is distributed in the hope that it will be useful,   #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of    #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the     #
-# GNU General Public License for more details.                      #
-#                                                                   #
-# You should have received a copy of the GNU General Public License #
-# along with this program; if not, write to the Free Software       #
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,        #
-# MA  02110-1301, USA.                                              #
-#####################################################################
+#=======================================================#
+#
+# UlDunAd - Ultimate Dungeon Adventure
+# Copyright (C) 2009 Blazingamer/n_hydock@comcast.net
+#       http://code.google.com/p/uldunad/
+# Licensed under the GNU General Public License V3
+#      http://www.gnu.org/licenses/gpl.html
+#
+#=======================================================#
 
-import GameEngine
-import View
+from Engine import GameEngine
+
 from View import *
+import Actor
 
 class Playerlist(Layer):
   def __init__(self):
-    self.engine = GameEngine
+    self.engine = GameEngine()
     #self.audio = self.engine.loadAudio("mapmenu.mp3")
 
-    self.background = self.engine.loadImage(os.path.join("Data", "mapbackground.png"))
-    self.background2 = self.engine.loadImage(os.path.join("Data", "mapmenu.png"))
+    self.background = self.engine.loadImage(os.path.join("Data", "Interface", "mapbackground.png"))
+    self.background2 = self.engine.loadImage(os.path.join("Data", "Interface", "mapmenu.png"))
 
     self.button = self.engine.data.secondarymenubutton
     self.menubutton = self.engine.data.defaultbutton
 
-    self.players = self.engine.listpath(os.path.join("Data", "Players"), "splitfiletype", ".ini", "filename")
+    self.players = self.engine.listpath(os.path.join("Data", "Actors", "Players"), "splitfiletype", ".ini", "filename")
 
     self.index = 0
 
@@ -109,10 +98,9 @@ class Playerlist(Layer):
                 self.partybuilding = True
                 self.selecting = True
               else:
-                GameEngine.party = self.partybuilt
+                Actor.party = self.partybuilt
                 from Maplist import Maplist
-                View.removescene(self)
-                View.addscene(Maplist())
+                self.engine.changescene(self, Maplist())
                   
         self.engine.renderFont("default.ttf", "Do you wish to build a party?", (320, 120), size = 20, flags = "Shadow")
 
@@ -124,10 +112,9 @@ class Playerlist(Layer):
           if active == True:
             if flag == True:
               if i == 0:
-                GameEngine.party = self.partybuilt
+                Actor.party = self.partybuilt
                 from Maplist import Maplist
-                View.removescene(self)
-                View.addscene(Maplist())
+                self.engine.changescene(self, Maplist())
               else:
                 self.donebuilding = False
                 self.selecting = True
@@ -137,7 +124,4 @@ class Playerlist(Layer):
 
         for i, partymember in enumerate(self.partybuilt):
           self.engine.renderFont("default.ttf", os.path.splitext(partymember)[0], (320, 180 + (i*24)), size = 20, flags = "Shadow")
-
-  def clearscene(self):
-    del  self.background, self.background2, self.engine, self.players
 

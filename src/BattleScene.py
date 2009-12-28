@@ -1,36 +1,24 @@
-#####################################################################
-# -*- coding: iso-8859-1 -*-                                        #
-#                                                                   #
-# UlDunAd - Ultimate Dungeon Adventure                              #
-# Copyright (C) 2009 Blazingamer(n_hydock@comcast.net               #
-#                                                                   #
-# This program is free software; you can redistribute it and/or     #
-# modify it under the terms of the GNU General Public License       #
-# as published by the Free Software Foundation; either version 3    #
-# of the License, or (at your option) any later version.            #
-#                                                                   #
-# This program is distributed in the hope that it will be useful,   #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of    #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the     #
-# GNU General Public License for more details.                      #
-#                                                                   #
-# You should have received a copy of the GNU General Public License #
-# along with this program; if not, write to the Free Software       #
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,        #
-# MA  02110-1301, USA.                                              #
-#####################################################################
+#=======================================================#
+#
+# UlDunAd - Ultimate Dungeon Adventure
+# Copyright (C) 2009 Blazingamer/n_hydock@comcast.net
+#       http://code.google.com/p/uldunad/
+# Licensed under the GNU General Public License V3
+#      http://www.gnu.org/licenses/gpl.html
+#
+#=======================================================#
 
-from GameEngine import *
+import Engine
+from Engine import GameEngine
 
-from Player import Player
-from Item import Item
+import Actor
+from Actor import Player, Enemy
+from Object import Spell, Item
 
 from View import *
+
 import os
-
 from sys import *
-
-from Enemy import Enemy
 
 import math
 import random
@@ -38,364 +26,351 @@ import random
 from Config import *
 import pygame
 
+from VictoryScene import VictoryScene
+
+import Input
+
 class BattleScene(Layer):
   def __init__(self, formation):
 
-    self.engine = GameEngine
-    self.party = []
-    self.partyko = []
-    for partymember in self.engine.party:
-      self.party.append(Player(partymember))
+    Engine.inbattle = True
+
+    self.engine = GameEngine()
+    self.party = [Player(partymember) for partymember in Actor.party]
+    self.partyactive = self.party[:]
     
     self.formation = formation
-    self.formationini = Configuration(os.path.join("..", "Data", "Enemies", "Formations", self.formation)).formation
+    self.formationini = Configuration(os.path.join("Data", "Actors", "Enemies", "Formations", self.formation)).formation
     self.enemies = self.formationini.enemies.split(", ")  
-    self.enemy = []
-    self.enemyko = []
-    for enemy in self.enemies:
-      self.enemy.append(Enemy(enemy))
-
-    self.enemysprite = []
-    for enemy in self.enemy:
-      self.enemysprite.append(self.engine.loadImage(os.path.join("Data",  "Enemies", "Graphics", enemy.image)))
-
-    self.formationdiv = self.formationini.coord.split(";")
-    self.formationcoord = []
-    for i in range(len(self.formationdiv)):
-      self.formationcoord.append(self.formationdiv[i].split(", "))
-
+    self.enemy = [Enemy(enemy) for enemy in self.enemies]
+    self.enemyactive = self.enemy[:]
+    self.enemysprite = [enemy.image for enemy in self.enemy]
+    self.formationcoord = [coord.split(", ") for coord in self.formationini.coord.split(";")]
     self.formationscale = self.formationini.scale.split(";")
 
     self.engine.inbattle = True
 
-    Sound().volume(float(self.engine.battlevolume)/10)
-
     terrain = self.formationini.terrain
 
     try:
-      self.background = self.engine.loadImage(os.path.join("Data", "Terrains", terrain + ".png"), returnnone = False)
+      self.background = self.engine.loadImage(os.path.join("Data", "Places", "Terrains", terrain + ".png"), returnnone = False)
     except:
-      self.background = self.engine.loadImage(os.path.join("Data", "Terrains", terrain + ".jpg"), returnnone = True)
+      self.background = self.engine.loadImage(os.path.join("Data", "Places", "Terrains", terrain + ".jpg"), returnnone = True)
 
     self.hue = None
     if os.path.isfile(os.path.join("Data", "Terrains", terrain + ".ini")):
       terrainini = Configuration(os.path.join("Data", "Terrains", terrain + ".ini")).terrain
       self.hue = terrainini.__getattr__("hue").split(",")
 
-    self.button = self.engine.data.secondarybutton
+    self.bar = self.engine.loadImage(os.path.join("Data", "Interface", "bars.png"))
+    self.hud = self.engine.loadImage(os.path.join("Data", "Interface", "Battle", "charbattlebase.png"))
+    self.moralbar = self.engine.loadImage(os.path.join("Data", "Interface", "Battle", "moral.png"))
 
-    self.bar = self.engine.loadImage(os.path.join("Data", "bars.png"))
-    self.hud = self.engine.loadImage(os.path.join("Data", "charbattlebase.png"))
-
-    self.attackcircle = self.engine.loadImage(os.path.join("Data", "battlecircle.png"))
-
-    self.enemynamebar = self.engine.loadImage(os.path.join("Data", "enemynamebar.png"))
+    self.attackcircle = self.engine.loadImage(os.path.join("Data", "Interface", "Battle", "battlecircle.png"))
 
     self.battle = False
 
-    self.playercommand = 0
-    self.enemycommand = 1
-
-    self.displaydamage = 0
-    self.timer = 0.0
-    self.rotatestart = 0
     self.fade = False
     self.stop = False
     self.spacehit = False
-    self.defend = False
-    self.attackboost = 0
 
     self.activemember = None
     self.activeenemy = None
 
-    self.roll = 1
-    self.playertargeted = 0
-    self.playertarget = 0
-
-    self.multiplier = 100.0
-    self.bonusbar = self.engine.loadImage(os.path.join("Data", "bonusbar.png"))
-    self.bonusbarfill = self.engine.loadImage(os.path.join("Data", "bonusbarfill.png"))
-    self.bonusbarback = self.engine.loadImage(os.path.join("Data", "bonusbarback.png"))
+    self.moral = 100.0
     self.selectingspell = False
-    self.selectingenemy = False
+    self.selectingtarget = False
     self.selectingitem = False
     self.index = 0
 
-    GameEngine.resetKeyPresses()
-
-  def showspells(self, partymember):
-
-    commands = self.party[partymember].spells
-
-    maxindex = len(commands)
-
-    for i in range(self.index, 4+self.index):
-      if i < maxindex:
-        active, flag = self.engine.drawButton(self.button, coord= (550, 365 + (25*(i-self.index))), scale = (160,25), activeshift = -15)        
-        if active == True:
-          buttonfont = self.engine.renderFont("default.ttf", commands[i], (535, 365 + (25*(i-self.index))))
-          if flag == True:
-            self.spell = commands[i] + ".ini"
-            self.spellini = Configuration(os.path.join("..", "Data", "Spells", self.spell)).spell
-            if self.party[partymember].currentsp < int(self.spellini.cost): #if player sp is less than the cost of the spell then stop the command
-              return
-            else:
-              self.spellanimation = self.engine.loadImage(os.path.join("Data", "Animations", self.spellini.animation))
-              self.spelldamage = int(self.spellini.damage) + random.randint(0, int(self.spellini.variance)) + random.randint(0, self.party[partymember].mag)
-              self.selectingenemy = True
-        else:
-          buttonfont = self.engine.renderFont("default.ttf", commands[i], (550, 365 + (25*i)))
-
-    active, flag = self.engine.drawButton(self.button, coord= (550, 340), scale = (160,25), activeshift = -15)        
-    if active == True:
-      buttonfont = self.engine.renderFont("default.ttf", "Return", (535, 340))
-      if flag == True:
-        self.selectingspell = False
-    else:
-      buttonfont = self.engine.renderFont("default.ttf", "Return", (550, 340))
-
-  def showitems(self, partymember):
-
-    commands = self.party[partymember].inventory
-
-    maxindex = len(commands)
-
-    for i in range(self.index, 4+self.index):
-      if i < maxindex:
-        item = Item(commands[i])
-        active, flag = self.engine.drawButton(self.button, coord= (550, 365 + (25*(i-self.index))), scale = (160,25), activeshift = -15)        
-        if active == True:
-          buttonfont = self.engine.renderFont("default.ttf", item.name, (535, 365 + (25*(i-self.index))))
-          if flag == True:
-            self.item = Item(commands[i])
-            if self.item.function[0] == "Heal":
-              self.battlecommand(3, partymember, playertarget = None)
-            elif self.item.function[0] == "Damage":
-              self.selectingenemy = True
-        else:
-          buttonfont = self.engine.renderFont("default.ttf", item.name, (550, 365 + (25*(i-self.index))))
-
-    active, flag = self.engine.drawButton(self.button, coord= (550, 340), scale = (160,25), activeshift = -15)        
-    if active == True:
-      buttonfont = self.engine.renderFont("default.ttf", "Return", (535, 340))
-      if flag == True:
-        self.selectingitem = False
-        self.item = None
-    else:
-      buttonfont = self.engine.renderFont("default.ttf", "Return", (550, 340))
-
-  def battlecommand(self, i, partymember = 0, playertarget = 0):
-    self.playercommand = i + 1
-
-    self.selectingspell = False      
-    self.battle = True
-    self.roll = 1
+    self.command = None
+    self.enemycommand = None
+    self.target = None
+    self.attacker = None
+ 
     self.timer = 0
-    self.displaydamage = 0
-    self.stop = False
+    self.rotatestart = 0
+    self.textpop = 0
 
-    self.party[partymember].defending = False
-    self.playertarget = playertarget
+    Input.resetKeyPresses()
 
-    if i == 0 or i == 1:
-      self.rotatestart = random.randint(0, 359)
-    elif i == 1:
-      self.attackboost = random.randint(0, self.party[partymember].atk)
-    elif i == 3:
-      if self.item.function[0] == "Damage":
-        self.attackboost = random.randint(0, int(int(self.item.function[2])/5))
+    self.initMenu()
 
-  def enemybattlecommand(self, i):
-    self.battle = True
-    self.roll = 0
-    self.displaydamage = 0
-    self.activeenemy = i
-    self.playertargeted = random.randint(0, len(self.party)-1)
-    self.attackboost = random.randint(0, self.enemy[self.activeenemy].atk)
+  def initMenu(self, menu = "basic"):
+    choices = ["Attack", "Defend", "Spells", "Items", "Flee"]
 
-  def fight(self, playercommand, enemycommand, roll, partymember = None):
-    if roll == 0:
-      if self.enemycommand == 1:
-        self.attack(0, partymember)
+    if menu == "spells":
+      choices = [spell for spell in self.activemember.spells[self.index:self.index+6]]
+    elif menu == "items":
+      choices = [item for item in self.activemember.inventory[self.index:self.index+6]]
+    elif menu == "target:enemy":
+      choices = [enemy.name for enemy in self.enemyactive]
+    elif menu == "target:ally":
+      choices = [player.name for player in self.partyactive]
 
-    if roll == 1:
-      if self.playercommand == 1 or self.playercommand == 2:
-        self.renderbattlecircle(self.activemember)
-      elif self.playercommand == 3:
-        self.castspell(self.activemember)
-      elif self.playercommand == 4:
-        if self.item.function[0] == "Heal":
-          self.displayturn(int(self.item.function[2]), 1, self.activemember)
+    self.menu = self.engine.createMenu(self.engine.data.menuWindow, self.engine.data.menuwindowbutton, choices, (90, 240), 200, 34)
+
+
+  def showCommands(self):
+    buttons = self.engine.drawMenu(self.menu)
+    for i, button in enumerate(buttons):
+      if button[1] == True:
+        self.command = i
+        if i == 0:
+          self.selectingtarget = True
+          self.initMenu("target:enemy")
+        elif i == 1:
+          self.target = self.activemember
+          self.attacker = self.activemember
+          self.battle = True
+        elif i == 2:
+          if self.activemember.spells != "None":
+            self.selectingspell = True
+            self.index = 0
+            self.initMenu("spells")
+          else:
+            self.command = None
+        elif i == 3:
+          if self.activemember.inventory != "None":
+            self.selectingitem = True
+            self.index = 0
+            self.initMenu("items")
+          else:
+            self.command = None
+        elif i == 4:
+          self.endscene("flee")
+
+  def showSpells(self):
+    buttons = self.engine.drawMenu(self.menu)
+    active, flag = self.engine.drawButton(self.engine.data.battlebutton, "default.ttf", "Return", size = 32, coord= (540, 120), scale = (100, 32))
+    for i, spell in enumerate(buttons):
+      if spell[1] == True:
+        self.object = Spell(self.activemember.spells[i])
+        self.selectingspells = False
+        self.selectingtarget = True
+        if self.object.function[0] == "Heal":
+          self.initMenu("target:ally")
         else:
-          self.displayturn(int(self.item.function[2]) + self.attackboost, 1, self.activemember)
+          self.initMenu("target:enemy")
 
+    if flag == True:
+      self.selectingspells = False
 
-  def castspell(self, partymember):
-    speed = 60/float(self.spellini.frames)
-    if self.stop == False:
-      if self.timer <= float(self.spellini.frames):
-        self.timer += (float(self.spellini.frames)/speed)
-        self.engine.drawImage(self.spellanimation, (int(self.formationcoord[self.playertarget][0]), int(self.formationcoord[self.playertarget][1])), frames = int(self.spellini.frames), currentframe = self.timer, direction = self.spellini.direction)
+    maxindex = len(self.activemember.spells)
+    for key, char in Input.getKeyPresses():
+      if key == K_LEFT:
+        if self.index - 5 >= 0:
+          self.index -= 5
+          self.initMenu("spells")
+      if key == K_RIGHT:
+        if self.index + 5 < maxindex:
+          self.index += 5
+          self.initMenu("spells")
+
+  def showItems(self):
+    buttons = self.engine.drawMenu(self.menu)
+    active, flag = self.engine.drawButton(self.engine.data.battlebutton, "default.ttf", "Return", size = 18, coord= (90, 120), scale = (200, 34))
+    for i, item in enumerate(buttons):
+      if item[1] == True:
+        self.object = Item(self.activemember.inventory.pop[i])
+        self.selectingitems = False
+        self.selectingtarget = True
+        if self.object.function[0] == "Heal":
+          self.initMenu("target:ally")
+        else:
+          self.initMenu("target:enemy")
+
+    if flag == True:
+      self.selectingitems = False
+
+    maxindex = len(self.activemember.inventory)
+    for key, char in Input.getKeyPresses():
+      if key == K_LEFT:
+        if self.index - 5 >= 0:
+          self.index -= 5
+          self.initMenu("items")
+      if key == K_RIGHT:
+        if self.index + 5 < maxindex:
+          self.index += 5
+          self.initMenu("items")
+
+  def showTargets(self):
+    buttons = self.engine.drawMenu(self.menu)
+    for button in buttons:
+      if button[1] == True:
+        self.target = self.enemyactive[buttons.index(button)]
+        if self.command == 2 or self.command == 3:
+          if self.object.function[0] == "Heal":
+            self.target = self.party[buttons.index(button)]
+        if self.command == 0 or self.command == 1:
+          self.rotatestart = random.randint(0, 359)
+        self.attacker = self.activemember
+        self.selectingtarget = False
+        self.battle = True
+
+  def battleCommand(self, command, target, attacker):
+    attacker.currentATB = 0
+
+    if command == 0:
+      if attacker == self.activemember:
+        self.renderHit("attack", target)
       else:
-        self.stop = True
-    else:
-      self.timer = 0
-      self.displayturn(self.spelldamage, 1, partymember)
+        self.showDamage(target, attacker.atk)
+    elif command == 1:
+      if attacker == self.activemember:
+        self.renderHit("defend", target)
+      else:
+        target.defending = True
+        self.clearVars("Enemy")
+    elif command == 2:
+      if target in self.party:
+        self.showDamage(target)
+      else:
+        stop = self.object.render(self.timer, (320, 240))
+        if stop == False:
+          self.timer += self.object.speed
+        else:
+          self.showDamage(target)
+    elif command == 3:
+      self.showDamage(target, self.object.function[2])
 
-  def renderbattlecircle(self, partymember):
+  def renderHit(self, command, target):
     if self.stop == False:
       var = random.randint(30,90)
+      self.timer += var
+      rotate = self.rotatestart + ((self.timer/7))
       self.engine.renderFont("default.ttf", "Press Space to Stop", (320, 64), size = 24)
-      if self.playercommand == 1: 
-        self.engine.renderFont("default.ttf", "Attack", (320, 96), size = 24) 
-      elif self.playercommand == 2:
-        self.engine.renderFont("default.ttf", "Defend", (320, 96), size = 24) 
+      self.engine.renderFont("default.ttf", command, (320, 96), size = 24) 
+      if command == "attack":
+        self.engine.drawImage(self.attackcircle, coord = (float(int(self.formationcoord[self.enemy.index(target)][0])), 
+                            float(int(self.formationcoord[self.enemy.index(target)][1]))), 
+                            scale = (150,150), direction = "Horizontal", frames = 2, currentframe = 1)
+        self.engine.drawImage(self.attackcircle, coord = (float(int(self.formationcoord[self.enemy.index(target)][0])), 
+                            float(int(self.formationcoord[self.enemy.index(target)][1]))), 
+                            scale = (150*(float(1800-self.timer)/900.0),150*(float(1800-self.timer)/900.0)), 
+                            rot = -rotate, direction = "Horizontal", frames = 2, currentframe = 2)
+      else:
+        self.engine.drawImage(self.attackcircle, (320, 240), scale = (150,150), direction = "Horizontal", 
+                            frames = 2, currentframe = 1)
+        self.engine.drawImage(self.attackcircle, (320, 240), 
+                            scale = (150*(float(1800-self.timer)/900.0),150*(float(1800-self.timer)/900.0)), 
+                            rot = -rotate,  direction = "Horizontal", frames = 2, currentframe = 2)
     else:
       var = 0
-    self.timer += var
-    time = math.radians(self.timer/4)
-    rotate = self.rotatestart + ((self.timer/7))
-    timer = float(1800 - self.timer)
-    if timer <= 0.0 or self.spacehit == True:
+
+    if self.spacehit == True:
+      if int(1800-self.timer) in range(600, 900):
+        if command == "defend":
+          target.defending = True
+          self.clearVars("Actor")
+        else:
+          self.showDamage(self.target, self.activemember.atk)
+      else:
+        self.showDamage(self.target, "Miss")
       self.stop = True
-      if int(timer) in range(600, 900):
-        if self.playercommand == 1:
-          self.attack(1, self.activemember)
+
+    if self.timer >= 1800:
+      if command == "defend":
+        target.defending = False
+        self.clearVars("Actor")
+      else:
+        self.showDamage(self.target, "Miss")
+
+
+  def showDamage(self, target, damage = 0):
+    self.textpop += .4
+    if target in self.partyactive:
+      if self.command == 2 or self.command == 3:
+        if self.object.function[0] == "Heal":
+          color = (0, 255, 0)
         else:
-          self.party[partymember].defending = True
-          self.spacehit = False
-          self.clearvariables(self.playercommand)
+          color = (255, 0, 0)
+        self.engine.renderFont("default.ttf", self.object.function[1] + ": " + str(damage), coord = (108+(self.party.index(target)*213), 320 - self.textpop), size = 18, color = color)
       else:
-        self.displayturn("Miss", 1, partymember)
-    else:
-      if self.playercommand == 1:
-        self.engine.drawImage(self.attackcircle, (float(int(self.formationcoord[self.playertarget][0])), float(int(self.formationcoord[self.playertarget][1]))), scale = (150,150), direction = "Horizontal", frames = 2, currentframe = 1)
-        self.engine.drawImage(self.attackcircle, (float(int(self.formationcoord[self.playertarget][0])), float(int(self.formationcoord[self.playertarget][1]))), scale = (150*(timer/900.0),150*(timer/900.0)), rot = -rotate, direction = "Horizontal", frames = 2, currentframe = 2)
-      else:
-        self.engine.drawImage(self.attackcircle, (320, 240), scale = (150,150), direction = "Horizontal", frames = 2, currentframe = 1)
-        self.engine.drawImage(self.attackcircle, (320, 240), scale = (150*(timer/900.0),150*(timer/900.0)), rot = -rotate,  direction = "Horizontal", frames = 2, currentframe = 2)
+        color = (255, 0, 0)
+        self.engine.renderFont("default.ttf", "HP: " + str(damage), coord = (108+(self.party.index(target)*213), 320 - self.textpop), size = 18, color = color)
 
-  def attack(self, who, partymember):
-    if who == 0:
-      if self.party[partymember].defending == True:
-        damage = (self.enemy[self.activeenemy].atk*3 + self.attackboost)/(self.party[partymember].defn*2)
-      else:
-        damage = (self.enemy[self.activeenemy].atk*3 + self.attackboost)/self.party[partymember].defn
-    elif who == 1:
-      damage = (self.party[partymember].atk*3 + self.attackboost)/self.enemy[self.playertarget].defn
-
-    self.displayturn(damage, who, partymember)
-
-  def displayturn(self, damage, who, partymember):
-    self.displaydamage = self.displaydamage + 20
-    if who == 1:
-      self.engine.screenfade((0,0,0,255-(self.displaydamage*2)))
-      if self.playercommand == 4:
-        if self.item.function[0] == "Heal":
-          self.engine.renderFont("default.ttf", str(damage), (160 + (partymember*213) + (self.displaydamage/20), 395), size = 18, flags = "Shadow", color = (0, 255, 0))
-        elif self.item.function[0] == "Damage":
-          self.engine.renderFont("default.ttf", str(damage), (int(self.formationcoord[self.playertarget][0]) - (self.displaydamage/20), int(self.formationcoord[self.playertarget][1])), size = 24, flags = "Shadow")
-      else:
-        self.engine.renderFont("default.ttf", str(damage), (int(self.formationcoord[self.playertarget][0]) - (self.displaydamage/20), int(self.formationcoord[self.playertarget][1])), size = 24, flags = "Shadow")
-        if self.playercommand == 3:
-          self.engine.renderFont("default.ttf", self.spellini.cost, (160 + (partymember*213) + (self.displaydamage/20), 410), size = 18, flags = "Shadow")
-
-    else:
-      self.engine.renderFont("default.ttf", str(damage), (160 + (partymember*213) + (self.displaydamage/20), 395), size = 16, flags = "Shadow")
-
-    if self.displaydamage >= 500:
-      if damage == "Miss":
-        damage = 0
-      if who == 0:
-        self.party[partymember].currenthp -= damage
-      else:
-        if self.playercommand == 4:
-          if self.item.function[0] == "Heal":
-            if self.item.function[1] == "HP":
-              self.party[partymember].currenthp += damage
-              if self.party[partymember].currenthp > self.party[partymember].hp:
-                self.party[partymember].currenthp = self.party[partymember].hp
-            elif self.item.function[1] == "SP":
-              self.party[partymember].currentsp += damage
-              if self.party[partymember].currentsp > self.party[partymember].sp:
-                self.party[partymember].currentsp = self.party[partymember].sp
-          elif self.item.function[0] == "Damage":
-            if self.item.function[1] == "HP":
-              self.enemy[self.playertarget].currenthp -= damage
-            elif self.item.function[1] == "SP":
-              self.enemy[self.playertarget].currentsp -= damage
+    elif target in self.enemyactive:
+      if self.command == 2 or self.command == 3:
+        if self.object.function[0] == "Heal":
+          color = (0, 255, 0)
         else:
-          self.enemy[self.playertarget].currenthp -= damage
-          if self.playercommand == 3:
-            self.party[partymember].currentsp -= int(self.spellini.cost)
-      self.displaydamage = 0
-      self.spacehit = False
+          color = (255, 0, 0)
+        self.engine.renderFont("default.ttf", self.object.function[0] + ": " + str(damage), (int(self.formationcoord[self.enemy.index(target)][0]), int(self.formationcoord[self.enemy.index(target)][1]) - self.textpop), size = 18, color = color)
+      else:
+        color = (255, 0, 0)
 
-      self.clearvariables(self.playercommand)
+        self.engine.renderFont("default.ttf", "HP: " + str(damage), coord = (int(self.formationcoord[self.enemy.index(target)][0]), int(self.formationcoord[self.enemy.index(target)][1]) - self.textpop), size = 18, color = color)
 
-  def clearvariables(self, i):
-    self.battle = False
-    self.stop = True
-    self.timer = 0
-    self.displaydamage = 0
+    if self.textpop >= 20:
+      if self.command == 2 or self.command == 3:
+        self.object.action(target)
+      else:
+        if damage != "Miss":
+          if target.currenthp - damage < 0:
+            target.currenthp = 0
+          else:
+            target.currenthp -= damage
 
-    if self.roll == 1:
-      self.selectingitem = False
-      self.selectingspell = False
-
-    if i == 1 or i == 2:
-      self.rotatestart = 0
-      self.spacehit = False
-      if i == 2:
-        self.defend = False
-    if i == 3:
-      self.spell = None
-      self.spellini = None
-      self.spellanimation = None
-      self.spelldamage = None
-    if i == 4:
-      if self.roll == 1:
-        self.party[self.activemember].inventory.remove(self.item.ininame)
-      self.item = None
-
-    if self.roll == 0:
-      self.enemy[self.activeenemy].currentatb = 0
-    else:
-      self.party[self.activemember].currentatb = 0
-      self.activemember = None
-      self.playertarget = None
-      self.selectingenemy = False
-            
+      if self.attacker in self.party:
+        self.clearVars("Actor")
+      elif self.attacker in self.enemy:
+        self.clearVars("Enemy")
 
   def updateATB(self):
-    for i, player in enumerate(self.party):
-      if player.currentatb <= 300:
-        if (self.activemember == None and self.engine.battlemode == "wait") or self.engine.battlemode == "active":
-          div = random.randint(4, 7)
-          if player.currentatb < 300 and player not in self.partyko:
-            player.currentatb += (player.spd/div)
-          elif player in self.partyko:
-            player.currentatb = 0
-          if self.multiplier > 0.0:
-            self.multiplier -= 0.05
-      if player.currentatb >= 300:
-        if self.activemember == None:
-          player.currentatb = 300
-          self.activemember = i
-      if self.activemember == i and player in self.partyko:
-        self.activemember = None
+    for enemy in self.enemy:
+      if enemy.currentATB < 300:
+        enemy.currentATB += enemy.spd*.2
+      else:
+        enemy.currentATB = 300
+        if self.activeenemy == None:
+          self.activeenemy = enemy
 
-    for i, enemy in enumerate(self.enemy):
-      if enemy.currentatb < 300 and enemy not in self.enemyko:
-        if (self.activemember == None and self.engine.battlemode == "wait") or self.engine.battlemode == "active":
-          div = random.randint(4, 7)
-          enemy.currentatb += (enemy.spd/div)
-      elif enemy.currentatb >= 300:
-        if enemy not in self.enemyko:
-          if self.party[self.playertargeted] not in self.partyko:
-            self.enemybattlecommand(i)
-        else:
-          enemy.currentatb = 0
+    for player in self.partyactive:
+      if player.currentATB < 300:
+        player.currentATB += player.spd*.2
+      else:
+        player.currentATB = 300
+        if self.activemember == None:
+          self.activemember = player
+
+    if self.activeenemy != None:
+      self.attacker = self.activeenemy
+      self.enemycommand = random.randint(0,1)
+      if self.enemycommand == 0:
+        self.target = random.choice(self.partyactive)
+      else:
+        self.target = self.attacker
+      self.battle = True
+
+    self.timer = 0
+    self.stop = False
+    self.spacehit = False
+
+  def clearVars(self, who):
+    if self.attacker in self.party:
+      self.initMenu()
+
+    self.battle = False
+    self.fade = False
+
+    self.target = None
+    self.attacker = None
+
+    if who == "Actor":
+      self.activemember = None
+      self.command = None
+      self.selectingspell = False
+      self.selectingtarget = False
+      self.selectingitem = False
+      self.moral -= 2
+    else:
+      self.activeenemy = None
+      if self.enemycommand != 1:
+        self.moral -= 4
+      self.enemycommand = None
+
+    self.textpop = 0
 
   def update(self):
 
@@ -405,37 +380,31 @@ class BattleScene(Layer):
       self.engine.screenfade((0,0,0,175))
 
     for i, enemy in enumerate(self.enemy):
-      if enemy not in self.enemyko:
+      if enemy in self.enemyactive:
         self.engine.drawImage(self.enemysprite[i], coord = (float(int(self.formationcoord[i][0])), float(int(self.formationcoord[i][1]))), scaleper = int(self.formationscale[i]))
-      if enemy.currenthp <= 0:
-        if enemy not in self.enemyko:
-          self.enemyko.append(enemy)
 
+
+    self.engine.drawBar(self.moralbar, (340, 40), scale = (300, 75), frames = 3, currentframe = 3, direction = "Vertical")
+    self.engine.drawBar(self.moralbar, (340, 40), scale = (300, 75), barcrop = self.moral/100.0, frames = 3, currentframe = 2, direction = "Vertical")
+    self.engine.drawBar(self.moralbar, (340, 40), scale = (300, 75), frames = 3, currentframe = 1, direction = "Vertical")
 
     if self.hue != None:
       self.engine.screenfade((int(self.hue[0]),int(self.hue[1]),int(self.hue[2]),50))
 
-    self.engine.drawImage(self.bonusbarback, (50, 208), scale = (30,245))
-    self.engine.drawBar(self.bonusbarfill, (50, 328), scale = (30,245), barcrop = (float(self.multiplier)/float(100.0)), direction = "Horizontal")
-    self.engine.drawImage(self.bonusbar, (50, 195), scale = (100,290))
-
     for i, player in enumerate(self.party):
-      if player.currenthp <= 0:
-        player.currenthp = 0
-
-      if self.activemember == i:
+      if self.activemember == player:
         self.engine.drawImage(self.hud, (108+(i*213),418), scale = (212, 124), frames = 2, currentframe = 2)
       else:
         self.engine.drawImage(self.hud, (108+(i*213),418), scale = (212, 124), frames = 2, currentframe = 1)
 
-      if player.knockedout == True:
+      if player not in self.partyactive:
         self.engine.renderFont("default.ttf", str(player.name), (110+(i*213), 465), size = 16, flags = "Shadow", color = (255,0,0))
       else:
         self.engine.renderFont("default.ttf", str(player.name), (110+(i*213), 465), size = 16, flags = "Shadow")
 
       #ATB Bar
-      self.engine.drawBar(self.bar, (15+(i*213), 442), scale = (175,15), frames = 6, currentframe = 5)
-      self.engine.drawBar(self.bar, (15+(i*213), 442), scale = (175,15), barcrop = float(player.currentatb)/int(300), frames = 6, currentframe = 6)
+      self.engine.drawBar(self.bar, (18+(i*213), 442), scale = (175,15), frames = 6, currentframe = 5)
+      self.engine.drawBar(self.bar, (18+(i*213), 442), scale = (175,15), barcrop = float(player.currentATB)/int(300), frames = 6, currentframe = 6)
 
       #HP Bar
       self.engine.drawBar(self.bar, (45+(i*213), 395), scale = (150,15), frames = 6, currentframe = 1)
@@ -452,296 +421,75 @@ class BattleScene(Layer):
       self.engine.renderFont("default.ttf", "SP", (25+(i*213), 410), size = 14, flags = "Shadow", alignment = 1)
 
 
-      if player.currenthp == 0:
-        player.knockedout = True
-        if player not in self.partyko:
-          self.partyko.append(player)
-
-    for key, char in GameEngine.getKeyPresses():
+    for key, char in Input.getKeyPresses():
       if key == K_SPACE and self.battle == True:
         self.spacehit = True
-      if key == K_LEFT and (self.selectingitem == True or self.selectingspell == True):
-        if self.index - 5 >= 0:
-          self.index -= 5
-      if key == K_RIGHT and (self.selectingitem == True or self.selectingspell == True):
-        if self.selectingitem == True:
-          maxindex = len(self.party[self.activemember].inventory)
-        elif self.selectingspell == True:
-          maxindex = len(self.party[self.activemember].spells)
-        if self.index + 5 < maxindex:
-          self.index += 5
 
-
-    commands = ["Attack", "Defend", "Skills", "Item", "Flee"]
     if self.battle == False:
 
+      for player in self.partyactive:
+        if player.currenthp <= 0:
+          player.currenthp = 0
+          player.currentATB = 0
+          player.knockedout = True
+          self.partyactive.remove(player)
+          self.moral -= 20
+          if player == self.activemember:
+            self.activemember = None
+
+      for i, enemy in enumerate(self.enemyactive):
+        if enemy.currenthp <= 0:
+          enemy.currenthp = 0
+          self.enemyactive.pop(i)
+          self.moral += 10
+
       self.updateATB()
-            
-      if len(self.party) == len(self.partyko):
+      if len(self.partyactive) == 0:
         self.endscene("flee")
 
-      if not len(self.enemy) == len(self.enemyko):
+      if not len(self.enemyactive) == 0:
         self.fade = False
-        if self.activemember != None and self.selectingspell == False and self.selectingenemy == False and self.selectingitem == False:
-          for i, choice in enumerate(commands):
-            active, flag = self.engine.drawButton(self.button, coord= (550, 200 + (25*i)), scale = (160,25))
-            if active == True:
-              if flag == True: 
-                if i == 0:
-                  self.selectingenemy = True
-                elif i == 1:
-                  self.battlecommand(1, self.activemember)
-                elif i == 2:
-                  if self.party[self.activemember].spells != "None":
-                    self.selectingspell = True
-                    self.index = 0
-                elif i == 3:
-                  if self.party[self.activemember].inventory != "None":
-                    self.selectingitem = True
-                    self.index = 0
-                elif i == 4:
-                  self.endscene("flee")
-            buttonfont = self.engine.renderFont("default.ttf", choice, (550, 200 + (25*i)))
-        elif self.activemember != None and self.selectingspell == True and self.selectingenemy == False:
-          self.showspells(self.activemember)
-        elif self.activemember != None and self.selectingitem == True and self.selectingenemy == False:
-          self.showitems(self.activemember)
-        elif self.activemember != None and self.selectingenemy == True:
-          for i, enemy in enumerate(self.enemy):
-            if enemy not in self.enemyko:
-              sprite = self.engine.drawImage(self.enemysprite[i], coord = (float(int(self.formationcoord[i][0])), float(int(self.formationcoord[i][1]))), scaleper = int(self.formationscale[i]), blit = False)
-              active, flag = self.engine.mousecol(sprite)
-              if active == True:
-                self.engine.drawImage(self.enemynamebar, (320, 32), scale = (640, 64))
-                self.engine.renderFont("default.ttf", enemy.name, (320, 32), size = 18)
-                if flag == True:
-                  if self.selectingspell == True:
-                    self.battlecommand(2, self.activemember, i)
-                  elif self.selectingitem == True:
-                    self.battlecommand(3, self.activemember, i)
-                  else:
-                    self.battlecommand(0, self.activemember, i)
+        if self.activemember != None:
+          if self.selectingspell == True:
+            self.showSpells()
+          elif self.selectingitem == True:
+            self.showItems()
+          elif self.selectingtarget == True:
+            self.showTargets()
+          else:
+            self.showCommands()
       else:
         self.endscene("victory")
     else:
       self.fade = True
-      if self.roll == 1:
-        self.fight(self.playercommand, self.enemycommand, self.roll, self.activemember)
+      if self.attacker in self.enemy:
+        self.battleCommand(self.enemycommand, self.target, self.attacker)
       else:
-        self.fight(self.playercommand, self.enemycommand, self.roll, self.playertargeted)
+        self.battleCommand(self.command, self.target, self.attacker)
 
   def endscene(self, condition):
     for player in self.party:
-      if player.knockedout == True:
-        player.playerini.player.__setattr__("currenthp", int(1))
-        player.knockedout = False
-      else:
-        player.playerini.player.__setattr__("currenthp", player.currenthp)
-      player.playerini.player.__setattr__("currentsp", player.currentsp)
-      player.playerini.player.__setattr__("inventory", ", ".join(player.inventory))
+      victory = False
+      if condition == "victory":
+        victory = True
+
+      player.updateINI(victory)
 
     if condition == "victory":
-      for player in self.party:
-        player.playerini.player.__setattr__("monsterskilled", player.monsterskilled + 1)
-        player.playerini.save()
-      View.removescene(self)
-      View.addscene(VictoryScene(75.0 + self.multiplier, self.formation))
+      self.engine.changescene(self, VictoryScene(75.0 + self.moral, self.formation))
 
     elif condition == "flee":
-      for player in self.party:
-        player.playerini.save()
       self.engine.inbattle = False
       pygame.mixer.music.fadeout(400)
-      if self.engine.town != None:
-        if self.engine.cells == None:
+      if Engine.town != None:
+        if Engine.cells == None:
           from Towns import Towns
-          View.removescene(self)
-          View.addscene(Towns())
+          self.engine.changescene(self, Towns())
         else:
           from Dungeon import Dungeon
-          View.removescene(self)
-          View.addscene(Dungeon())
+          self.engine.changescene(self, Dungeon())
       else:
         from Maplist import Maplist
-        View.removescene(self)
-        View.addscene(Maplist())
-      GameEngine.enemy = None
+        self.engine.changescene(self, Maplist())
 
-  def clearscene(self):
-
-    del self.displaydamage, self.timer, self.rotatestart, self.fade, self.stop, self.spacehit
-    del self.attackcircle, self.battle, self.playercommand, self.enemycommand
-    del self.button, self.bar, self.background
-    del self.party, self.enemy, self.engine
-
-class VictoryScene(Layer):
-  def __init__(self, multiplier, formation):
-
-    self.engine = GameEngine
-    self.party = []
-    self.levelup = []
-    for i, partymember in enumerate(self.engine.party):
-      self.party.append(Player(partymember))
-      self.levelup.append("False")
-
-
-    self.enemies = Configuration(os.path.join("..", "Data", "Enemies", "Formations", formation)).formation.enemies.split(", ")  
-    self.enemy = []
-    self.enemyko = []
-    for enemy in self.enemies:
-      self.enemy.append(Enemy(str(enemy)))
-
-    self.items = []
-    for i, enemy in enumerate(self.enemy):
-      if enemy.loot != None and enemy.lootchances != None:
-        for i, item in enumerate(enemy.loot):
-          chance = random.randint(0, 100)
-          if chance >= 0 and chance <= int(enemy.lootchances[i]):
-            self.items.append(item)
-
-    self.bar = self.engine.loadImage(os.path.join("Data", "bars.png"))
-
-    self.background = self.engine.loadImage(os.path.join("Data", "victorybackground.png"))
-    self.statusbox = self.engine.loadImage(os.path.join("Data", "victorystatusbox.png"))
-
-    self.button = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
-
-    self.secondarybutton = self.engine.loadImage(os.path.join("Data", "secondarymenubutton.png"))
-
-    self.enemyexp = 0
-    self.enemyavglvl = 0
-    for enemy in self.enemy:
-      self.enemyexp += int((enemy.exp/len(self.party))*(multiplier/100))
-
-    self.countdownexp = False
-    self.finishupcounting = False
-    self.finished = False
-
-    self.notokay = False
-
-    GameEngine.resetKeyPresses()
-
-  def update(self):
-    for key, char in GameEngine.getKeyPresses():
-      if key == K_SPACE:
-        if self.countdownexp == False:
-          self.countdownexp = True
-        elif self.countdownexp == True and self.enemyexp > 0:
-          self.finishupcounting = True
-
-    self.engine.drawImage(self.background, scale = (640,480))
-    
-    if self.countdownexp == True and self.enemyexp == 0:  
-      active, flag = self.engine.drawButton(self.button, coord= (530, 425), scale = (150,45))
-      if flag == True:
-        self.finished = True
-      self.engine.renderFont("default.ttf", "Finished", (530, 425))
-
-    self.engine.renderFont("menu.ttf", "Loot and Drops", (20, 96), size = 28, flags = "Shadow", alignment = 1)
-    for i, item in enumerate(self.items):
-      itemini = Configuration(os.path.join("..", "Data", "Items", item+".ini")).item
-      self.engine.renderFont("default.ttf", itemini.__getattr__("name"), (20, 128+24*i), size = 20, flags = "Shadow", alignment = 1)
-
-    self.engine.renderFont("menu.ttf", "Status", (620, 70), size = 32, flags = "Shadow", alignment = 2)
-
-    for i, player in enumerate(self.party):
-
-      self.engine.drawImage(self.statusbox, coord = ((640-150), 130+(i*100)), scale = (345, 80))
-
-      self.engine.renderFont("default.ttf", str(player.name), (350, 110+(i*100)), size = 20, flags = "Shadow", alignment = 1)
-      self.engine.renderFont("default.ttf", "Lvl:" + str(player.lvl), (620, 110 + (i*100)), size = 20, flags = "Shadow", alignment = 2)
-
-      self.engine.renderFont("default.ttf", str(player.exp) + "/" + str(player.explvl), (620, 140 + (i*100)), size = 16, flags = "Shadow", alignment = 2)
-      self.engine.renderFont("default.ttf", str(self.enemyexp), (350, 140 + (i*100)), size = 24, flags = "Shadow", alignment = 1)
-
-
-      self.engine.drawBar(self.bar, (350, 155 + (i*100)), scale = (260, 15), frames = 6, currentframe = 5)
-      self.engine.drawBar(self.bar, (350, 155 + (i*100)), scale = (260, 15), barcrop = (float(player.exp)/float(player.explvl)), frames = 6, currentframe = 6)
-
-      if self.countdownexp == True:
-        if self.enemyexp > 0:
-          if self.finishupcounting == True:
-            playerexp += self.enemyexp
-          else:
-            player.exp += 1
-        else:
-          self.enemyexp = 0
-          self.countdown = False
-
-    
-      if player.exp >= player.explvl:
-        self.levelup[i] = "True"
-      
-      if self.levelup[i] == "True":
-        self.engine.renderFont("default.ttf", "Level Up!", (480, 155 + (i*100)), size = 30)
-        if player.exp >= player.explvl:
-          player.exp = player.exp - player.explvl
-          player.lvl += 1
-
-    if self.countdownexp == True:
-      if self.enemyexp > 0:
-        if self.finishupcounting == True:
-          self.enemyexp = 0
-        else:
-          self.enemyexp -= 1
-      else:
-        self.enemyexp = 0
-        self.countdown = False
-
-    if self.finished == True:
-      for i, player in enumerate(self.party):
-        if self.levelup[i] == "True":
-          player.currenthp = player.hp
-          player.currentsp = player.sp        
-          player.playerini.player.__setattr__("lvl", player.lvl)
-          player.playerini.player.__setattr__("currenthp", player.currenthp)
-          player.playerini.player.__setattr__("currenthp", player.currentsp)
-          self.levelup[i] = "False"
-        for item in self.items:
-          if i == 0:
-            if len(player.inventory) < 20:
-              player.inventory.append(item)
-            elif len(player.inventory) >= 20 and i+1 < len(self.party):
-              self.party[i+1].inventory.append(item)
-          if i+1 >= len(self.party) and len(player.inventory) >= 20:
-            self.notokay = True
-
-      if self.notokay == True:
-        self.engine.screenfade((0,0,0,120))
-
-        active, flag = self.engine.drawButton(self.secondarybutton, coord= (320, 280), scale = (100,48))
-        if active == True:
-          if flag == True:
-            self.notokay = False
-
-        buttonfont = self.engine.renderFont("default.ttf", "OK", (320, 280), size = 16)
-        self.engine.renderMultipleFont("default.ttf", ("Your inventory is full!", "Some items were not picked up"), (320, 212), size = 20, flags = "Shadow")
-
-      else:
-        self.engine.inbattle = False
-        pygame.mixer.music.fadeout(400)
-        for player in self.party:
-          player.playerini.player.__setattr__("inventory", ", ".join(player.inventory))
-          player.playerini.player.__setattr__("exp", player.exp)
-          player.playerini.save()
-          player.knockedout = False
-
-        if self.engine.town != None:
-          if self.engine.cells == None:
-            from Towns import Towns
-            View.removescene(self)
-            View.addscene(Towns())
-          else:
-            from Dungeon import Dungeon
-            View.removescene(self)
-            View.addscene(Dungeon())
-            self.engine.currentcell += 1
-        else:
-          from Maplist import Maplist
-          View.removescene(self)
-          View.addscene(Maplist())
-
-  def clearscene(self):
-    del self.levelup, self.finished, self.finishupcounting, self.countdownexp
-    del self.enemyexp, self.background, self.bar, self.engine
-
+    Engine.inbattle = False

@@ -1,33 +1,26 @@
-#####################################################################
-# -*- coding: iso-8859-1 -*-                                        #
-#                                                                   #
-# UlDunAd - Ultimate Dungeon Adventure                              #
-# Copyright (C) 2009 Blazingamer(n_hydock@comcast.net               #
-#                                                                   #
-# This program is free software; you can redistribute it and/or     #
-# modify it under the terms of the GNU General Public License       #
-# as published by the Free Software Foundation; either version 3    #
-# of the License, or (at your option) any later version.            #
-#                                                                   #
-# This program is distributed in the hope that it will be useful,   #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of    #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the     #
-# GNU General Public License for more details.                      #
-#                                                                   #
-# You should have received a copy of the GNU General Public License #
-# along with this program; if not, write to the Free Software       #
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,        #
-# MA  02110-1301, USA.                                              #
-#####################################################################
+#=======================================================#
+#
+# UlDunAd - Ultimate Dungeon Adventure
+# Copyright (C) 2009 Blazingamer/n_hydock@comcast.net
+#       http://code.google.com/p/uldunad/
+# Licensed under the GNU General Public License V3
+#      http://www.gnu.org/licenses/gpl.html
+#
+#=======================================================#
 
-import gc
 import os
 import sys
 import pygame
 
 from pygame.locals import *
 
-from MainMenu import *
+import GameEngine
+from GameEngine import GameEngine
+
+from Resources import *
+import Resources
+
+from ExtraScenes import TitleScreen
 
 class Layer:
   def __init__(self):
@@ -46,44 +39,56 @@ scenes = []
 goingout = []
 goingin = []
 opacity = 0
+screen = None
 
-def startup():
-  scenes.append(MainMenu())
-  gc.enable()
+class View:
+  def startup(self, caption, flags):
+    engine = GameEngine()
+    resolution = (engine.w, engine.h)
+    screen = pygame.display.set_mode(resolution, flags)
 
-def removescene(scene):
-  if scene not in goingout:
-    goingout.append(scene)
+    icon = pygame.image.load(os.path.join('..', 'uldunadicon.png')).convert_alpha()
+    pygame.display.set_icon(icon)
+    pygame.display.set_caption(caption)
 
-def addscene(scene):
-  if scene not in scenes:
-    goingin.append(scene)
+    Resources.w, Resources.h, Resources.screen = engine.w, engine.h, screen
+    Sound().inbattle, Sound().vol = engine.inbattle, engine.volume
 
-def update():
-  global opacity
+    GameEngine.data = Data()
 
-  if goingout != []:
-    if opacity < 255:
-      opacity += 20
-    elif opacity >=255:
-      opacity = 255
-      for i, oldscene in enumerate(goingout):
-        gc.collect()
-        oldscene.clearscene()
-        scenes.remove(goingout[i])
-        goingout.remove(goingout[i])
+    scenes.append(TitleScreen())
 
-  elif goingout == [] and goingin != []:
-    for i, newscene in enumerate(goingin):
-      scenes.append(newscene)
-      goingin.remove(goingin[i])
+  def removescene(self, scene):
+    if scene not in goingout:
+      goingout.append(scene)
 
-  elif goingout == [] and goingin == []:
-    if opacity > 0:
-      opacity -= 20
-    elif opacity <= 0:
-      opacity = 0
-    scenes[-1].update()
+  def addscene(self, scene):
+    if scene not in scenes:
+      goingin.append(scene)
+ 
+  def update(self):
+    global opacity
 
-  GameEngine.screenfade((0,0,0,opacity))
+    if goingout != []:
+      if opacity < 255:
+        opacity += 20
+      elif opacity >=255:
+        opacity = 255
+        for i, oldscene in enumerate(goingout):
+          scenes.remove(goingout[i])
+          goingout.remove(goingout[i])
+
+    elif goingout == [] and goingin != []:
+      for i, newscene in enumerate(goingin):
+        scenes.append(newscene)
+        goingin.remove(goingin[i])
+
+    elif goingout == [] and goingin == []:
+      if opacity > 0:
+        opacity -= 20
+      elif opacity <= 0:
+        opacity = 0
+      scenes[-1].update()
+
+    GameEngine().screenfade((0,0,0,opacity))
 

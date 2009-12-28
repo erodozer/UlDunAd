@@ -1,28 +1,16 @@
-#####################################################################
-# -*- coding: iso-8859-1 -*-                                        #
-#                                                                   #
-# UlDunAd - Ultimate Dungeon Adventure                              #
-# Copyright (C) 2009 Blazingamer(n_hydock@comcast.net               #
-#                                                                   #
-# This program is free software; you can redistribute it and/or     #
-# modify it under the terms of the GNU General Public License       #
-# as published by the Free Software Foundation; either version 3    #
-# of the License, or (at your option) any later version.            #
-#                                                                   #
-# This program is distributed in the hope that it will be useful,   #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of    #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the     #
-# GNU General Public License for more details.                      #
-#                                                                   #
-# You should have received a copy of the GNU General Public License #
-# along with this program; if not, write to the Free Software       #
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,        #
-# MA  02110-1301, USA.                                              #
-#####################################################################
+#=======================================================#
+#
+# UlDunAd - Ultimate Dungeon Adventure
+# Copyright (C) 2009 Blazingamer/n_hydock@comcast.net
+#       http://code.google.com/p/uldunad/
+# Licensed under the GNU General Public License V3
+#      http://www.gnu.org/licenses/gpl.html
+#
+#=======================================================#
 
-from GameEngine import *
-import GameEngine
-import View
+import Engine
+from Engine import GameEngine
+
 from View import *
 
 import Config
@@ -32,30 +20,29 @@ import random
 class Towns(Layer):
   def __init__(self):
 
-    self.engine = GameEngine
-    self.townname = self.engine.town
+    self.engine = GameEngine()
+    self.townname = Engine.town
 
-    self.townini = Config.Configuration(os.path.join("..", "Data", "Towns", self.townname, "town.ini")).town
+    self.townpath = os.path.join("Data", "Places", "Towns", self.townname)
+    self.townini = Config.Configuration(os.path.join(self.townpath, "town.ini")).town
 
     self.background = None
-    if os.path.exists(os.path.join("..", "Data", "Towns", self.townname, "background.png")):
-      self.background = self.engine.loadImage(os.path.join("Data", "Towns", self.townname, "background.png"))
-    self.sidebar = self.engine.loadImage(os.path.join("Data", "sidemenu.png"))
+    if os.path.exists(os.path.join("..", self.townpath, "background.png")):
+      self.background = self.engine.loadImage(os.path.join(self.townpath, "background.png"))
+    self.sidebar = self.engine.loadImage(os.path.join("Data", "Interface", "sidemenu.png"))
 
     self.audio = None
     if self.townini.audio != "None":
-      self.audio = Sound().loadAudio(os.path.join("Town", self.townini.audio))
-
-    Sound().volume(float(self.engine.townvolume)/10)
+      self.audio = self.engine.loadAudio(os.path.join("Town", self.townini.audio), volume = self.engine.townvolume)
 
     self.choices = self.townini.choices.split(", ")
 
-    if os.path.exists(os.path.join("..", "Data", "Towns", self.townname, "townbutton.png")) == True:
-      self.menubutton = self.engine.loadImage(os.path.join("Data", "Towns", self.townname, "townbutton.png"))
+    if os.path.exists(os.path.join("..", self.townpath, "townbutton.png")) == True:
+      self.menubutton = self.engine.loadImage(os.path.join(self.townpath, "townbutton.png"))
     else:
-      self.menubutton = self.engine.loadImage(os.path.join("Data", "defaultbutton.png"))
+      self.menubutton = self.engine.loadImage(os.path.join("Data", "Interface", "defaultbutton.png"))
 
-    self.enemies = self.townini.enemylist.split(", ")
+    self.enemies = self.townini.enemylist.split(",")
 
   def update(self):
     self.engine.drawImage(self.background)
@@ -67,20 +54,17 @@ class Towns(Layer):
         if flag == True:
           if choice == "Library" or choice == "library":
             from Library import Library
-            View.removescene(self)
-            View.addscene(Library())
+            self.engine.changescene(self, Library())
           elif choice == "Wilderness" or choice == "wilderness":
             pygame.mixer.music.fadeout(400)
             from BattleScene import BattleScene
-            View.removescene(self)
-            View.addscene(BattleScene(str(random.choice(self.enemies)+".ini")))
+            self.engine.changescene(self, BattleScene(str(random.choice(self.enemies).strip()+".ini")))
             from ExtraScenes import LoadingScene
-            View.addscene(LoadingScene("Preparing Battle", 4.5))
+            View().addscene(LoadingScene("Preparing Battle", 4.5))
           else:
-            choiceini = Config.Configuration(os.path.join("..", "Data", "Towns", self.townname, choice+".ini"))
+            choiceini = Config.Configuration(os.path.join(self.townpath, choice+".ini"))
             from Shop import Shop
-            View.removescene(self)
-            View.addscene(Shop(choiceini))
+            self.engine.changescene(self, Shop(choiceini))
 
       buttonfont = self.engine.renderFont("default.ttf", choice, (100, 90+(60*i)))
 
@@ -89,16 +73,10 @@ class Towns(Layer):
     if active == True:
       if flag == True:
         from Maplist import Maplist
-        View.removescene(self)
-        View.addscene(Maplist())
+        self.engine.changescene(self, Maplist())
         self.engine.town = None
     returnfont = self.engine.renderFont("default.ttf", "Return", (100, 420))
 
     self.towntitle = self.engine.renderFont("menu.ttf", self.townname, (430, 64), size = 32)
 
-  def clearscene(self):
-    del self.towntitle, self.menubutton
-    if self.audio != None:
-      self.engine.stopmusic()
-    del self.audio, self.sidebar, self.background, self.townini, self.townname, self.engine
 
