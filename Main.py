@@ -39,9 +39,10 @@ class MainMenu(Scene):
         w, h = self.engine.w, self.engine.h
 
         self.engine.drawImage(self.background, scale = (w,h))        
+        self.text.setPosition(w/2, h/2)
+        self.text.setText("awesome")
+        self.text.setScale(200,50)
+        self.text.draw()
         for i, button in enumerate(self.buttons):
             self.engine.drawImage(button, position = (w*.18, h*(.1 + .1*i)))
-            self.text.setPosition(w/2, h/2)
-            self.text.setText("awesome")
-            self.text.draw()
 

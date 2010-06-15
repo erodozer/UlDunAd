@@ -60,7 +60,6 @@ class Main(object):
     self.w, self.h = resolution[0], resolution[1]
     sysobj.w, sysobj.h = resolution[0], resolution[1]
 
-    self.selectList = []
     self.viewport.addScene(MainMenu(self))
 
   def run(self):
