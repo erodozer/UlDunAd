@@ -129,6 +129,8 @@ class Viewport:
         glEnable(GL_FOG);
         glEnable(GL_LIGHTING);
 
+        glScalef(self.resolution[0]/800.0,self.resolution[1]/600.0, 1.0)
+
         scene.render()
 
     def run(self):

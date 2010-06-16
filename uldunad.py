@@ -75,15 +75,20 @@ class Main(object):
     self.fpsClock.tick(FPS)
 
   #simple method used to quicken the typing process
-  def drawImage(self, image, position = (w/2, h/2), scale = (1,1), angle = None, color = None, rect = None):
+  def drawImage(self, image, position = (w/2, h/2), scale = (1,1), angle = None, color = None, frameX = None, frameY = None):
     image.setPosition(position[0], position[1])
     image.setScale(scale[0], scale[1])
     if angle:
       image.setAngle(angle)
     if color:
       image.setColor(color)
-    if rect:
-      image.setRect(rect)
+
+    if frameX:
+      image.setFrame(x = frameX)
+    elif frameY:
+      image.setFrame(y = frameY)
+    if frameX and frameY:
+      image.setFrame(frameX, frameY)
 
     if self.viewport.input and image.isBoundable:
         image.drawBoundingBox()

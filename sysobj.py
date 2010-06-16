@@ -69,33 +69,28 @@ class Camera:
 # can be made using the same texture and use
 # less ram
 class Texture:
-    def __init__(self, path):
+    def __init__(self, path = "", surface = pygame.Surface((1,1))):
     
         self.texarray = glGenTextures(1)
         
         #using pygame to load the image because it already is opengl friendly
-        self.textureSurface = pygame.image.load(os.path.join("data", path))
+        if path != "":
+            self.textureSurface = pygame.image.load(os.path.join("data", path))
+        else:
+            self.textureSurface = surface
+
+        self.pixelSize = self.textureSurface.get_size()
+        
         self.finalSurface = self.makePOT()
         self.textureData = pygame.image.tostring(self.finalSurface, "RGBA", 1)
         
     #makes sure the texture is a power of two for compatibilies sake
     def makePOT(self):
-        pixelSize = self.textureSurface.get_size()
-
-        wid = 2**ceil(log(pixelSize[0], 2))         #makes the width of the surface a power of two
-        hgt = 2**ceil(log(pixelSize[1], 2))         #makes the height of the surface a power of two
+        wid = 2**ceil(log(self.pixelSize[0], 2))         #makes the width of the surface a power of two
+        hgt = 2**ceil(log(self.pixelSize[1], 2))         #makes the height of the surface a power of two
 
         #scales the texture to the new power of two size
         surface = pygame.transform.smoothscale(self.textureSurface, (int(wid),int(hgt)))
-
-        #this is necessary for more accurate scaling 
-        # of the image to different window resolutions
-        self.pixelSize = (wid,hgt)
-
-        #This is the percentage difference between the po2 surface
-        # and the original.  It is required so then scaling is done
-        # properly and in respect to the original image.
-        self.scaleFactor = (pixelSize[0] / wid, pixelSize[1] / hgt)
 
         return surface 
 
@@ -103,12 +98,12 @@ class Texture:
     def bind(self):
 
         glBindTexture(GL_TEXTURE_2D, self.texarray)
-        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, self.pixelSize[0], self.pixelSize[1], 0,
-                      GL_RGBA, GL_UNSIGNED_BYTE, self.textureData);
+        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, self.finalSurface.get_width(), self.finalSurface.get_height(),
+                      0, GL_RGBA, GL_UNSIGNED_BYTE, self.textureData)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
 
-        glScalef(self.scaleFactor[0], self.scaleFactor[1], 1.0)
+        #glScale(self.textureSurface.get_width(), self.textureSurface.get_height(), 1)
         
         glShadeModel(GL_SMOOTH)
         glClearColor(0.0, 0.0, 0.0, 0.0)
@@ -123,33 +118,41 @@ class ImgObj:
     #an array object was used to constrain each item to an unsigned byte
     gColorID = array.array('B',[1,0,0])
 
-    def __init__(self, texture, boundable = False):
+    def __init__(self, texture, boundable = False, frameX = 1, frameY = 1):
         self.texture = texture
 
         #attributes
-        self.scale       = (1.0, 1.0)           #image bounds (width, height)
-        self.pixelSize   = (1.0, 1.0)           #the actual size of the image in pixels
-        self.position    = (0,0)                #where in the window it should render
-        self.angle       = 0                    #angle which the image is drawn
-        self.color       = (1.0,1.0,1.0)        #colour of the image
-        self.rect        = (0,0,1,1)            #left, top, right, bottom, crops the texture
+        self.scale       = (1.0, 1.0)               #image bounds (width, height)
+        self.position    = (0,0)                    #where in the window it should render
+        self.angle       = 0                        #angle which the image is drawn
+        self.color       = (1.0,1.0,1.0)            #colour of the image
+        
+
+        self.frameSize   = (1.0/float(frameX),1.0/float(frameY))
+        self.rect        = (0.0,0.0,self.frameSize[0],self.frameSize[1])
+                                                    #left, top, right, bottom, crops the texture
+
+        self.pixelSize   = (self.texture.pixelSize[0]/frameX,
+                            self.texture.pixelSize[1]/frameY)   #the actual size of the image in pixels
 
         self.isBoundable = boundable
         self.createColorID()
 
-        #makes sure it is working with the proper resolution
-        self.setScale(*self.scale)
-        self.setPosition(*self.position)
+        self.createArrays()
 
     #sets up the vertex and texture array coordinates
     def createArrays(self):
-        rect = self.rect    #not really necessary, it just saves on some typing
-                            #because I got sick of typing "self." all the time
-
         # numpy zeros is used because it can generate an array that can
         # be used for assigning coordinates to quite quickly
-        vtxArray = np.zeros((4,3), dtype=float32)
-        texArray = np.zeros((4,2), dtype=float32)
+        self.vtxArray = np.zeros((4,3), dtype=float32)
+        self.texArray = np.zeros((4,2), dtype=float32)
+
+        self.createVerts()
+        self.createTex()
+
+    #set up vertex coordinates
+    def createVerts(self):
+        vtxArray = self.vtxArray
 
         #top left, top right, bottom right, bottom left
 
@@ -157,23 +160,32 @@ class ImgObj:
         # by using these numbers pictures are now moved by the center
         # coordinate instead of the top left.  I, personally, find it
         # easier to use.
-        vtxArray[0,0] = -0.5; vtxArray[0,1] =  0.5
-        vtxArray[1,0] =  0.5; vtxArray[1,1] =  0.5
-        vtxArray[2,0] =  0.5; vtxArray[2,1] = -0.5
-        vtxArray[3,0] = -0.5; vtxArray[3,1] = -0.5
+        halfPS = (float(self.pixelSize[0])/2.0, float(self.pixelSize[1])/2.0)
+       
+        vtxArray[0,0] = -halfPS[0]; vtxArray[0,1] =  halfPS[1]
+        vtxArray[1,0] =  halfPS[0]; vtxArray[1,1] =  halfPS[1]
+        vtxArray[2,0] =  halfPS[0]; vtxArray[2,1] = -halfPS[1]
+        vtxArray[3,0] = -halfPS[0]; vtxArray[3,1] = -halfPS[1]
+
+    #set up texture coordinates
+    def createTex(self):
+        rect = self.rect    #not really necessary, it just saves on some typing
+                            #because I got sick of typing "self." all the time
+       
+        texArray = self.texArray
+
+        #top left, top right, bottom right, bottom left
 
         #texture coordinates
         texArray[0,0] = rect[0]; texArray[0,1] = rect[3]
         texArray[1,0] = rect[2]; texArray[1,1] = rect[3]
         texArray[2,0] = rect[2]; texArray[2,1] = rect[1]
         texArray[3,0] = rect[0]; texArray[3,1] = rect[1]
-        
-        return vtxArray, texArray
 
     #gives the image a color ID for mouse detection
     def createColorID(self):
         #this crap needs to be done so that the pick_color isn't actually linked to the ImgObj color ID
-        self.pick_color = array.array('B',[ImgObj.gColorID[0],ImgObj.gColorID[1],ImgObj.gColorID[2]])
+        self.pick_color = array.array('B',ImgObj.gColorID)
 
 	    #if after adding, the value is 0, it rolled over, so add 1 to the next item.
 	    #made possible by unsigned bytes (^o^)
@@ -193,17 +205,11 @@ class ImgObj:
 
     #changes the size of the image and scales the surface
     def setScale(self, width, height):
-        wScale, hScale = w/800.0, h/600.0
         if width >= 0 and width <= 1:
-            wid = self.texture.pixelSize[0]*width*(self.rect[2]-self.rect[0])
+            if height >= 0 and height <= 1:
+                self.scale = (width,height)
         else:
-            wid = width*(self.rect[2]-self.rect[0])/self.texture.scaleFactor[0]
-            
-        if height >= 0 and height <= 1:
-            hgt = self.texture.pixelSize[1]*height*(self.rect[3]-self.rect[1])
-        else:
-            hgt = height*(self.rect[3]-self.rect[1])/self.texture.scaleFactor[1]
-        self.scale = (wid * wScale, hgt * hScale)
+            self.scale = (float(width)/float(self.pixelSize[0]), float(height)/float(self.pixelSize[1]))
         
     #rotates the image to the angle
     def setAngle(self, angle):
@@ -221,9 +227,11 @@ class ImgObj:
     def setBoundable(self, boundable):
         self.isBoundable = boundable
 
-    #changes the crop box
-    def setRect(self, rect):
-        self.rect = rect
+    #changes the frame number of the image
+    def setFrame(self, x = 1, y = 1):
+        self.rect = (float(x-1)*self.frameSize[0], float(y-1)*self.frameSize[1], 
+                     float(x)*self.frameSize[0], float(y)*self.frameSize[1])
+        self.createTex()
 
     #resets the transformation list
     def reset(self):
@@ -240,12 +248,11 @@ class ImgObj:
         glScalef(self.scale[0], self.scale[1], 1.0)
         glRotatef(self.angle, 0, 0, 1)
 
-        vtx, tex = self.createArrays()
         glColor3ub(self.pick_color[0], self.pick_color[1], self.pick_color[2])
 
         glEnableClientState(GL_VERTEX_ARRAY)
-        glVertexPointerf(vtx)
-        glDrawArrays(GL_QUADS, 0, vtx.shape[0])
+        glVertexPointerf(self.vtxArray)
+        glDrawArrays(GL_QUADS, 0, self.vtxArray.shape[0])
         glDisableClientState(GL_VERTEX_ARRAY)
 
         glPopMatrix()
@@ -261,13 +268,12 @@ class ImgObj:
         glColor3f(*self.color)
 
         self.texture.bind()
-        vtx, tex = self.createArrays()
 
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
         glEnableClientState(GL_VERTEX_ARRAY)
-        glVertexPointerf(vtx)
-        glTexCoordPointerf(tex)
-        glDrawArrays(GL_QUADS, 0, vtx.shape[0])
+        glVertexPointerf(self.vtxArray)
+        glTexCoordPointerf(self.texArray)
+        glDrawArrays(GL_QUADS, 0, self.vtxArray.shape[0])
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 
@@ -282,102 +288,28 @@ class FontObj(ImgObj):
         self.texarray = glGenTextures(1)
         
         self.font = pygame.font.Font(os.path.join("data", "fonts", path), size)
-        self.text = ""                          #it is not necessary to enter a string upon initialization, 
+        self.setText(text)                      #it is not necessary to enter a string upon initialization, 
                                                 #but it is upon time of rendering
         #attributes
-        self.scale       = (1.0, 1.0)           #image bounds (width, height)
-        self.pixelSize   = (1.0, 1.0)           #the actual size of the image in pixels
-        self.position    = (0,0)                #where in the window it should render
-        self.angle       = 0                    #angle which the image is drawn
-        self.color       = (255,255,255)        #colour of the image
-        self.rect        = (0,0,1,1)            #left, top, right, bottom, crops the texture
-
-        self.textureSurface = self.makePOT()
+        self.scale     = (1.0, 1.0)             #image bounds (width, height)
+        self.pixelSize = self.texture.pixelSize #the actual size of the image in pixels
+        self.position  = (0,0)                  #where in the window it should render
+        self.angle     = 0                      #angle which the image is drawn
+        self.color     = (255,255,255)          #colour of the image
+        self.rect      = (0,0,1,1)              #left, top, right, bottom, crops the texture
         
+        self.createArrays()
+
     #changes what the font is supposed to say
     def setText(self, text):
         self.text = text
-        self.textureSurface = self.makePOT()
+        
+        self.texture = Texture("", self.font.render(self.text, True, (255,255,255)))
+        self.pixelSize = self.texture.pixelSize
         self.setScale(1,1)  #makes sure the surface is resized because 
                             #the text is now different
 
-    #makes sure the texture is a power of two for compatibilies sake
-    def makePOT(self):
-        textureSurface = self.font.render(self.text, True, (255,255,255))
 
-        pixelSize = textureSurface.get_size()
-
-        wid = 2**ceil(log(pixelSize[0], 2))         #makes the width of the surface a power of two
-        hgt = 2**ceil(log(pixelSize[1], 2))         #makes the height of the surface a power of two
-
-        #scales the texture to the new power of two size
-        surface = pygame.transform.smoothscale(textureSurface, (int(wid),int(hgt)))
-
-        #this is necessary for more accurate scaling 
-        # of the image to different window resolutions
-        self.pixelSize = (wid,hgt)
-
-        #This is the percentage difference between the po2 surface
-        # and the original.  It is required so then scaling is done
-        # properly and in respect to the original image.
-        self.scaleFactor = (pixelSize[0] / wid, pixelSize[1] / hgt)
-
-        return surface 
-
-    #binds the texture to the 3d plane
-    def bind(self):
-        s_string = pygame.image.tostring(self.textureSurface, 'RGBA', True)
-        
-        glBindTexture(GL_TEXTURE_2D, self.texarray)
-        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, self.pixelSize[0], self.pixelSize[1], 0,
-                      GL_RGBA, GL_UNSIGNED_BYTE, s_string );
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-
-        glScalef(self.scaleFactor[0], self.scaleFactor[1], 1.0)
-        
-        glShadeModel(GL_SMOOTH)
-        glClearColor(0.0, 0.0, 0.0, 0.0)
-        glClearDepth(1.0)
-        glEnable(GL_DEPTH_TEST)
-        glDepthFunc(GL_LEQUAL)
-        glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
-
-    #scales the font surface
-    def setScale(self, width, height):
-        wScale, hScale = w/800.0, h/600.0
-        if width >= 0 and width <= 1:
-            wid = self.pixelSize[0]*width*(self.rect[2]-self.rect[0])
-        else:
-            wid = width*(self.rect[2]-self.rect[0])/self.scaleFactor[0]
-            
-        if height >= 0 and height <= 1:
-            hgt = self.pixelSize[1]*height*(self.rect[3]-self.rect[1])
-        else:
-            hgt = height*(self.rect[3]-self.rect[1])/self.scaleFactor[1]
-        self.scale = (wid * wScale, hgt * hScale)
-
-    #draws the font to the screen
-    def draw(self):
-        glPushMatrix()
-
-        glTranslatef(self.position[0], self.position[1],-.1)
-        glScalef(self.scale[0], self.scale[1], 1.0)
-        glRotatef(self.angle, 0, 0, 1)
-        glColor3ub(*self.color)
-
-        self.bind()
-        vtx, tex = self.createArrays()
-
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glVertexPointerf(vtx)
-        glTexCoordPointerf(tex)
-        glDrawArrays(GL_QUADS, 0, vtx.shape[0])
-        glDisableClientState(GL_VERTEX_ARRAY)
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY)
-
-        glPopMatrix()
  
 #an object for sound effects
 # do not use this to play music
