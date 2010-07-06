@@ -12,6 +12,12 @@ Licensed under the GNU General Public License V3
 from sysobj import *
 from numpy import float32, array
 
+from OpenGL.GL import *
+from OpenGL.GLU import *
+
+from math import *
+
+import WorldScenes
 
 #basic template of what a scene may contain
 class Scene:
@@ -29,7 +35,7 @@ class Scene:
         pass
 
     #anything that is 2d should be rendered during this process
-    def render(self):
+    def render(self, visibility):
         pass
 
     #anything involving actions between the user 
@@ -51,7 +57,7 @@ class TestScene(Scene):
         if (Scene.objInput == self.image2):
             print 1
             
-    def render(self):
+    def render(self, visibility):
         w, h = self.engine.w, self.engine.h
         
         positions = [(w/2,h), 
@@ -68,12 +74,16 @@ class TestScene(Scene):
 #it handles the mouse input, the opengl window
 #and which scenes are being rendered.
 class Viewport:
-    def __init__(self, resolution):
+    def __init__(self, engine, resolution):
+        self.engine = engine                    #the game engine and main values
         self.resolution = resolution            #width and height of the viewport
         self.camera = Camera(resolution)        #viewport's opengl camera
-        self.scenes = []                        #scene's to render
-        self.imageObjects = []                  #list of images that can be clicked
+        self.scenes = []                        #scenes to render
+        self.visibility = []                    #visibility of the scenes
+        self.inputObjects = []                  #list of images that can be clicked
         self.input = False                      #is the viewport in its mouse input cycle
+
+        self.transitionTime = 512.0             #time it takes to transition between scenes (milliseconds)
 
         #creates an OpenGL Viewport
         glViewport(0, 0, resolution[0], resolution[1])
@@ -82,18 +92,23 @@ class Viewport:
     def changeScene(self, scene):
         if scene not in self.scenes:
             self.scenes.pop(-1)
+            self.visibility.pop(-1)
+            scene = WorldScenes.create(self.engine, scene)
             self.scenes.append(scene)
+            self.visibility.append(0.0)
 
     #removes the passed scene
     def popScene(self, scene):
         if scene in self.scenes:
+            self.visibility.pop(self.scenes.index(scene))
             self.scenes.remove(scene)
 
     #adds the passed scene
     def addScene(self, scene):
-        if scene not in self.scenes:
-            self.scenes.append(scene)
-    
+        scene = WorldScenes.create(self.engine, scene)
+        self.scenes.append(scene)
+        self.visibility.append(0.0)
+           
     #checks to see where the position of the mouse is over 
     #an object and if that object has been clicked
     def detect(self, scene):
@@ -102,7 +117,10 @@ class Viewport:
         glDisable(GL_LIGHTING);
 
         Scene.objInput = None
-        scene.render()
+
+        #only objects that are boundable will be rendered again
+        for image in self.inputObjects:
+            image.drawBoundingBox()
 
         x,y = pygame.mouse.get_pos()
         mouseEvent = pygame.mouse.get_pressed()
@@ -114,7 +132,7 @@ class Viewport:
             pixels = glReadPixelsub(x, self.resolution[1] - y, 1, 1, GL_RGB)
 
             #checks each of the images
-            for image in self.imageObjects:
+            for image in self.inputObjects:
                 pick_color = image.pick_color.tolist()
 
                 if (pick_color[0] == pixels[0][0][0] and \
@@ -124,14 +142,14 @@ class Viewport:
                         Scene.objInput = image
 
     #renders a scene fully textured
-    def render(self, scene):
+    def render(self, scene, visibility):
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_FOG);
         glEnable(GL_LIGHTING);
 
         glScalef(self.resolution[0]/800.0,self.resolution[1]/600.0, 1.0)
 
-        scene.render()
+        scene.render(visibility)
 
     def run(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -139,21 +157,30 @@ class Viewport:
         self.input = False                          #tell the scene to reset input at the beginning of each cycle
 
         if self.scenes:
-            scene = self.scenes[-1]                 #only topmost scene should be rendered and updated
+            #ticks/rate of change in time
+            t = float(self.engine.clock.get_time()) / self.transitionTime
 
-            scene.run()                             #any calculations of interactions are processed from the
-                                                    # previous loop before anything new is rendered
+            #all scenes should be rendered but not checked for input
+            for i, scene in enumerate(self.scenes):
+                topmost = bool(scene == self.scenes[-1])#is the scene the topmost scene
+                visibility = self.visibility[i] = min(1.0, self.visibility[i] + t)
+                
+                if topmost:
+                    scene.run()                         #any calculations of interactions are processed from the
+                                                        # previous loop before anything new is rendered
 
-            scene.render3D()                        #for anything in the scene that might need perspective
+                scene.render3D()                        #for anything in the scene that might need perspective
 
-            try:
-                self.camera.setOrthoProjection()    #changes projection so the hud/menus can be drawn
-                self.render(scene)                  #renders anything to the scene that is 2D
-                pygame.display.flip()               #switches back buffer to the front
-                self.input = True                   #sets it so now images are just drawn in their color ID
-                self.detect(scene)                  #checks to see if any object on the back buffer has been clicked
-            finally:
-                self.camera.resetProjection()       #resets the projection to have perspective
+                try:
+                    self.camera.setOrthoProjection()    #changes projection so the hud/menus can be drawn
+                    self.render(scene, visibility)      #renders anything to the scene that is 2D
+                    pygame.display.flip()               #switches back buffer to the front
+                    if topmost:                         #only should the topmost scene be checked for input
+                        self.input = True               #sets it so now images are just drawn in their color ID
+                        self.detect(scene)              #checks to see if any object on the back buffer has been clicked
+                finally:
+                    self.camera.resetProjection()       #resets the projection to have perspective
+
 
         glFlush()
 
