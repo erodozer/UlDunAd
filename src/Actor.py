@@ -13,23 +13,49 @@ import os
 
 from Config import Configuration
 from math import *
+import random
 
 class Job:
     def __init__(self, name):
         jobini = Configuration(os.path.join("..", "data", "actors", "jobs", name + ".ini")).job
 
-        #setting up curves is easy!  Just write a simple equation 
-        # in terms of x (level) and you're set.  Best of all, all
-        # the python math commands are available
-        # ex. x**(5/17) + 15  at level 12 will give you a stat of 17
-        self.strCurve = jobini.__getattr__("strCurve")
-        self.defCurve = jobini.__getattr__("defCurve")
-        self.spdCurve = jobini.__getattr__("spdCurve")
-        self.evdCurve = jobini.__getattr__("evdCurve")
-        self.magCurve = jobini.__getattr__("magCurve")
-        self.resCurve = jobini.__getattr__("resCurve")
+        #These stats are what the job starts out with
+        # characters can go against the basic stats for example
+        # you can create a mage that have high str instead of
+        # the default high mag, however, certain skills are learned
+        # not on level but on how many stat points are distributed
+        # into what categories
+        self.hp   = jobini.__getattr__("hp")
+        self.str  = jobini.__getattr__("str")
+        self.defn = jobini.__getattr__("def")
+        self.spd  = jobini.__getattr__("spd")
+        self.evd  = jobini.__getattr__("evd")
+        self.mag  = jobini.__getattr__("mag")
+        self.res  = jobini.__getattr__("res")
+
+        #this stat is an equation in terms of x with w being the
+        # character's level.  It determines the maximum amount
+        # of fighting power the character has.
+        self.fightPT  = jobini.__getattr__("fightCurve")
+
+    def drawStatGraph(self):
+        glBegin(GL_LINE_STRIP)
+        glColor3f(1.0, 0.0, 0.0); glVertex2f(-self.stats[0],   0)
+        glColor3f(1.0, 1.0, 0.0); glVertex2f(-self.stats[1]/2,  self.stats[1]/2)
+        glColor3f(1.0, 0.5, 0.0); glVertex2f( self.stats[2]/2,  self.stats[2]/2)
+        glColor3f(1.0, 0.0, 1.0); glVertex2f( self.stats[3],   0)
+        glColor3f(0.0, 0.5, 1.0); glVertex2f( self.stats[4]/2, -self.stats[4]/2)
+        glColor3f(0.0, 1.0, 0.0); glVertex2f(-self.stats[5]/2, -self.stats[5]/2)
+        glEnd()
 
 class Character:
+    _LevelMax = 20      #this is the current level cap, I will adjust this with the number of content available
+    #these mark the required amount of exp to level up
+    #I calculated the curve myself in order to provide a fast, yet balanced
+    #equation for leveling up.  There shouldn't be too much grind, but there
+    #should be enough that you don't get bored by being over powered too easily
+    exp = [int(8.938*x**2.835) for x in range(_LevelMax)]
+    
     def __init__(self, name):
         playerini = Configuration(os.path.join("..", "data", "actors", "characters", name + ".ini")).character
         self.job  = Job(playerini.__getattr__("job"))
@@ -39,32 +65,107 @@ class Character:
 
         #the amount of points added to each field
         # these are set upon the creation of the character
-        # when the bonus stat points are distributed
-        strDist         = playerini.__getattr__("strDist", int)
-        defDist         = playerini.__getattr__("defDist", int)
-        spdDist         = playerini.__getattr__("spdDist", int)
-        evdDist         = playerini.__getattr__("evdDist", int)
-        magDist         = playerini.__getattr__("magDist", int)
-        resDist         = playerini.__getattr__("resDist", int)
+        # and upon leven up when the bonus stat points
+        # are distributed
+        self.hpDist  = playerini.__getattr__("hpDist",  int)
+        self.strDist = playerini.__getattr__("strDist", int)
+        self.defDist = playerini.__getattr__("defDist", int)
+        self.spdDist = playerini.__getattr__("spdDist", int)
+        self.evdDist = playerini.__getattr__("evdDist", int)
+        self.magDist = playerini.__getattr__("magDist", int)
+        self.resDist = playerini.__getattr__("resDist", int)
 
-        x = level
-        self.stats = [eval(self.job.strCurve) + strDist,  #strength
-                      eval(self.job.defCurve) + defDist,  #defense
-                      eval(self.job.spdCurve) + spdDist,  #speed
-                      eval(self.job.evdCurve) + evdDist,  #evasion
-                      eval(self.job.magCurve) + magDist,  #magic strength
-                      eval(self.job.resCurve) + resDist   #magic defense
-                      ]
+        #these are the points the character has that are open for
+        #distribution amongst his stats
+        self.points = playerini.__getattr__("points", int)
 
-    def create(self, name, job):
+        self.currentHp = playerini.__getattr__("currenthp", int)
+
+        self.hp   = self.job.hp   + hpDist,   #hit points
+        self.str  = self.job.str  + strDist,  #strength
+        self.defn = self.job.defn + defDist,  #defense
+        self.spd  = self.job.spd  + spdDist,  #speed
+        self.evd  = self.job.evd  + evdDist,  #evasion
+        self.mag  = self.job.mag  + magDist,  #magic strength
+        self.res  = self.job.res  + resDist   #magic defense
+
+        x = self.level
+        self.maxFP = int(eval(self.job.fightPT))
+        #when a character boosts instead of defends,
+        #their def is halved but they get full FP the next turn
+        self.boost = False
+        #when a character defends they gain the normal amount of FP per turn (20%)
+        #but their def is multiplied by 250%
+        self.defend = False
+
+        #this marks for the end of the battle if the character leveled up
+        self.leveledUp = False
+        
+
+    def initForBattle(self):
+        self.fp = min(self.maxFP/3 + random.randInt(0, self.maxFP), self.maxFP)
+        self.active = False
+
+    def turnStart(self):
+        if self.boost:
+            self.defn /= 2
+        elif self.defend:
+            self.defn *= 2.5
+        
+    def turnEnd(self):
+        self.fp += self.maxFP / 5
+
+        #resets defense
+        if self.boost:
+            self.fp = self.maxFP
+            self.defn *= 2
+        elif self.defend:
+            self.defn /= 2.5
+
+        self.fp = min(self.fp, self.maxFP)
+
+        self.boost = False
+        self.defend = False
+            
+    def drawStatGraph(self):
+        glBegin(GL_LINE_STRIP)
+        glColor3f(1.0, 0.0, 0.0); glVertex2f(-self.stats[0],   0)
+        glColor3f(1.0, 1.0, 0.0); glVertex2f(-self.stats[1]/2, self.stats[1]/2)
+        glColor3f(1.0, 0.5, 0.0); glVertex2f( self.stats[2]/2, self.stats[2]/2)
+        glColor3f(1.0, 0.0, 1.0); glVertex2f( self.stats[3],   0)
+        glColor3f(0.0, 0.5, 1.0); glVertex2f( self.stats[4]/2, -self.stats[4]/2)
+        glColor3f(0.0, 1.0, 0.0); glVertex2f(-self.stats[5]/2, -self.stats[5]/2)
+        glEnd()
+
+    #
+    def levelUp(self):
+        if self.exp == Character.exp[self.level-1]:
+            self.level += 1
+            self.exp = 0
+            self.points += 5
+            self.leveledUp = True     
+
+    def create(self, name, job, stats):
         Configuration(os.path.join("data", "actors", "characters", name + ".ini")).save()
         playerini = Configuration(os.path.join("data", "actors", "families", name + ".ini"))
         playerini.player.__setattr__("job", job)        
         playerini.player.__setattr__("level", 1)
         playerini.player.__setattr__("exp", 0)
+        playerini.player.__setattr__("hpDist",  stats[0])
+        playerini.player.__setattr__("strDist", stats[1])
+        playerini.player.__setattr__("defDist", stats[2])
+        playerini.player.__setattr__("spdDist", stats[3])
+        playerini.player.__setattr__("evdDist", stats[4])
+        playerini.player.__setattr__("magDist", stats[5])
+        playerini.player.__setattr__("resDist", stats[6])
         playerini.save()
         
- 
+#the player's family
+#this class holds the code responsible for the amount of gold the family has
+#the inventory of the family, the difficulty of the game, and the members in
+#the family.  It is very important and one of the main gameplay additions
+#to UlDunAd.  No longer are you loading individual characters, you are now
+#loading families.
 class Family:
     def __init__(self, name):
 
@@ -75,14 +176,11 @@ class Family:
 
         familyini = Configuration(os.path.join("..", "data", "actors", "families", name + ".ini")).family
 
+        #family's last name, all members of the family will have this last name
         self.name = name
 
         #all the members in your party (max of 7)
-        self.members = []
-        for i in range(7):
-            member = familyini.__getattr__("member%s" % i)
-            if member != "":
-                self.members.append(Character(member))
+        self.members = familyini.__getattr__("members").split("|")[0:7]
 
         #the party used in battle is the first 3 members you have ordered
         if len(self.members) >= 3:
@@ -96,7 +194,8 @@ class Family:
         self.gold = familyini.__getattr__("gold", int)
         #gameplay difficulty (0 - easy, 1- normal, 2 - hard)
         self.difficulty = familyini.__getattr__("difficulty", int)  
-        
+       
+    #creates a new family .ini 
     def create(self, name, difficulty):
         path = os.path.join("..", "data", "actors", "families", name + ".ini")
         Configuration(path).save()
@@ -106,9 +205,20 @@ class Family:
         familyini.family.__setattr__("gold", 0)
         familyini.family.__setattr__("inventory", "")
         
-        for i in range(7):
-            familyini.family.__setattr__("member%s" % i, "")
+        familyini.family.__setattr__("members", "")
 
         familyini.save()
 
+    #this updates the family's .ini file
+    def updateFile(self):
+        path = os.path.join("..", "data", "actors", "families", self.name + ".ini")
+        Configuration(path).save()
+        familyini = Configuration(path).family
+
+        familyini.__setattr__("difficulty", self.difficulty)
+        familyini.__setattr__("gold",       self.gold)
+        familyini.__setattr__("inventory",  string.join(self.inventory, ","))
+        familyini.__setattr__("members",    string.join(self.members, "|"))
+
+        familyini.save()
 

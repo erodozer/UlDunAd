@@ -22,9 +22,8 @@ class ImgObj:
         self.scale       = (1.0, 1.0)               #image bounds (width, height)
         self.position    = (0,0)                    #where in the window it should render
         self.angle       = 0                        #angle which the image is drawn
-        self.color       = [1.0,1.0,1.0,1.0]        #colour of the image RGBA
+        self.color       = [1.0,1.0,1.0,1.0]        #colour of the image RGBA (0 - 1.0)
         
-
         self.frameSize   = (1.0/float(frameX),1.0/float(frameY))
                                                     #the size of each cell when divided into frames
         self.rect        = (0.0,0.0,self.frameSize[0],self.frameSize[1])
@@ -162,6 +161,10 @@ class ImgObj:
                      float(x)*self.frameSize[0], float(y)*self.frameSize[1])
         self.createTex()
 
+    def setRect(self, rect):
+        self.rect = rect
+        self.createTex()
+
     #draws bounding box
     # when this is called the textures are disabled 
     # and only the color id of the image should be
@@ -173,7 +176,7 @@ class ImgObj:
         glScalef(self.scale[0], -self.scale[1], 1.0)
         glRotatef(self.angle, 0, 0, 1)
 
-        glColor3ub(self.pick_color[0], self.pick_color[1], self.pick_color[2])
+        glColor3ub(*self.pick_color)
 
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointerf(self.vtxArray)
@@ -185,7 +188,7 @@ class ImgObj:
     #finally draws the image to the screen
     def draw(self):
         glPushMatrix()
-        
+
         glTranslatef(self.position[0], self.position[1],-.1)
         glScalef(self.scale[0], self.scale[1], 1.0)
         glRotatef(self.angle, 0, 0, 1)

@@ -15,13 +15,11 @@ from View import *
 class MainMenu(Scene):
     def __init__(self, engine):
         self.engine = engine
-        self.buttonTex  = Texture("button.png")
-        self.text       = FontObj("default.ttf")
-        self.infoFont   = FontObj("default.ttf", size = 16)
-        self.info       = ["Family: "]
-        self.commands   = ["Create", "Battle", "Menu", "", ""]
-        self.buttons    = [ImgObj(self.buttonTex, True, frameY = 2) for n in range(5)]
-        self.background = ImgObj(Texture("bg.png"))
+        self.text       = FontObj(self.engine.data.defaultFont)
+        self.commands   = ["New Game", "Continue", "Exit"]
+        self.buttons    = [ImgObj(self.engine.data.defaultButton, True, frameY = 2)
+                           for n in range(len(self.commands))]
+        self.background = ImgObj(Texture("title.png"))
 
         self.music = BGMObj("test.mp3")
         
@@ -40,15 +38,11 @@ class MainMenu(Scene):
 
         self.engine.drawImage(self.background, scale = (w,h))        
         for i, button in enumerate(self.buttons):
-            self.engine.drawImage(button, position = (w*.18, h*(.5 - .1*i)))
+            self.engine.drawImage(button, position = (w*.18, h*(.5 - .1*i)),
+                                  color = (.5,1.0,1.0,.5))
 
             self.text.setText(self.commands[i]) 
             self.text.setPosition(w*.18, h*(.5-.1*i))
             self.text.scaleHeight(36.0)
             self.text.draw()
-
-        if self.engine.family:
-            self.infoFont.setPosition(w*.7, h*.9)
-            self.infoFont.setText(self.info[0] + self.engine.family.name)
-            self.infoFont.draw()
 

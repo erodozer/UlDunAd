@@ -82,9 +82,9 @@ class Viewport:
         self.visibility = []                    #visibility of the scenes
         self.inputObjects = []                  #list of images that can be clicked
         self.input = False                      #is the viewport in its mouse input cycle
-
+        
         self.transitionTime = 512.0             #time it takes to transition between scenes (milliseconds)
-
+        
         #creates an OpenGL Viewport
         glViewport(0, 0, resolution[0], resolution[1])
 
@@ -96,6 +96,7 @@ class Viewport:
             scene = WorldScenes.create(self.engine, scene)
             self.scenes.append(scene)
             self.visibility.append(0.0)
+            self.hasTransitioned = True
 
     #removes the passed scene
     def popScene(self, scene):
@@ -109,12 +110,30 @@ class Viewport:
         self.scenes.append(scene)
         self.visibility.append(0.0)
            
+    #this fades the screen in and out when the scenes are transitioning
+    def fadeScreen(self):
+        v = self.vis
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glEnable(GL_COLOR_MATERIAL)
+
+        glBegin(GL_QUADS)
+        glColor4f(0, 0, 0, .3 - v * .3)
+        glVertex2f(0, 0)
+        glColor4f(0, 0, 0, .3 - v * .3)
+        glVertex2f(self.resolution[0], 0)
+        glColor4f(0, 0, 0, .9 - v * .9)
+        glVertex2f(self.resolution[0], self.resolution[1])
+        glColor4f(0, 0, 0, .9 - v * .9)
+        glVertex2f(self.resolution[0], self.resolution[1])
+        glEnd()
+    
     #checks to see where the position of the mouse is over 
     #an object and if that object has been clicked
     def detect(self, scene):
-        glDisable(GL_TEXTURE_2D);
-        glDisable(GL_FOG);
-        glDisable(GL_LIGHTING);
+        glDisable(GL_TEXTURE_2D)
+        glDisable(GL_FOG)
+        glDisable(GL_LIGHTING)
 
         Scene.objInput = None
 
@@ -143,9 +162,9 @@ class Viewport:
 
     #renders a scene fully textured
     def render(self, scene, visibility):
-        glEnable(GL_TEXTURE_2D);
-        glEnable(GL_FOG);
-        glEnable(GL_LIGHTING);
+        glEnable(GL_TEXTURE_2D)
+        glEnable(GL_FOG)
+        glEnable(GL_LIGHTING)
 
         glScalef(self.resolution[0]/800.0,self.resolution[1]/600.0, 1.0)
 
@@ -181,7 +200,7 @@ class Viewport:
                 finally:
                     self.camera.resetProjection()       #resets the projection to have perspective
 
-
+            #self.fadeScreen()
         glFlush()
 
         #clears the clickable images at the end of each frame

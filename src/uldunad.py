@@ -22,6 +22,7 @@ import sysobj
 from sysobj import *
 
 import Input
+from Data import Data
 
 #for list files
 import glob
@@ -66,7 +67,7 @@ class Error(Scene):
         self.engine.drawImage(self.background)
         self.engine.drawText(self.font, self.text)
 
-class Main(object):
+class Main:
     def __init__(self, caption, flags):
 
         pygame.mixer.pre_init(44100)
@@ -83,9 +84,10 @@ class Main(object):
         self.w, self.h = resolution[0], resolution[1]
         sysobj.w, sysobj.h = resolution[0], resolution[1]
 
-        self.viewport.addScene("MainMenu")
-
         self.error = Error(self)
+        self.data = Data()
+
+        self.viewport.addScene("MainMenu")
 
         self.family = None      #your selected family and party
 

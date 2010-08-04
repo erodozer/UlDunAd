@@ -16,19 +16,17 @@ from Actor  import *
 import string
 import Input
 
-class CreateFamily(Scene):
+class CreateCharacter(Scene):
     def __init__(self, engine):
         self.engine = engine
 
         self.background = ImgObj(Texture("creation_background.png"))
         self.window = ImgObj(Texture("creation_window.png"))
-        self.button = ImgObj(self.engine.data.defaultButton, boundable = True, frameY = 2)
+        buttonTex = Texture("button.png")
+        self.button = self.engine.loadImage(buttonTex, boundable = True, frameY = 2)
         self.font   = FontObj("default.ttf")
 
-        self.difficulty = ["Easy", "Normal", "Hard"]
-        self.diffButton = [ImgObj(self.engine.data.defaultButton, boundable = True, frameY = 2) 
-                           for n in range(len(self.difficulty))]
-
+        self.classes = ["Easy", "Normal", "Hard"]
 
         #family info
         self.name = []          #name of the family
@@ -78,7 +76,7 @@ class CreateFamily(Scene):
 
     def renderNaming(self, visibility):
         w, h = self.engine.w, self.engine.h
-        self.engine.drawImage(self.window, position = (w/2, h/2), 
+        self.engine.drawImage(self.window, position = (w/2, h/2 - h*(.1*(1-visibility))), 
                               color = (1.0,1.0,1.0,visibility))
 
         if visibility >= 1.0:
