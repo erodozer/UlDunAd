@@ -1,3 +1,13 @@
+'''
+
+2010 Nicholas Hydock
+UlDunAd
+Ultimate Dungeon Adventure
+
+Licensed under the GNU General Public License V3
+     http://www.gnu.org/licenses/gpl.html
+
+'''
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -44,6 +54,7 @@ class ImgObj:
         # be used for assigning coordinates to quite quickly
         self.vtxArray = np.zeros((4,3), dtype=float32)
         self.texArray = np.zeros((4,2), dtype=float32)
+        self.indexArray = [0,1,2,3]
 
         self.createVerts()
         self.createTex()
@@ -180,7 +191,7 @@ class ImgObj:
 
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointerf(self.vtxArray)
-        glDrawArrays(GL_QUADS, 0, self.vtxArray.shape[0])
+        glDrawElements(GL_QUADS, len(self.indexArray), GL_UNSIGNED_BYTE, self.indexArray)
         glDisableClientState(GL_VERTEX_ARRAY)
 
         glPopMatrix()
@@ -199,7 +210,7 @@ class ImgObj:
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointerf(self.vtxArray)
         glTexCoordPointerf(self.texArray)
-        glDrawArrays(GL_QUADS, 0, self.vtxArray.shape[0])
+        glDrawElements(GL_QUADS, len(self.indexArray), GL_UNSIGNED_BYTE, self.indexArray)
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 

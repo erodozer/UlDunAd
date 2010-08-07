@@ -20,6 +20,8 @@ class MainMenu(Scene):
         self.buttons    = [ImgObj(self.engine.data.defaultButton, True, frameY = 2)
                            for n in range(len(self.commands))]
         self.background = ImgObj(Texture("title.png"))
+        
+        self.window     = WinObj(Texture("window.png"), 300, 128)
 
         self.music = BGMObj("test.mp3")
         
@@ -39,10 +41,12 @@ class MainMenu(Scene):
         self.engine.drawImage(self.background, scale = (w,h))        
         for i, button in enumerate(self.buttons):
             self.engine.drawImage(button, position = (w*.18, h*(.5 - .1*i)),
-                                  color = (.5,1.0,1.0,.5))
+                                  color = (.5,1.0,1.0,.2))
 
             self.text.setText(self.commands[i]) 
             self.text.setPosition(w*.18, h*(.5-.1*i))
             self.text.scaleHeight(36.0)
             self.text.draw()
+        self.window.setPosition(w*.5, h*.5)
+        self.window.draw()
 
