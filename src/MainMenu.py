@@ -12,6 +12,8 @@ Licensed under the GNU General Public License V3
 from sysobj import *
 from View import *
 
+import Input
+
 class MainMenu(Scene):
     def __init__(self, engine):
         self.engine = engine
@@ -22,7 +24,8 @@ class MainMenu(Scene):
         self.background = ImgObj(Texture("title.png"))
         
         self.window     = WinObj(Texture("window.png"), 300, 128)
-
+        self.size       = 0
+        
         self.music = BGMObj("test.mp3")
         
     def run(self):
@@ -34,6 +37,13 @@ class MainMenu(Scene):
             for b in self.buttons:
                 b.setFrame(y = 1)
             
+        for key, char in Input.getKeyPresses():
+            if key == K_SPACE:
+                if self.size < 4:
+                    self.size += 1
+                else:
+                    self.size = 0
+                print self.size
             
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
@@ -47,6 +57,17 @@ class MainMenu(Scene):
             self.text.setPosition(w*.18, h*(.5-.1*i))
             self.text.scaleHeight(36.0)
             self.text.draw()
+            
         self.window.setPosition(w*.5, h*.5)
+        if self.size == 1:
+            self.window.setDimensions(500, 320)
+        elif self.size == 2:
+            self.window.setDimensions(200, 200)
+        elif self.size == 3:
+            self.window.setDimensions(128, 450)
+        elif self.size == 4:
+            self.window.setDimensions(700, 500)
+        else:
+            self.window.setDimensions(300, 128)
         self.window.draw()
 

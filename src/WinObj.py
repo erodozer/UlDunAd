@@ -25,12 +25,13 @@ class WinObj:
         self.texture = texture
         
         #attributes
-        self.scale       = (width, height)          #image bounds (width, height)
+        self.scale       = [width, height]          #image bounds (width, height)
         self.position    = (0,0)                    #where in the window it should render
         self.angle       = 0                        #angle which the image is drawn
         self.color       = [1.0,1.0,1.0,1.0]        #colour of the image RGBA (0 - 1.0)
         
         self.pixelSize   = self.texture.pixelSize   #the actual size of the image in pixels
+        self.transitionf = (0.0, 0.0)
 
         self.createArrays()
 
@@ -101,13 +102,23 @@ class WinObj:
         self.position = (x, y)
 
     #changes the size of the image and scales the surface
-    def setScale(self, width, height):
-        if not self.scale == (width, height):
-            if (width >= 0 and width <= 1) and (height >= 0 and height <= 1):
-                self.scale = (width*800,height*600)
+    def setDimensions(self, width, height):
+        self.scale = list(self.scale)
+        if (width >= 0 and width <= 1) and (height >= 0 and height <= 1):
+            width *= 800
+            height *= 600
+
+        if not (self.scale[0] == width and  self.scale[1] == height):
+            if width >= self.scale[0]:
+                self.scale[0] = min(self.scale[0] + width/64.0, width)
             else:
-                self.scale = (float(width), float(height))
-        
+                self.scale[0] = max(self.scale[0] - width/64.0, width)
+            
+            if height >= self.scale[1]:
+                self.scale[1] = min(self.scale[1] + height/64.0, height)
+            else:
+                self.scale[1] = max(self.scale[1] - height/64.0, height)
+
             self.createVerts()
         
     #rotates the image to the angle
@@ -127,7 +138,9 @@ class WinObj:
     def draw(self):
         glPushMatrix()
 
-        glTranslatef(self.position[0], self.position[1],-.1)
+        glLoadIdentity()
+
+        glTranslatef(self.position[0] - self.scale[0]/2.0, self.position[1]-self.scale[1]/2.0,-.1)
         glRotatef(self.angle, 0, 0, 1)
         glColor4f(*self.color)
         self.texture.bind()
