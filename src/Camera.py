@@ -35,6 +35,13 @@ class Camera:
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
 
+        glShadeModel(GL_SMOOTH)
+        glClearColor(0.0, 0.0, 0.0, 0.0)
+        glClearDepth(1.0)
+        glEnable(GL_DEPTH_TEST)
+        glDepthFunc(GL_LEQUAL)
+#        glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+
     #creates an orthographic projection
     def setOrthoProjection(self):
         glMatrixMode(GL_PROJECTION)

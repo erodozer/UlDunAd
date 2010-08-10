@@ -134,32 +134,18 @@ class Viewport:
         glDisable(GL_TEXTURE_2D)
         glDisable(GL_FOG)
         glDisable(GL_LIGHTING)
-
-        Scene.objInput = None
-
-        #only objects that are boundable will be rendered again
-        for image in self.inputObjects:
-            image.drawBoundingBox()
-
-        x,y = pygame.mouse.get_pos()
-        mouseEvent = pygame.mouse.get_pressed()
         
-        if mouseEvent[0] == True:
+        mouse = pygame.mouse
+        mouseEvent = mouse.get_pressed()
+
+        Scene.objInput = None  
 	    #ONLY DO THIS IF MOUSE CLICKED
-            #finds the color of the pixel the cursor is over,
-            #if it is over an image it should return the image's color ID
-            pixels = glReadPixelsub(x, self.resolution[1] - y, 1, 1, GL_RGB)
-
-            #checks each of the images
+        if mouseEvent[0]:
+            #only objects that are boundable will be rendered again
             for image in self.inputObjects:
-                pick_color = image.pick_color.tolist()
-
-                if (pick_color[0] == pixels[0][0][0] and \
-                    pick_color[1] == pixels[0][0][1] and \
-                    pick_color[2] == pixels[0][0][2]):
-                        #print pick_color
-                        Scene.objInput = image
-
+                if image.isColliding(mouse):
+                    Scene.objInput = image
+        
     #renders a scene fully textured
     def render(self, scene, visibility):
         glEnable(GL_TEXTURE_2D)
@@ -199,9 +185,6 @@ class Viewport:
                         self.detect(scene)              #checks to see if any object on the back buffer has been clicked
                 finally:
                     self.camera.resetProjection()       #resets the projection to have perspective
-
-            #self.fadeScreen()
-        glFlush()
 
         #clears the clickable images at the end of each frame
         self.imageObjects = []

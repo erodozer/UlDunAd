@@ -21,10 +21,6 @@ from math import *
 
 #an Image Object for rendering and collision detection (mouse)
 class ImgObj:
-    #each ImgObj has an ID that is also the color of its bounding box
-    #an array object was used to constrain each item to an unsigned byte
-    gColorID = array.array('B',[1,0,0])
-
     def __init__(self, texture, boundable = False, frameX = 1, frameY = 1):
         self.texture = texture
 
@@ -44,9 +40,12 @@ class ImgObj:
                                                     #the actual size of the image in pixels
 
         self.isBoundable = boundable                #is the picture one that can be read for mouse detection
-        self.createColorID()
+        self.bounds  = (0.0, 1.0, 0.0, 1.0)         #the bounds of the picture
+        self.tBounds = []
 
         self.createArrays()
+        
+        self.transformed = False                    #did the image's attributes change
 
     #sets up the vertex and texture array coordinates
     def createArrays(self):
@@ -91,22 +90,11 @@ class ImgObj:
         texArray[2,0] = rect[2]; texArray[2,1] = rect[3]
         texArray[3,0] = rect[0]; texArray[3,1] = rect[3]
 
-    #gives the image a color ID for mouse detection
-    def createColorID(self):
-        #this crap needs to be done so that the pick_color isn't actually linked to the ImgObj color ID
-        self.pick_color = array.array('B',ImgObj.gColorID)
-
-	    #if after adding, the value is 0, it rolled over, so add 1 to the next item.
-	    #made possible by unsigned bytes (^o^)
-        ImgObj.gColorID[0] += 1;
-        if(ImgObj.gColorID[0] == 0):
-            ImgObj.gColorID[1] += 1
-            if(ImgObj.gColorID[1] == 0):
-                 ImgObj.gColorID[2] += 1
-
     #changes the position of the image to x, y
     def setPosition(self, x, y):
-        self.position = (x, y)
+        if not self.position == (x, y):
+            self.position = (x, y)
+            self.transformed = True
 
     #=====IS NOT FUNCTIONING PROPERLY=====
     #moves the image from its current position by x and y
@@ -120,9 +108,13 @@ class ImgObj:
     #changes the size of the image and scales the surface
     def setScale(self, width, height):
         if (width >= 0 and width <= 1) and (height >= 0 and height <= 1):
+            if not self.scale == (width, height):
                 self.scale = (width,height)
+                self.transformed = True
         else:
-            self.scale = (float(width)/float(self.pixelSize[0]), float(height)/float(self.pixelSize[1]))
+            if not self.scale == (float(width)/float(self.pixelSize[0]), float(height)/float(self.pixelSize[1])):
+                self.scale = (float(width)/float(self.pixelSize[0]), float(height)/float(self.pixelSize[1]))
+                self.transformed = True
 
     #scales the image size by only the width
     # if keep_aspect_ratio is true it will scale the height
@@ -131,7 +123,9 @@ class ImgObj:
         height = self.scale[1]
         if keep_aspect_ratio:
             height = self.scale[1] * (width/self.pixelSize[0])
-        self.scale = (width/self.pixelSize[0], height)
+        if not self.scale == (width/self.pixelSize[0], height):
+            self.scale = (width/self.pixelSize[0], height)
+            self.transformed = True
 
     #same as scaleWidth except that the value passed
     #is the height of the image instead of the width
@@ -139,15 +133,21 @@ class ImgObj:
         width = self.scale[0]
         if keep_aspect_ratio:
             width = self.scale[0] * (height/self.pixelSize[1])
-        self.scale = (width, height/self.pixelSize[1])
-        
+        if not self.scale == (width, height/self.pixelSize[1]):
+            self.scale = (width, height/self.pixelSize[1])
+            self.transformed = True
+            
     #rotates the image to the angle
     def setAngle(self, angle):
-        self.angle = angle
+        if not self.angle == angle:
+            self.angle = angle
+            self.transformed = True
 
     #rotates the image
     def rotate(self, angle):
-        self.angle += angle
+        if not self.angle == (self.angle + angle):
+            self.angle += angle
+            self.transformed = True
         
     #sets the colour of the image (RGBA 0.0 -> 1.0)
     def setColor(self, color):
@@ -176,34 +176,56 @@ class ImgObj:
         self.rect = rect
         self.createTex()
 
-    #draws bounding box
-    # when this is called the textures are disabled 
-    # and only the color id of the image should be
-    # applied to the plane
-    def drawBoundingBox(self):
-        glPushMatrix()
-
-        glTranslatef(self.position[0], self.position[1],-.1)
-        glScalef(self.scale[0], -self.scale[1], 1.0)
-        glRotatef(self.angle, 0, 0, 1)
-
-        glColor3ub(*self.pick_color)
-
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glVertexPointerf(self.vtxArray)
-        glDrawElements(GL_QUADS, len(self.indexArray), GL_UNSIGNED_BYTE, self.indexArray)
-        glDisableClientState(GL_VERTEX_ARRAY)
-
-        glPopMatrix()
-
+    def isColliding(self, mouse):
+        mousex, mousey = mouse.get_pos()
+        print mousex, mousey
+        
+        x = [self.tBounds[i][0] for i in range(len(self.tBounds))]
+        y = [self.tBounds[i][1] for i in range(len(self.tBounds))]
+                
+        print x,y
+        ax = x[0] - x[2]
+        bx = x[1] - x[3]
+        ay = y[0] - y[2]
+        by = y[1] - y[3]
+                
+        #if true, us a, else use b
+        largestx = bool(abs(ax) == max(abs(ax), abs(bx)))
+        largesty = bool(abs(ay) == max(abs(ay), abs(by)))
+                
+        if largestx:
+            x1 = min(x[0], x[2])
+            x2 = max(x[0], x[2])
+            y1 = min(y[1], y[3])
+            y2 = max(y[1], y[3])
+        else:
+            x1 = min(x[1], x[3])
+            x2 = max(x[1], x[3])
+            y1 = min(y[0], y[2])
+            y2 = max(y[0], y[2])
+                    
+        print x1, x2, y1, y2
+        
+        if (mousex >= x1 and mousex <= x2) and \
+           (mousey >= y1 and mousey <= y2):
+            return True
+            
+        return False
+    
+    
     #finally draws the image to the screen
     def draw(self):
+
         glPushMatrix()
+
+        glColor4f(*self.color)
 
         glTranslatef(self.position[0], self.position[1],-.1)
         glScalef(self.scale[0], self.scale[1], 1.0)
         glRotatef(self.angle, 0, 0, 1)
-        glColor4f(*self.color)
+        
+        self.tBounds = [gluProject(coord[0], coord[1], 0) for coord in self.vtxArray]
+        
         self.texture.bind()
 
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
@@ -215,3 +237,4 @@ class ImgObj:
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 
         glPopMatrix()
+

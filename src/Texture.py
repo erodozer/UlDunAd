@@ -33,6 +33,10 @@ class Texture:
         
         self.finalSurface = self.makePOT()
         self.textureData = pygame.image.tostring(self.finalSurface, "RGBA", 1)
+
+        self.bind()
+        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, self.finalSurface.get_width(), self.finalSurface.get_height(),
+                      0, GL_RGBA, GL_UNSIGNED_BYTE, self.textureData)
         
     #makes sure the texture is a power of two for compatibilies sake
     def makePOT(self):
@@ -49,19 +53,9 @@ class Texture:
     def bind(self):
 
         glBindTexture(GL_TEXTURE_2D, self.id)
-        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, self.finalSurface.get_width(), self.finalSurface.get_height(),
-                      0, GL_RGBA, GL_UNSIGNED_BYTE, self.textureData)
+        
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-
-        #glScale(self.textureSurface.get_width(), self.textureSurface.get_height(), 1)
-        
-        glShadeModel(GL_SMOOTH)
-        glClearColor(0.0, 0.0, 0.0, 0.0)
-        glClearDepth(1.0)
-        glEnable(GL_DEPTH_TEST)
-        glDepthFunc(GL_LEQUAL)
-        glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
 
     #deletes the OpenGL texture
     def __del__(self):

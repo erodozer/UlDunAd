@@ -185,5 +185,3 @@ class Main:
 game = Main(caption, video_flags)
 while not finished:
     game.run()
-
-

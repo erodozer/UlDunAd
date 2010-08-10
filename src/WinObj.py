@@ -31,7 +31,7 @@ class WinObj:
         self.color       = [1.0,1.0,1.0,1.0]        #colour of the image RGBA (0 - 1.0)
         
         self.pixelSize   = self.texture.pixelSize   #the actual size of the image in pixels
-        self.transitionf = (0.0, 0.0)
+        self.transitionTime = 32.0                  #time it takes to change the size of the window
 
         self.createArrays()
 
@@ -109,15 +109,16 @@ class WinObj:
             height *= 600
 
         if not (self.scale[0] == width and  self.scale[1] == height):
+            tT = self.transitionTime
             if width >= self.scale[0]:
-                self.scale[0] = min(self.scale[0] + width/64.0, width)
+                self.scale[0] = min(self.scale[0] + width/tT, width)
             else:
-                self.scale[0] = max(self.scale[0] - width/64.0, width)
+                self.scale[0] = max(self.scale[0] - width/tT, width)
             
             if height >= self.scale[1]:
-                self.scale[1] = min(self.scale[1] + height/64.0, height)
+                self.scale[1] = min(self.scale[1] + height/tT, height)
             else:
-                self.scale[1] = max(self.scale[1] - height/64.0, height)
+                self.scale[1] = max(self.scale[1] - height/tT, height)
 
             self.createVerts()
         
@@ -137,8 +138,6 @@ class WinObj:
     #finally draws the image to the screen
     def draw(self):
         glPushMatrix()
-
-        glLoadIdentity()
 
         glTranslatef(self.position[0] - self.scale[0]/2.0, self.position[1]-self.scale[1]/2.0,-.1)
         glRotatef(self.angle, 0, 0, 1)
