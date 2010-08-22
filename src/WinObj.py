@@ -31,8 +31,13 @@ class WinObj:
         self.color       = [1.0,1.0,1.0,1.0]        #colour of the image RGBA (0 - 1.0)
         
         self.pixelSize   = self.texture.pixelSize   #the actual size of the image in pixels
+        self.currentFrame = 0
         self.transitionTime = 32.0                  #time it takes to change the size of the window
 
+        #these are for calculating the smooth transitional scaling
+        self.xAdd = None
+        self.yAdd = None
+        
         self.createArrays()
 
     #sets up the vertex and texture array coordinates
@@ -66,9 +71,6 @@ class WinObj:
         #top left, top right, bottom right, bottom left
 
         #vertices
-        # by using these numbers pictures are now moved by the center
-        # coordinate instead of the top left.  I, personally, find it
-        # easier to use.
         boarder = 32
         
         xcoord = [0, boarder, self.scale[0] - boarder, self.scale[0]]
@@ -101,27 +103,35 @@ class WinObj:
     def setPosition(self, x, y):
         self.position = (x, y)
 
+    def getRates(self, width, height):
+        self.currentFrame = 0
+        self.xAdd = (width - self.scale[0])/self.transitionTime
+        self.yAdd = (height - self.scale[1])/self.transitionTime
+        print self.xAdd, self.yAdd
+        
     #changes the size of the image and scales the surface
     def setDimensions(self, width, height):
-        self.scale = list(self.scale)
-        if (width >= 0 and width <= 1) and (height >= 0 and height <= 1):
-            width *= 800
-            height *= 600
-
-        if not (self.scale[0] == width and  self.scale[1] == height):
-            tT = self.transitionTime
-            if width >= self.scale[0]:
-                self.scale[0] = min(self.scale[0] + width/tT, width)
-            else:
-                self.scale[0] = max(self.scale[0] - width/tT, width)
-            
-            if height >= self.scale[1]:
-                self.scale[1] = min(self.scale[1] + height/tT, height)
-            else:
-                self.scale[1] = max(self.scale[1] - height/tT, height)
-
-            self.createVerts()
+        if self.scale == [width, height]:
+            self.xAdd = None
+            self.yAdd = None
+            return
         
+        self.scale = list(self.scale)
+        if self.xAdd == None and self.yAdd == None:
+            self.getRates(width, height)
+            print "Rates made"
+
+        if self.currentFrame <= self.transitionTime:
+            self.scale[0] += self.xAdd
+            self.scale[1] += self.yAdd
+            self.currentFrame += 1
+        else:
+            self.scale = [width, height]
+
+        self.createVerts()
+        
+        print self.scale
+                
     #rotates the image to the angle
     def setAngle(self, angle):
         self.angle = angle
