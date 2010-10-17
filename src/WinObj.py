@@ -107,7 +107,6 @@ class WinObj:
         self.currentFrame = 0
         self.xAdd = (width - self.scale[0])/self.transitionTime
         self.yAdd = (height - self.scale[1])/self.transitionTime
-        print self.xAdd, self.yAdd
         
     #changes the size of the image and scales the surface
     def setDimensions(self, width, height):
@@ -119,7 +118,6 @@ class WinObj:
         self.scale = list(self.scale)
         if self.xAdd == None and self.yAdd == None:
             self.getRates(width, height)
-            print "Rates made"
 
         if self.currentFrame <= self.transitionTime:
             self.scale[0] += self.xAdd
@@ -130,8 +128,6 @@ class WinObj:
 
         self.createVerts()
         
-        print self.scale
-                
     #rotates the image to the angle
     def setAngle(self, angle):
         self.angle = angle
