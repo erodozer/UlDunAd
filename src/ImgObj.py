@@ -19,6 +19,10 @@ import array
 
 from math import *
 
+LEFT   = 0
+CENTER = 1
+RIGHT  = 2
+
 #an Image Object for rendering and collision detection (mouse)
 class ImgObj:
     def __init__(self, texture, boundable = False, frameX = 1, frameY = 1):
@@ -34,10 +38,13 @@ class ImgObj:
                                                     #the size of each cell when divided into frames
         self.rect        = (0.0,0.0,self.frameSize[0],self.frameSize[1])
                                                     #left, top, right, bottom, crops the texture
-
+        self.alignment  = CENTER                   #alignment of the vertices for placement
         self.pixelSize   = (self.texture.pixelSize[0]/frameX,
                             self.texture.pixelSize[1]/frameY)   
                                                     #the actual size of the image in pixels
+                                                    
+        self.width, self.height = self.pixelSize    #the width and height after transformations
+                                                    # are taken into account
 
         self.isBoundable = boundable                #is the picture one that can be read for mouse detection
         self.bounds  = (0.0, 1.0, 0.0, 1.0)         #the bounds of the picture
@@ -69,7 +76,7 @@ class ImgObj:
         # coordinate instead of the top left.  I, personally, find it
         # easier to use.
         halfPS = (float(self.pixelSize[0])/2.0, float(self.pixelSize[1])/2.0)
-       
+
         vtxArray[0,0] = -halfPS[0]; vtxArray[0,1] =  halfPS[1]
         vtxArray[1,0] =  halfPS[0]; vtxArray[1,1] =  halfPS[1]
         vtxArray[2,0] =  halfPS[0]; vtxArray[2,1] = -halfPS[1]
@@ -111,10 +118,14 @@ class ImgObj:
             if not self.scale == (width, height):
                 self.scale = (width,height)
                 self.transformed = True
+                self.width = self.scale[0] * self.pixelSize[0]
+                self.height = self.scale[1] * self.pixelSize[1]
         else:
             if not self.scale == (float(width)/float(self.pixelSize[0]), float(height)/float(self.pixelSize[1])):
                 self.scale = (float(width)/float(self.pixelSize[0]), float(height)/float(self.pixelSize[1]))
                 self.transformed = True
+                self.width = width
+                self.height = height
 
     #scales the image size by only the width
     # if keep_aspect_ratio is true it will scale the height
@@ -126,6 +137,7 @@ class ImgObj:
         if not self.scale == (width/self.pixelSize[0], height):
             self.scale = (width/self.pixelSize[0], height)
             self.transformed = True
+            self.width = width
 
     #same as scaleWidth except that the value passed
     #is the height of the image instead of the width
@@ -136,6 +148,7 @@ class ImgObj:
         if not self.scale == (width, height/self.pixelSize[1]):
             self.scale = (width, height/self.pixelSize[1])
             self.transformed = True
+            self.height = height
             
     #rotates the image to the angle
     def setAngle(self, angle):
@@ -175,15 +188,18 @@ class ImgObj:
     def setRect(self, rect):
         self.rect = rect
         self.createTex()
+        
+    def setAlignment(self, alignment):
+        alignment = alignment.upper()
+        self.alignment = eval(alignment)
 
     def isColliding(self, mouse):
         mousex, mousey = mouse.get_pos()
-        print mousex, mousey
+        #print mousex, mousey
         
         x = [self.tBounds[i][0] for i in range(len(self.tBounds))]
         y = [self.tBounds[i][1] for i in range(len(self.tBounds))]
                 
-        print x,y
         ax = x[0] - x[2]
         bx = x[1] - x[3]
         ay = y[0] - y[2]
@@ -191,7 +207,6 @@ class ImgObj:
                 
         #if true, us a, else use b
         largestx = bool(abs(ax) == max(abs(ax), abs(bx)))
-        largesty = bool(abs(ay) == max(abs(ay), abs(by)))
                 
         if largestx:
             x1 = min(x[0], x[2])
@@ -220,11 +235,19 @@ class ImgObj:
 
         glColor4f(*self.color)
 
-        glTranslatef(self.position[0], self.position[1],-.1)
+        x = self.position[0]
+        if self.alignment == 0:
+            x += float(self.pixelSize[0])/2.0
+        elif self.alignment == 2:
+            x -= float(self.pixelSize[0])/2.0
+        glTranslatef(x, self.position[1], -.1)
+            
         glScalef(self.scale[0], self.scale[1], 1.0)
         glRotatef(self.angle, 0, 0, 1)
         
-        self.tBounds = [gluProject(coord[0], coord[1], 0) for coord in self.vtxArray]
+        if self.transformed:
+            self.tBounds = [gluProject(coord[0], coord[1], 0) for coord in self.vtxArray]
+            self.transformed = False
         
         self.texture.bind()
 
