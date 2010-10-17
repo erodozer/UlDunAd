@@ -74,17 +74,15 @@ class Main:
 
         pygame.init()
 
-        pygame.display.set_mode(resolution, video_flags)
-        self.viewport = Viewport(self, resolution)
-     
         os.environ['SDL_VIDEO_WINDOW_POS'] = 'center'   #centers the window in the middle of your screen
 
-        self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode(resolution, flags)
+        self.viewport = Viewport(self, resolution)
+     
+        self.clock = pygame.time.Clock()
         self.w, self.h = resolution[0], resolution[1]
         sysobj.w, sysobj.h = resolution[0], resolution[1]
 
-        self.error = Error(self)
         self.data = Data()
 
         self.viewport.addScene("MainMenu")
@@ -166,7 +164,7 @@ class Main:
         font.draw()
 
  
-    def listpath(self, path, value = ".ini", flag = None):
+    def listPath(self, path, value = ".ini", flag = None):
         items = []
         path = os.path.join("..", path)
         if flag == "filename":
