@@ -12,51 +12,50 @@ Licensed under the GNU General Public License V3
 from sysobj import *
 from View import *
 
-import Input
+from MenuObj import MenuObj
 
 class MainMenu(Scene):
     def __init__(self, engine):
         self.engine = engine
-        self.text       = FontObj(self.engine.data.defaultFont)
-        self.commands   = ["New Game", "Continue", "Exit"]
-        self.buttons    = [ImgObj(self.engine.data.defaultButton, True, frameY = 2)
-                           for n in range(len(self.commands))]
-        self.background = ImgObj(Texture("title.png"))
+        self.menu       = MenuObj(self, commands = ["New Game", "Continue", "Exit"], 
+                                  position = (150, 75), horizontal = True)
+        self.background = ImgObj(Texture("mainbg.png"))
         
         self.window     = WinObj(Texture("window.png"), 300, 128)
         self.size       = 0
         
         self.music = BGMObj("test.mp3")
         
+        self.selected = 0
+        
+    def buttonClicked(self, image):
+        self.menu.buttonClicked(image)
+                
+    def keyPressed(self, key, char):
+        if key == K_SPACE:
+            if self.size < 4:
+                self.size += 1
+            else:
+                self.size = 0
+            print self.size
+            
+        self.menu.keyPressed(key)
+        
+    def select(self, index):
+        if index == 0:
+            self.engine.viewport.changeScene("CreateFamily")
+        elif index == 1:
+            self.engine.viewport.changeScene("FamilyList")
+        
     def run(self):
-        if (Scene.objInput in self.buttons):
-            Scene.objInput.setFrame(y = 2)
-            if Scene.objInput == self.buttons[0]:
-                self.engine.viewport.changeScene("CreateFamily")
-        else:
-            for b in self.buttons:
-                b.setFrame(y = 1)
-            
-        for key, char in Input.getKeyPresses():
-            if key == K_SPACE:
-                if self.size < 4:
-                    self.size += 1
-                else:
-                    self.size = 0
-                print self.size
-            
+        pass
+        
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
 
         self.engine.drawImage(self.background, scale = (w,h))        
-        for i, button in enumerate(self.buttons):
-            self.engine.drawImage(button, position = (w*.18, h*(.5 - .1*i)),
-                                  color = (.5,1.0,1.0,.2))
-
-            self.text.setText(self.commands[i]) 
-            self.text.setPosition(w*.18, h*(.5-.1*i))
-            self.text.scaleHeight(36.0)
-            self.text.draw()
+        
+        self.menu.render(visibility)
             
         self.window.setPosition(w*.5, h*.5)
         if self.size == 1:
@@ -69,5 +68,6 @@ class MainMenu(Scene):
             self.window.setDimensions(700, 500)
         else:
             self.window.setDimensions(300, 128)
+        self.window.setColor((1.0,1.0,1.0,.4))
         self.window.draw()
 
