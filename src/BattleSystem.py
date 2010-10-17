@@ -26,8 +26,8 @@ class BattleHUDCharacter:
         #these are for drawing the HP and FP bars
         self.bartex = Texture("bars.png")
         self.bar    = ImgObj(self.bartex, frameY = 2)
-        self.barHP  = *self.bar
-        self.barFP  = *self.bar
+        self.barHP  = ImgObj(self.bartex, frameY = 1)
+        self.barFP  = ImgObj(self.bartex, frameY = 1)
 
         self.bar.setAlignment("left")
         self.bar.setPosition(200 + self.x, self.y + 5)
