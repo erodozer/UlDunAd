@@ -14,7 +14,6 @@ from View   import *
 from Actor  import *
 
 import string
-import Input
 
 class CreateFamily(Scene):
     def __init__(self, engine):
@@ -29,7 +28,6 @@ class CreateFamily(Scene):
         self.diffButton = [ImgObj(self.engine.data.defaultButton, boundable = True, frameY = 2) 
                            for n in range(len(self.difficulty))]
 
-
         #family info
         self.name = []          #name of the family
         self.diffselected = 1   #the difficulty selected (match up number with position in difficulty array
@@ -40,10 +38,20 @@ class CreateFamily(Scene):
         self.error = False      #was an error thrown
         self.step = 0           #step 0 = naming, step 1 = choose difficulty
 
-        Input.resetKeyPresses()
-
-    def run(self):
-        for key, char in Input.getKeyPresses():
+    def buttonClicked(self, image):
+        if image == self.button:
+            image.setFrame(y = 2)
+            self.next()
+            
+        for i, button in enumerate(self.diffButton):
+            button.setFrame(y = 1)
+            if image == button:
+                button.setFrame(y = 2)
+                self.diffselected = i
+                self.next()
+            
+    def keyPressed(self, key, char):
+        if self.step == 0:
             #name is a maximum of 13 letters
             if len(self.name) < 13:
                 if (char >= 'a' and char <= 'z') or (char >= 'A' and char <= 'Z'):
@@ -52,24 +60,33 @@ class CreateFamily(Scene):
                     if key == K_SPACE:
                         self.name.append(" ")
 
-            #can only delete letters if there are some to delete
             if len(self.name) > 0:
+                #can only delete letters if there are some to delete
                 if key == K_BACKSPACE:
                     self.name.pop(-1)
-
-
-        self.button.setFrame(y = 1)
-        if Scene.objInput == self.button:
-            self.button.setFrame(y = 2)
-            self.next()
-        for i, button in enumerate(self.diffButton):
-            button.setFrame(y = 1)
-            if Scene.objInput == button:
-                button.setFrame(y = 2)
-                self.diffselected = i
-                self.next()
+                if key == K_RETURN:
+                    self.next()
+        elif self.step == 1:
+            if key == K_RETURN:
+                self.select()
             
-
+        if key == K_DOWN:
+            if self.selected < len(self.commands):
+                self.selected += 1
+            else:
+                self.selected = 0
+                
+        elif key == K_UP:
+            if self.selected > 0:
+                self.selected -= 1
+            else:
+                self.selected = len(self.commands) - 1
+            
+                
+                    
+    def run(self):
+        pass
+        
     def next(self):
         if self.step == 0 and not self.name:
             self.error = True
