@@ -56,8 +56,8 @@ class Character:
     #should be enough that you don't get bored by being over powered too easily
     exp = [int(8.938*x**2.835) for x in range(_LevelMax)]
     
-    def __init__(self, name):
-        playerini = Configuration(os.path.join("..", "data", "actors", "characters", name + ".ini")).character
+    def __init__(self, family, name):
+        playerini = Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini")).character
         self.job  = Job(playerini.__getattr__("job"))
 
         self.level      = playerini.__getattr__("level", int)
@@ -174,13 +174,18 @@ class Family:
         if not name:
             return
 
-        familyini = Configuration(os.path.join("..", "data", "actors", "families", name + ".ini")).family
+        path = os.path.join("data", "actors", "families", name)
+        familyini = Configuration(os.path.join("..", path, "family.ini")).family
 
         #family's last name, all members of the family will have this last name
         self.name = name
 
-        #all the members in your party (max of 7)
-        self.members = familyini.__getattr__("members").split("|")[0:7]
+        #all the members in your party
+        path = os.path.join("..", path)
+        self.members = [Character(name, n.replace(".ini", "")) 
+                        for n in glob.glob(os.path.join(path, "*." + value))]
+        
+        return items
 
         #the party used in battle is the first 3 members you have ordered
         if len(self.members) >= 3:
@@ -218,7 +223,6 @@ class Family:
         familyini.__setattr__("difficulty", self.difficulty)
         familyini.__setattr__("gold",       self.gold)
         familyini.__setattr__("inventory",  string.join(self.inventory, ","))
-        familyini.__setattr__("members",    string.join(self.members, "|"))
 
         familyini.save()
 
