@@ -19,10 +19,10 @@ from math import *
 
 import WorldScenes
 
+import Input
+
 #basic template of what a scene may contain
 class Scene:
-    objInput = None     #this is used as the object holder for input
-
     #creation of the scene takes place in here
     # All images, sounds, fonts, and scene specific variables
     # should be initialized here, not later in the process or 
@@ -30,6 +30,14 @@ class Scene:
     def __init__(self):
         pass
 
+    #if an image is clicked this should determine what should happen
+    def buttonClicked(self, image):
+        pass
+        
+    #if a key is pressed, what happens is controlled in this method
+    def keyPressed(self, key, char):
+        pass
+        
     #anything that is 3d should be rendered in this method
     def render3D(self):
         pass
@@ -53,10 +61,10 @@ class TestScene(Scene):
         self.image  = ImgObj(self.textTex, True)
         self.image2 = ImgObj(self.textTex, True)
         
-    def run(self):
-        if (Scene.objInput == self.image2):
+    def buttonPressed(self, image):
+        if image == self.image2:
             print 1
-            
+    
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
         
@@ -91,6 +99,7 @@ class Viewport:
     #changes the topmost scene (the one that is being rendered) with a new one
     def changeScene(self, scene):
         if scene not in self.scenes:
+            Input.resetKeyPresses()
             self.scenes.pop(-1)
             self.visibility.pop(-1)
             scene = WorldScenes.create(self.engine, scene)
@@ -101,11 +110,13 @@ class Viewport:
     #removes the passed scene
     def popScene(self, scene):
         if scene in self.scenes:
+            Input.resetKeyPresses()
             self.visibility.pop(self.scenes.index(scene))
             self.scenes.remove(scene)
 
     #adds the passed scene
     def addScene(self, scene):
+        Input.resetKeyPresses()
         scene = WorldScenes.create(self.engine, scene)
         self.scenes.append(scene)
         self.visibility.append(0.0)
@@ -131,20 +142,23 @@ class Viewport:
     #checks to see where the position of the mouse is over 
     #an object and if that object has been clicked
     def detect(self, scene):
-        glDisable(GL_TEXTURE_2D)
-        glDisable(GL_FOG)
-        glDisable(GL_LIGHTING)
-        
+
         mouse = pygame.mouse
         mouseEvent = mouse.get_pressed()
 
-        Scene.objInput = None  
+        for key, char in Input.getKeyPresses():
+            scene.keyPressed(key, char)
+
 	    #ONLY DO THIS IF MOUSE CLICKED
         if mouseEvent[0]:
-            #only objects that are boundable will be rendered again
+            x, y = mouse.get_pos()
+            
             for image in self.inputObjects:
-                if image.isColliding(mouse):
-                    Scene.objInput = image
+                scene.buttonClicked(image)
+                
+            hits = glRenderMode(GL_RENDER)
+            if hits > 0:
+                print hits
         
     #renders a scene fully textured
     def render(self, scene, visibility):
