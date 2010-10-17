@@ -22,6 +22,10 @@ from numpy import array, float32
 
 from Texture import Texture
 
+LEFT   = 0
+CENTER = 1
+RIGHT  = 2
+
 #creates a texture from a font and string
 # it's an extension of the ImgObj class just so I can 
 # save on lines of code for the various attribute
@@ -37,7 +41,7 @@ class FontObj:
         self.angle     = 0                      #angle which the image is drawn
         self.color     = (1.0,1.0,1.0,1.0)      #colour of the image
         self.rect      = (0.0,0.0,1.0,1.0)      #left, top, right, bottom, crops the texture
-        self.alignment = "center"               #alignment of the text (left, center, right)
+        self.alignment = 1                      #alignment of the text (left, center , right)
 
         self.setText(text)                      #it is not necessary to enter a string upon initialization, 
                                                 #but it is upon time of rendering
@@ -103,8 +107,9 @@ class FontObj:
         self.createArrays()
 
     def setAlignment(self, alignment):
-        self.alignment = alignment.lower()
-
+        alignment = alignment.upper()
+        self.alignment = eval(alignment)
+        
     #changes the position of the image to x, y
     def setPosition(self, x, y):
         self.position = (x, y)
@@ -149,10 +154,13 @@ class FontObj:
     def draw(self):
         glPushMatrix()
 
-        if self.alignment == "right":
-            x = self.position[0] - self.pixelSize[0]
-        else:
-            x = self.position[0]
+
+        x = self.position[0]
+        if self.alignment == 0:
+            x += float(self.pixelSize[0])/2.0
+        elif self.alignment == 2:
+            x -= float(self.pixelSize[0])/2.0
+
         glTranslatef(x, self.position[1],-.1)
         glScalef(self.scale[0], -self.scale[1], 1.0)
         glRotatef(self.angle, 0, 0, 1)
