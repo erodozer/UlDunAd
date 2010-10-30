@@ -24,6 +24,8 @@ class MainMenu(Scene):
         self.window     = WinObj(Texture("window.png"), 300, 128)
         self.size       = 0
         
+        self.test       = [ImgObj(Texture("test.png")), 0, 0]
+        
         self.music = BGMObj("test.mp3")
         
         self.selected = 0
@@ -38,6 +40,20 @@ class MainMenu(Scene):
             else:
                 self.size = 0
             print self.size
+        elif key == K_z:
+            if self.test[1] < 2:
+                self.test[1] += 1
+            else:
+                self.test[1] = 0
+            print self.test[1]
+        elif key == K_UP:
+            self.test[2] += 45
+            print self.test[0].angle
+        elif key == K_DOWN:
+            self.test[2] -= 45
+            print self.test[0].angle
+            
+            
             
         self.menu.keyPressed(key)
         
@@ -70,4 +86,14 @@ class MainMenu(Scene):
             self.window.setDimensions(300, 128)
         self.window.setColor((1.0,1.0,1.0,.4))
         self.window.draw()
+        
+        self.test[0].spin(self.test[2])
+        
+        if self.test[1] == 1:
+            self.test[0].slide(w*.8, h*.25)
+        elif self.test[1] == 2:
+            self.test[0].slide(w*.2, h*.75)
+        else:
+            self.test[0].slide(w*.5, h*.5)
+        self.test[0].draw()
 

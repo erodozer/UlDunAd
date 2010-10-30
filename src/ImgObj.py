@@ -52,6 +52,13 @@ class ImgObj:
 
         self.createArrays()
         
+        #first is position, second is angle
+        self.rates = [[0.0,0.0, 100.0],
+					   [0.0, 100.0]]
+        self.targets = [[0.0,0.0],
+						[0.0]]
+        self.currentFrame = [0, 0]
+        
         self.transformed = False                    #did the image's attributes change
 
     #sets up the vertex and texture array coordinates
@@ -103,15 +110,53 @@ class ImgObj:
             self.position = (x, y)
             self.transformed = True
 
-    #=====IS NOT FUNCTIONING PROPERLY=====
+    #=====FUNCTIONING BUT SLOW, CALCULATIONS NEED FIXING=====
+    #calculates the rates for sliding and spinning
+    def calculateRates(self):
+        calcRate = self.rates[0][2]
+        if self.currentFrame < self.rates[0][2]:
+            calcRate = self.rates[0][2] - self.currentFrame[0]
+        else:
+            self.currentFrame[0] = 0
+        self.rates[0][0] = (self.targets[0][0] - self.position[0])/calcRate
+        self.rates[0][1] = (self.targets[0][1] - self.position[1])/calcRate 
+        
+        calcRate = self.rates[1][1]
+        if self.currentFrame < self.rates[1][1]:
+            calcRate = self.rates[1][1] - self.currentFrame[1]
+        else:
+            self.currentFrame[1] = 0
+        self.rates[1][0] = (self.targets[1] - self.angle)/calcRate
+
     #moves the image from its current position by x and y
     # milliseconds defines how long you want it to take to
-    # slide to the new position.
-    def slide(self, x, y, milliseconds = 100.0):
-        if list(self.position) != [x,y]:
-           self.position = (self.position[0] + (float(x) - self.position[0])/milliseconds, 
-                            self.position[1] + (float(y) - self.position[1])/milliseconds)
+    # slide to the new position.		
+    def slide(self, x, y, milliseconds = 32.0):
+        if self.targets[0] != [x,y]:
+            self.targets[0] = [x,y]
+            self.rates[0][2] = milliseconds
+            self.calculateRates()
+        else:
+            if self.currentFrame[0] < self.rates[0][2]:
+                self.position = (self.position[0] + self.rates[0][0],
+								 self.position[1] + self.rates[0][1])
+                self.currentFrame[0] += 1
+            else:
+                self.position = (x, y)
+    #smoothly rotates the image to this angle in this many frames
+    def spin(self, angle, milliseconds = 32.0):
 
+        if self.targets[1] != angle:
+            self.targets[1] = angle
+            self.rates[1][1] = milliseconds
+            self.calculateRates()
+        else:
+            if self.currentFrame[1] < self.rates[1][1]:
+                self.angle += self.rates[1][0]
+                self.currentFrame[1] += 1
+            else:
+                self.angle = angle
+                    
     #changes the size of the image and scales the surface
     def setScale(self, width, height):
         if (width >= 0 and width <= 1) and (height >= 0 and height <= 1):
