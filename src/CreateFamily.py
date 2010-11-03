@@ -15,19 +15,21 @@ from Actor  import *
 
 import string
 
+from MenuObj import MenuObj
+
 class CreateFamily(Scene):
     def __init__(self, engine):
         self.engine = engine
 
-        self.background = ImgObj(Texture("creation_background.png"))
-        self.window = ImgObj(Texture("creation_window.png"))
-        self.button = ImgObj(self.engine.data.defaultButton, boundable = True, frameY = 2)
+        scenepath = os.path.join("scenes", "creation")
+        self.background = ImgObj(Texture(os.path.join(scenepath, "creation.png")))
+        self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), self.engine.w/4, 0)
+        self.button = ImgObj(Texture("ok.png"), boundable = True, frameX = 2)
         self.font   = FontObj("default.ttf")
 
-        self.difficulty = ["Easy", "Normal", "Hard"]
-        self.diffButton = [ImgObj(self.engine.data.defaultButton, boundable = True, frameY = 2) 
-                           for n in range(len(self.difficulty))]
-
+        self.menu       = MenuObj(self, commands = ["Easy", "Normal", "Hard"], 
+                                  position = (400, 330))
+        
         #family info
         self.name = []          #name of the family
         self.diffselected = 1   #the difficulty selected (match up number with position in difficulty array
@@ -39,17 +41,8 @@ class CreateFamily(Scene):
         self.step = 0           #step 0 = naming, step 1 = choose difficulty
 
     def buttonClicked(self, image):
-        if image == self.button:
-            image.setFrame(y = 2)
-            self.next()
-            
-        for i, button in enumerate(self.diffButton):
-            button.setFrame(y = 1)
-            if image == button:
-                button.setFrame(y = 2)
-                self.diffselected = i
-                self.next()
-            
+        pass
+        
     def keyPressed(self, key, char):
         if self.step == 0:
             #name is a maximum of 13 letters
@@ -67,22 +60,12 @@ class CreateFamily(Scene):
                 if key == K_RETURN:
                     self.next()
         elif self.step == 1:
-            if key == K_RETURN:
-                self.select()
-            
-        if key == K_DOWN:
-            if self.selected < len(self.commands):
-                self.selected += 1
-            else:
-                self.selected = 0
-                
-        elif key == K_UP:
-            if self.selected > 0:
-                self.selected -= 1
-            else:
-                self.selected = len(self.commands) - 1
-            
-                
+                    
+            self.menu.keyPressed(key)                
+
+    def select(self, index):
+        self.diffselected = index
+        self.create()
                     
     def run(self):
         pass
@@ -93,38 +76,36 @@ class CreateFamily(Scene):
         else:
             self.step += 1
 
-    def renderNaming(self, visibility):
+    def renderNaming(self):
         w, h = self.engine.w, self.engine.h
-        self.engine.drawImage(self.window, position = (w/2, h/2), 
-                              color = (1.0,1.0,1.0,visibility))
-
-        if visibility >= 1.0:
+        self.window.setPosition(w/2, h/2)
+        self.window.setDimensions(w*.4, h*.15)
+        self.window.draw()
+        
+        if self.window.scale[0] == w*.4 and self.window.scale[1] == h*.15:
             self.engine.drawText(self.font, "Enter a name", (w*.5, h*.6))
             name = string.join(self.name, '')
             self.engine.drawText(self.font, name, (w*.5, h*.5))
 
             if name:
-                self.engine.drawImage(self.button, position = (w/2, h*.4))
-                self.engine.drawText(self.font, "Next", (w*.5, h*.4))
-
-    def renderDifficulty(self, visibility):
+                self.engine.drawImage(self.button, position = (w/2, h*.4), scale = (75,75))
+                
+    def renderDifficulty(self):
         w, h = self.engine.w, self.engine.h
-        self.engine.drawImage(self.window, position = (w/2, h/2 - h*(.1*(1-visibility))), 
-                              color = (1.0,1.0,1.0,visibility))
+        self.window.setPosition(w/2,h/2)
+        self.window.setDimensions(w*.65, h*.25)
+        self.window.draw()
 
-
-        if visibility >= 1.0:
-            self.engine.drawText(self.font, "Select the difficulty", (w*.5, h*.6))
-            for i, diff in enumerate(self.difficulty):
-                self.engine.drawImage(self.diffButton[i], position = (w*.5, h*.54-h*(.07*i)))
-                self.engine.drawText(self.font, diff, (w*.5, h*.54-h*(.07*i)))
-
+        if self.window.scale[0] >= w*.65 and self.window.scale[1] >= h*.20:
+            self.engine.drawText(self.font, "Select the difficulty", (w*.5, h*.65))
+            self.menu.render()
+            
     def create(self):
         name = string.join(self.name, '')
         family = Family(None)
         family.create(name, self.diffselected)
         self.engine.family = Family(name)
-        self.engine.viewport.changeScene("MainMenu")
+        self.engine.viewport.changeScene("CreateCharacter")
         
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
@@ -132,9 +113,9 @@ class CreateFamily(Scene):
         self.engine.drawImage(self.background, scale = (w,h))
 
         if self.step == 0:
-            self.renderNaming(visibility)
+            self.renderNaming()
         elif self.step == 1:
-            self.renderDifficulty(visibility)
+            self.renderDifficulty()
         else:
             self.create()
 
