@@ -145,8 +145,7 @@ class Main:
         if image.isBoundable:
             self.viewport.inputObjects.append(image)
 
-    def drawText(self, font, text, position = (w/2, h/2), scale = None, angle = None, color = None):
-
+    def drawText(self, font, text, position = (w/2, h/2), scale = None, angle = None, color = None, alignment = "center"):
 
         #prevents it from drawing if no font exists or text exists
         if not (font or text):
@@ -157,20 +156,22 @@ class Main:
         if scale:
             font.setScale(scale[0], scale[1])
         if angle:
-            image.setAngle(angle)
+            font.setAngle(angle)
         if color:
-            image.setColor(color)
-
+            font.setColor(color)
+        font.setAlignment(alignment)
         font.draw()
 
  
-    def listPath(self, path, value = ".ini", flag = None):
+    def listPath(self, path, value = ".ini", flag = None, exclude = None):
         items = []
-        path = os.path.join("..", path)
+        path = os.path.join("..", "data", path)
         if flag == "filename":
-            items = [n.replace(".ini", "") for n in glob.glob(os.path.join(path, "*." + value))]
+            items = [n.split("/")[-1].replace(".ini", "") for n in glob.glob(os.path.join(path, "*." + value))]
         else:
-            items = [glob.glob(os.path.join(path, "*." + value))]
+            items = [n.split("/")[-1] for n in glob.glob(os.path.join(path, "*." + value))]
+        if exclude:
+            items.remove(exclude)
         
         return items
 

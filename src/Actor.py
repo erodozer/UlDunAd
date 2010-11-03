@@ -15,6 +15,8 @@ from Config import Configuration
 from math import *
 import random
 
+import glob
+
 class Job:
     def __init__(self, name):
         jobini = Configuration(os.path.join("..", "data", "actors", "jobs", name + ".ini")).job
@@ -182,10 +184,12 @@ class Family:
 
         #all the members in your party
         path = os.path.join("..", path)
-        self.members = [Character(name, n.replace(".ini", "")) 
-                        for n in glob.glob(os.path.join(path, "*." + value))]
+        members = [n.split("/")[-1] for n in glob.glob(os.path.join(path, "*.ini"))]
+        if "family.ini" in members:
+            members.remove("family.ini")
+        print members
         
-        return items
+        self.members = [Character(name, n.replace(".ini", "")) for n in members]
 
         #the party used in battle is the first 3 members you have ordered
         if len(self.members) >= 3:
@@ -202,9 +206,10 @@ class Family:
        
     #creates a new family .ini 
     def create(self, name, difficulty):
-        path = os.path.join("..", "data", "actors", "families", name + ".ini")
-        Configuration(path).save()
-        familyini = Configuration(path)
+        path = os.path.join("..", "data", "actors", "families", name)
+        os.mkdir(path)
+        Configuration(os.path.join(path, "family.ini")).save()
+        familyini = Configuration(os.path.join(path, "family.ini"))
         familyini.family.__setattr__("difficulty", difficulty)
         
         familyini.family.__setattr__("gold", 0)
@@ -216,13 +221,16 @@ class Family:
 
     #this updates the family's .ini file
     def updateFile(self):
-        path = os.path.join("..", "data", "actors", "families", self.name + ".ini")
+        path = os.path.join("..", "data", "actors", "families", self.name)
         Configuration(path).save()
-        familyini = Configuration(path).family
+        familyini = Configuration(os.path.join(path,"family.ini")).family
 
         familyini.__setattr__("difficulty", self.difficulty)
         familyini.__setattr__("gold",       self.gold)
         familyini.__setattr__("inventory",  string.join(self.inventory, ","))
 
         familyini.save()
+        
+    def refresh(self):
+        pass
 
