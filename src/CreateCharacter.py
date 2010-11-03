@@ -92,7 +92,7 @@ class CreationMenu(MenuObj):
             
         self.name = self.scene.name
         self.job = self.scene.job
-        self.values = [self.name, self.job]
+        self.values = [string.join(self.name, ''), self.job]
         
         #font setting for buttons
         fontStyle = self.engine.data.defaultFont
@@ -157,12 +157,11 @@ class CreateCharacter(Scene):
         self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.4, h*.7)
         self.window.setPosition(w*.5, h*.5)
         
-        self.nameWindow = WinObj(Texture(os.path.join(scenepath, "window.png")),0,0)
-        self.nameWindow.setPosition(w*.7, h*.8)
+        self.nameWindow = WinObj(Texture(os.path.join(scenepath, "window.png")),w*.45,h*.15)
         self.nameButton = ImgObj(Texture("ok.png"), boundable = True, frameX = 2)
         
-        self.jobWindow = WinObj(Texture(os.path.join(scenepath, "window.png")),0,0)
-        self.jobWindow.setPosition(w*.7, h*.8)
+        self.jobWindow = WinObj(Texture(os.path.join(scenepath, "window.png")),w*.45,h*.7)
+        self.jobWindow.setPosition(w*.7, h*.45)
         self.jobMenu = JobMenu(self, scenepath, (w*.7, h*.8))
         
         self.menu = CreationMenu(self, scenepath, (w*.4, h*.7))
@@ -194,7 +193,9 @@ class CreateCharacter(Scene):
                 if key == K_BACKSPACE:
                     self.name.pop(-1)
                 if key == K_RETURN:
+                    self.menu.name = string.join(self.name, '')
                     self.step = -1
+                    
                     
         elif self.step == 1:
                     
@@ -211,6 +212,7 @@ class CreateCharacter(Scene):
        
     def renderNaming(self, visibility):
         w, h = self.engine.w, self.engine.h
+        self.nameWindow.setPosition(w*.7, h*.8)
         self.nameWindow.draw()
 
         if visibility >= 1.0:
@@ -218,12 +220,15 @@ class CreateCharacter(Scene):
             self.engine.drawText(self.font, name, (w*.61, h*.7), alignment="left")
 
             if name:
-                self.engine.drawImage(self.button, position = (w/2, h*.4), scale = (75,75))
+                self.engine.drawImage(self.nameButton, position = (w/2, h*.4), scale = (75,75))
 
     def renderJobs(self, visibility):
         w, h = self.engine.w, self.engine.h
         self.jobWindow.draw()
         self.jobMenu.draw()
+        
+    def renderMain(self, visibility):
+        self.menu.render()
 
     def create(self):
         name = string.join(self.name, '')
