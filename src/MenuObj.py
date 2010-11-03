@@ -10,7 +10,6 @@ Licensed under the GNU General Public License V3
 '''
 
 from sysobj import *
-from MenuObj import MenuObj
 
 #creates a little button menu
 class MenuObj:
