@@ -66,11 +66,7 @@ class JobMenu(MenuObj):
                 button.setFrame(y = 2)
             else:
                 button.setFrame(y = 1)
-                
-            if self.direction:
-                pos = [self.position[0] + ((button.width + 5) * i), self.position[1]]
-            else:
-                pos = [self.position[0], self.position[1] + (-(button.height + 5) * i)]
+            pos = [self.position[0], self.position[1] + (-(button.height + 5) * i)]
                 
             button.setPosition(pos[0], pos[1])
             button.draw()
@@ -82,40 +78,39 @@ class JobMenu(MenuObj):
             
 #custom menu for character creation
 class CreationMenu(MenuObj):
-    def __init__(self, scene, scenepath, position):
+    def __init__(self, scene, scenepath):
     
         self.scene    = scene
-        self.engine   = scene.engine    
+        self.engine   = scene.engine
+        w, h = self.engine.w, self.engine.h    
+        
+        #where on the screen should the menu be displayed
+        position = (w*.3, h*.5)
         
         self.commands = ["Name:", "Job"]#the commands to choose from (are drawn on the buttons)
         self.direction = False          #are the buttons in order vertically or horizontally
             
         self.name = self.scene.name
         self.job = self.scene.job
-        self.values = [string.join(self.name, ''), self.job]
+        
+        self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.6, h*.7)
+        self.window.setPosition(position[0], position[1])
         
         #font setting for buttons
         fontStyle = self.engine.data.defaultFont
-        self.text     = FontObj(fontStyle)
+        self.text = FontObj(fontStyle)
 
         #which keys select the next or previous button
         self.moveKeys = [K_DOWN, K_UP]
         
         #the texture used for the buttons and the buttons themselves
         buttonStyle = Texture(os.path.join(scenepath, "button.png"))
-        self.buttons  = [ImgObj(buttonStyle, boundable = True, frameY = 2)
-                         for n in range(len(self.commands))]
+        self.buttons = [ImgObj(buttonStyle, boundable = True, frameY = 2)
+                        for n in range(len(self.commands))]
                          
-        #where on the screen should the menu be displayed
-        #  verticle is positioned from the top
-        #  horizontal from the left
-        self.position = position
-        
         for i, button in enumerate(self.buttons):
-            if self.direction:
-                pos = [self.position[0] + ((button.width + 5) * i), self.position[1]]
-            else:
-                pos = [self.position[0], self.position[1] + (-(button.height + 5) * i)]
+            button.setScale(w*.5, 64)
+            pos = [position[0], (position[1] + h*.2) + (-(button.height + 5) * i)]
                 
             button.setPosition(pos[0], pos[1])
             
@@ -123,6 +118,9 @@ class CreationMenu(MenuObj):
         
     #renders the menu
     def render(self, visibility = 1.0):
+        values = [string.join(self.name, ''), self.job]
+        
+        self.window.draw()
         
         for i, button in enumerate(self.buttons):
             if i == self.index:
@@ -132,13 +130,13 @@ class CreationMenu(MenuObj):
             button.draw()
             
             self.text.setText(self.commands[i]) 
-            self.text.setPosition(button.position[0] - button.width/2, button.position[1])
+            self.text.setPosition(button.position[0] - button.width/2 + 5, button.position[1])
             self.text.scaleHeight(36.0)
             self.text.setAlignment("left")
             self.text.draw()
             
-            self.text.setText(self.values[i]) 
-            self.text.setPosition(button.position[0] + button.width/2, button.position[1])
+            self.text.setText(values[i]) 
+            self.text.setPosition(button.position[0] + button.width/2 - 5, button.position[1])
             self.text.scaleHeight(36.0)
             self.text.setAlignment("right")
             self.text.draw()
@@ -154,8 +152,6 @@ class CreateCharacter(Scene):
         scenepath = os.path.join("scenes", "creation")
         self.background = ImgObj(Texture(os.path.join(scenepath, "creation.png")))
         
-        self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.4, h*.7)
-        self.window.setPosition(w*.5, h*.5)
         
         self.nameWindow = WinObj(Texture(os.path.join(scenepath, "window.png")),w*.45,h*.15)
         self.nameButton = ImgObj(Texture("ok.png"), boundable = True, frameX = 2)
@@ -164,7 +160,7 @@ class CreateCharacter(Scene):
         self.jobWindow.setPosition(w*.7, h*.45)
         self.jobMenu = JobMenu(self, scenepath, (w*.7, h*.8))
         
-        self.menu = CreationMenu(self, scenepath, (w*.4, h*.7))
+        self.menu = CreationMenu(self, scenepath)
         
         self.font   = FontObj("default.ttf")
 
@@ -227,9 +223,6 @@ class CreateCharacter(Scene):
         self.jobWindow.draw()
         self.jobMenu.draw()
         
-    def renderMain(self, visibility):
-        self.menu.render()
-
     def create(self):
         name = string.join(self.name, '')
         family = Character(None)
@@ -241,15 +234,13 @@ class CreateCharacter(Scene):
         w, h = self.engine.w, self.engine.h
 
         self.engine.drawImage(self.background, scale = (w,h))
-        self.window.draw()
-        
+        self.menu.render()
+
         if self.step == 0:
             self.renderNaming(visibility)
         elif self.step == 1:
-            self.renderClass(visibility)
-        else:
-            self.renderMain(visibility)
-
+            self.renderJobs(visibility)
+        
         if self.error:
             self.engine.showError("You must enter a name")
 
