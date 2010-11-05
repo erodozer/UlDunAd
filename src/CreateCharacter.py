@@ -51,6 +51,7 @@ class JobMenu(MenuObj):
         
         self.index = 0                  #which button is selected
         
+        
     #renders the menu
     def render(self, visibility = 1.0):
         
@@ -92,6 +93,7 @@ class CreationMenu(MenuObj):
             
         self.name = self.scene.name
         self.job = self.scene.job
+        self.values = [self.name, self.job]
         
         self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.6, h*.7)
         self.window.setPosition(position[0], position[1])
@@ -115,10 +117,11 @@ class CreationMenu(MenuObj):
             button.setPosition(pos[0], pos[1])
             
         self.index = 0                  #which button is selected
+    def refresh(self):
+        self.values = [string.join(self.name, ''), self.job]
         
     #renders the menu
     def render(self, visibility = 1.0):
-        values = [string.join(self.name, ''), self.job]
         
         self.window.draw()
         
@@ -135,7 +138,7 @@ class CreationMenu(MenuObj):
             self.text.setAlignment("left")
             self.text.draw()
             
-            self.text.setText(values[i]) 
+            self.text.setText(self.values[i]) 
             self.text.setPosition(button.position[0] + button.width/2 - 5, button.position[1])
             self.text.scaleHeight(36.0)
             self.text.setAlignment("right")
@@ -213,15 +216,16 @@ class CreateCharacter(Scene):
 
         if visibility >= 1.0:
             name = string.join(self.name, '')
-            self.engine.drawText(self.font, name, (w*.61, h*.7), alignment="left")
+            self.engine.drawText(self.font, name, (w*.5, h*.8), alignment="left")
 
             if name:
-                self.engine.drawImage(self.nameButton, position = (w/2, h*.4), scale = (75,75))
-
+                self.engine.drawImage(self.nameButton, position = (w*.85, h*.8), scale = (75,75))
+                
+                
     def renderJobs(self, visibility):
         w, h = self.engine.w, self.engine.h
         self.jobWindow.draw()
-        self.jobMenu.draw()
+        self.jobMenu.render()
         
     def create(self):
         name = string.join(self.name, '')
@@ -240,6 +244,8 @@ class CreateCharacter(Scene):
             self.renderNaming(visibility)
         elif self.step == 1:
             self.renderJobs(visibility)
+        else:
+            self.menu.refresh()
         
         if self.error:
             self.engine.showError("You must enter a name")
