@@ -120,24 +120,6 @@ class Viewport:
         scene = WorldScenes.create(self.engine, scene)
         self.scenes.append(scene)
         self.visibility.append(0.0)
-           
-    #this fades the screen in and out when the scenes are transitioning
-    def fadeScreen(self):
-        v = self.vis
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glEnable(GL_COLOR_MATERIAL)
-
-        glBegin(GL_QUADS)
-        glColor4f(0, 0, 0, .3 - v * .3)
-        glVertex2f(0, 0)
-        glColor4f(0, 0, 0, .3 - v * .3)
-        glVertex2f(self.resolution[0], 0)
-        glColor4f(0, 0, 0, .9 - v * .9)
-        glVertex2f(self.resolution[0], self.resolution[1])
-        glColor4f(0, 0, 0, .9 - v * .9)
-        glVertex2f(self.resolution[0], self.resolution[1])
-        glEnd()
     
     #checks to see where the position of the mouse is over 
     #an object and if that object has been clicked
