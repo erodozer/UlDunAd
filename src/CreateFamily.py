@@ -14,6 +14,7 @@ from View   import *
 from Actor  import *
 
 import string
+import Input
 
 from MenuObj import MenuObj
 

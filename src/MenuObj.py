@@ -10,6 +10,7 @@ Licensed under the GNU General Public License V3
 '''
 
 from sysobj import *
+import Input
 
 #creates a little button menu
 class MenuObj:
@@ -29,9 +30,9 @@ class MenuObj:
 
         #which keys select the next or previous button
         if self.direction:
-            self.moveKeys = [K_RIGHT, K_LEFT]
+            self.moveKeys = [Input.RButton, Input.LButton]
         else:
-            self.moveKeys = [K_DOWN, K_UP]
+            self.moveKeys = [Input.DButton, Input.UButton]
         
         #the texture used for the buttons and the buttons themselves
         if buttonStyle == None:
@@ -57,7 +58,7 @@ class MenuObj:
     #arrow keys select which button it is
     #enter/return performs the scene's set action for that button
     def keyPressed(self, key):
-        if key == K_RETURN:
+        if key == Input.AButton:
             self.scene.select(self.index)
             
         if key == self.moveKeys[0]:
