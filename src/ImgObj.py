@@ -224,16 +224,18 @@ class ImgObj:
     def setBoundable(self, boundable):
         self.isBoundable = boundable
 
-    #changes the frame number of the image
+    #changes the "frame" number of the image
     def setFrame(self, x = 1, y = 1):
         self.rect = (float(x-1)*self.frameSize[0], float(y-1)*self.frameSize[1], 
                      float(x)*self.frameSize[0], float(y)*self.frameSize[1])
         self.createTex()
 
+    #crops the texture
     def setRect(self, rect):
         self.rect = rect
         self.createTex()
         
+    #sets where the image is anchored (left, center, or right)
     def setAlignment(self, alignment):
         alignment = alignment.upper()
         self.alignment = eval(alignment)
