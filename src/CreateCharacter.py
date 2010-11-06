@@ -27,7 +27,7 @@ class StatDistMenu(MenuObj):
 
         position = (w*.5, h*.5)
         
-        self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.6, h*.7)
+        self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.6, h*.85)
         self.window.setPosition(position[0], position[1])
         
         self.commands = ["Strength", "Defense", "Agility", "Evasion", "Force", "Resistance"]
@@ -42,7 +42,7 @@ class StatDistMenu(MenuObj):
         
         for i, button in enumerate(self.buttons):
             button.setScale(w*.5, 64)
-            pos = [position[0], ((position[1] - self.window.scale[1]/2) + 15) + (-(button.height + 5) * i)]
+            pos = [position[0], ((position[1] + self.window.scale[1]/2) - 70) + (-(button.height + 5) * i)]
                 
             button.setPosition(pos[0], pos[1])
 
@@ -70,7 +70,7 @@ class StatDistMenu(MenuObj):
             else:
                 self.index = len(self.commands) - 1
                 
-        if key == K_LEFT:
+        elif key == K_LEFT:
             if distTo > 0:
                 distTo -= 1
                 points += 1
@@ -78,14 +78,14 @@ class StatDistMenu(MenuObj):
                 distTo = 0
                     
         elif key == K_RIGHT:
-            if distTo > 0:
+            if points > 0:
                 distTo += 1
                 points -= 1
             else:
-                distTo = 0
+                points = 0
                     
         elif key == K_RETURN:
-            self.scene.select(self.index)
+            self.scene.step = -1
                     
         return None
                               
@@ -108,24 +108,26 @@ class StatDistMenu(MenuObj):
             self.text.draw()
             
             self.text.setText(self.scene.distAreas[i]) 
-            self.text.setPosition(button.position[0] + button.width/2 - 30, button.position[1])
+            self.text.setPosition(button.position[0] + button.width/2 - 80, button.position[1])
             self.text.scaleHeight(36.0)
-            self.text.setAlignment("right")
+            self.text.setAlignment("center")
             self.text.draw()
             
-            self.engine.drawImage(self.statButtons, position = (button.position[0] + button.width/2 - 50, button.position[1]),
+            self.engine.drawImage(self.statButtons, position = (button.position[0] + button.width/2 - 130, button.position[1]),
                                   scale = (32,32), frameX = 1)
-            self.engine.drawImage(self.statButtons, position = (button.position[0] + button.width/2 - 10, button.position[1]),
+            self.engine.drawImage(self.statButtons, position = (button.position[0] + button.width/2 - 30, button.position[1]),
                                   scale = (32,32), frameX = 2)
                                   
         self.text.setText("Distribution Points: ") 
-        self.text.setPosition(button.position[0] - button.width/2 + 5, button.position[1])
+        self.text.setPosition(self.window.position[0] - self.window.scale[0]/2 + 15 , 
+                              self.window.position[1] - self.window.scale[1]/2 + 50)
         self.text.scaleHeight(36.0)
         self.text.setAlignment("left")
         self.text.draw()
             
-        self.text.setText(self.scene.distAreas[i]) 
-        self.text.setPosition(button.position[0] + button.width/2 - 30, button.position[1])
+        self.text.setText(self.scene.distPoints) 
+        self.text.setPosition(self.window.position[0] + self.window.scale[0]/2 - 15, 
+                              self.window.position[1] - self.window.scale[1]/2 + 50)
         self.text.scaleHeight(36.0)
         self.text.setAlignment("right")
         self.text.draw()
@@ -275,7 +277,7 @@ class CreateCharacter(Scene):
     def keyPressed(self, key, char):
         if self.step == -1:
             self.menu.keyPressed(key)
-        if self.step == 0:
+        elif self.step == 0:
             #name is a maximum of 13 letters
             if len(self.name) < 13:
                 if (char >= 'a' and char <= 'z') or (char >= 'A' and char <= 'Z'):
@@ -291,6 +293,8 @@ class CreateCharacter(Scene):
                 if key == K_RETURN:
                     self.menu.name = string.join(self.name, '')
                     self.step = -1
+        elif self.step == 1:
+            self.statDistMenu.keyPressed(key)
                     
 
     def select(self, index):
