@@ -20,6 +20,8 @@ import glob
 class Job:
     def __init__(self, name):
         jobini = Configuration(os.path.join("..", "data", "actors", "jobs", name + ".ini")).job
+        
+        self.name = name
 
         #These stats are what the job starts out with
         # characters can go against the basic stats for example
@@ -27,18 +29,19 @@ class Job:
         # the default high mag, however, certain skills are learned
         # not on level but on how many stat points are distributed
         # into what categories
-        self.hp   = jobini.__getattr__("hp")
-        self.str  = jobini.__getattr__("str")
-        self.defn = jobini.__getattr__("def")
-        self.spd  = jobini.__getattr__("spd")
-        self.evd  = jobini.__getattr__("evd")
-        self.mag  = jobini.__getattr__("mag")
-        self.res  = jobini.__getattr__("res")
+        self.description = jobini.__getattr__("description")
+        self.hp   = jobini.__getattr__("hp",  int)
+        self.str  = jobini.__getattr__("str", int)
+        self.defn = jobini.__getattr__("def", int)
+        self.spd  = jobini.__getattr__("spd", int)
+        self.evd  = jobini.__getattr__("evd", int)
+        self.mag  = jobini.__getattr__("mag", int)
+        self.res  = jobini.__getattr__("res", int)
 
         #this stat is an equation in terms of x with w being the
         # character's level.  It determines the maximum amount
         # of fighting power the character has.
-        self.fightPT  = jobini.__getattr__("fightCurve")
+        #self.fightPT  = jobini.__getattr__("fightCurve")
 
     def drawStatGraph(self):
         glBegin(GL_LINE_STRIP)
@@ -147,9 +150,9 @@ class Character:
             self.points += 5
             self.leveledUp = True     
 
-    def create(self, name, job, stats):
-        Configuration(os.path.join("data", "actors", "characters", name + ".ini")).save()
-        playerini = Configuration(os.path.join("data", "actors", "families", name + ".ini"))
+    def create(self, family, name, job, stats):
+        Configuration(os.path.join("data", "actors", "characters", "families", family, name + ".ini")).save()
+        playerini = Configuration(os.path.join("data", "actors", "families", family, name + ".ini"))
         playerini.player.__setattr__("job", job)        
         playerini.player.__setattr__("level", 1)
         playerini.player.__setattr__("exp", 0)
@@ -232,5 +235,5 @@ class Family:
         familyini.save()
         
     def refresh(self):
-        pass
+        self.__init__(self.name)
 
