@@ -16,6 +16,15 @@ from pygame.locals import *
 keypresses = [] 
 finished = False
 
+AButton = K_v
+BButton = K_c
+CButton = K_x
+DButton = K_z
+LButton = K_LEFT
+RButton = K_RIGHT
+UButton = K_UP
+DButton = K_DOWN
+
 def processKeyPress(press):
   global finished
   if press.key == K_ESCAPE:
