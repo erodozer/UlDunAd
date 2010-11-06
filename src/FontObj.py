@@ -22,6 +22,8 @@ from numpy import array, float32
 
 from Texture import Texture
 
+import string
+
 LEFT   = 0
 CENTER = 1
 RIGHT  = 2
@@ -96,7 +98,10 @@ class FontObj:
 
     #changes what the font is supposed to say
     def setText(self, text):
-        self.text = text
+        if type(text) == list:
+            self.text = string.join(text, '')
+        else:
+            self.text = str(text)       #converts any passed value into a string
         
         self.texture.changeTexture(self.font.render(self.text, True, (255,255,255)))
         self.pixelSize = self.texture.pixelSize
