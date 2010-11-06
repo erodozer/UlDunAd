@@ -39,6 +39,8 @@ class CreateFamily(Scene):
 
         self.error = False      #was an error thrown
         self.step = 0           #step 0 = naming, step 1 = choose difficulty
+        
+        self.exists = False
 
     def buttonClicked(self, image):
         pass
@@ -57,7 +59,7 @@ class CreateFamily(Scene):
                 #can only delete letters if there are some to delete
                 if key == K_BACKSPACE:
                     self.name.pop(-1)
-                if key == K_RETURN:
+                if key == K_RETURN and not self.exists:
                     self.next()
         elif self.step == 1:
                     
@@ -68,7 +70,7 @@ class CreateFamily(Scene):
         self.create()
                     
     def run(self):
-        pass
+        self.exists = os.path.exists(os.path.join("..", "data", "actors", "families", string.join(self.name,'')))
         
     def next(self):
         if self.step == 0 and not self.name:
@@ -88,7 +90,12 @@ class CreateFamily(Scene):
             self.engine.drawText(self.font, name, (w*.5, h*.5))
 
             if name:
-                self.engine.drawImage(self.button, position = (w/2, h*.4), scale = (75,75))
+                if self.exists:
+                    frame = 2
+                else:
+                    frame = 1
+                self.engine.drawImage(self.button, position = (w*.25, h*.5), scale = (75,75), frameX = frame)
+            
                 
     def renderDifficulty(self):
         w, h = self.engine.w, self.engine.h
