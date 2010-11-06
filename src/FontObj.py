@@ -33,7 +33,7 @@ RIGHT  = 2
 # save on lines of code for the various attribute
 # changing methods
 class FontObj:
-    def __init__(self, path, text = "", size = 32):
+    def __init__(self, path, text = "", size = 32, shadow = True):
         self.font = pygame.font.Font(os.path.join("..", "data", "fonts", path), size)
         self.texture = Texture()
 
@@ -41,12 +41,14 @@ class FontObj:
         self.scale     = (1.0, 1.0)             #image bounds (width, height)
         self.position  = (0,0)                  #where in the window it should render
         self.angle     = 0                      #angle which the image is drawn
-        self.color     = (1.0,1.0,1.0,1.0)      #colour of the image
+        self.color     = (255,255,255,255)      #colour of the image
         self.rect      = (0.0,0.0,1.0,1.0)      #left, top, right, bottom, crops the texture
         self.alignment = 1                      #alignment of the text (left, center , right)
+        self.shadow = True                      #does the font project a shadow
 
         self.setText(text)                      #it is not necessary to enter a string upon initialization, 
                                                 #but it is upon time of rendering
+                                                
 
     #sets up the vertex and texture array coordinates
     def createArrays(self):
@@ -103,7 +105,7 @@ class FontObj:
         else:
             self.text = str(text)       #converts any passed value into a string
         
-        self.texture.changeTexture(self.font.render(self.text, True, (255,255,255)))
+        self.texture.changeTexture(self.font.render(self.text, True, self.color))
         self.pixelSize = self.texture.pixelSize
         self.setScale(1,1)  #makes sure the surface is resized because 
                             #the text is now different
@@ -157,28 +159,35 @@ class FontObj:
 
     #finally draws the image to the screen
     def draw(self):
-        glPushMatrix()
+        def render(position = self.position, scale = self.scale, angle = self.angle, color = self.color):
+            
+            glPushMatrix()
 
+            x = self.position[0]
+            if self.alignment == 0:
+                x += float(self.pixelSize[0])/2.0
+            elif self.alignment == 2:
+                x -= float(self.pixelSize[0])/2.0
 
-        x = self.position[0]
-        if self.alignment == 0:
-            x += float(self.pixelSize[0])/2.0
-        elif self.alignment == 2:
-            x -= float(self.pixelSize[0])/2.0
+            glTranslatef(x, position[1],-.1)
+            glScalef(scale[0], -scale[1], 1.0)
+            glRotatef(angle, 0, 0, 1)
+            glColor4f(1.0, 0.0, 0.0, 1.0)
 
-        glTranslatef(x, self.position[1],-.1)
-        glScalef(self.scale[0], -self.scale[1], 1.0)
-        glRotatef(self.angle, 0, 0, 1)
-        glColor4f(*self.color)
+            self.texture.bind()
 
-        self.texture.bind()
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+            glEnableClientState(GL_VERTEX_ARRAY)
+            glVertexPointerf(self.vtxArray)
+            glTexCoordPointerf(self.texArray)
+            glDrawArrays(GL_QUADS, 0, self.vtxArray.shape[0])
+            glDisableClientState(GL_VERTEX_ARRAY)
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glVertexPointerf(self.vtxArray)
-        glTexCoordPointerf(self.texArray)
-        glDrawArrays(GL_QUADS, 0, self.vtxArray.shape[0])
-        glDisableClientState(GL_VERTEX_ARRAY)
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY)
+            glPopMatrix()
+            
+            
+        #if self.shadow:
+        #    render(position = (self.position[0] + 2, self.position[1] - 2), color = (0,0,0,1))
+        render()    
 
-        glPopMatrix()
