@@ -238,41 +238,6 @@ class ImgObj:
         alignment = alignment.upper()
         self.alignment = eval(alignment)
 
-    def isColliding(self, mouse):
-        mousex, mousey = mouse.get_pos()
-        #print mousex, mousey
-        
-        x = [self.tBounds[i][0] for i in range(len(self.tBounds))]
-        y = [self.tBounds[i][1] for i in range(len(self.tBounds))]
-                
-        ax = x[0] - x[2]
-        bx = x[1] - x[3]
-        ay = y[0] - y[2]
-        by = y[1] - y[3]
-                
-        #if true, us a, else use b
-        largestx = bool(abs(ax) == max(abs(ax), abs(bx)))
-                
-        if largestx:
-            x1 = min(x[0], x[2])
-            x2 = max(x[0], x[2])
-            y1 = min(y[1], y[3])
-            y2 = max(y[1], y[3])
-        else:
-            x1 = min(x[1], x[3])
-            x2 = max(x[1], x[3])
-            y1 = min(y[0], y[2])
-            y2 = max(y[0], y[2])
-                    
-        print x1, x2, y1, y2
-        
-        if (mousex >= x1 and mousex <= x2) and \
-           (mousey >= y1 and mousey <= y2):
-            return True
-            
-        return False
-    
-    
     #finally draws the image to the screen
     def draw(self):
 
@@ -289,10 +254,6 @@ class ImgObj:
             
         glScalef(self.scale[0], self.scale[1], 1.0)
         glRotatef(self.angle, 0, 0, 1)
-        
-        if self.transformed:
-            self.tBounds = [gluProject(coord[0], coord[1], 0) for coord in self.vtxArray]
-            self.transformed = False
         
         self.texture.bind()
 
