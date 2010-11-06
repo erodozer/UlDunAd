@@ -19,7 +19,8 @@ import glob
 
 class Job:
     def __init__(self, name):
-        jobini = Configuration(os.path.join("..", "data", "actors", "jobs", name + ".ini")).job
+        path = os.path.join("data", "actors", "jobs", name)
+        jobini = Configuration(os.path.join("..", path, "job.ini")).job
         
         self.name = name
 
@@ -37,6 +38,11 @@ class Job:
         self.evd  = jobini.__getattr__("evd", int)
         self.mag  = jobini.__getattr__("mag", int)
         self.res  = jobini.__getattr__("res", int)
+        
+        self.stats = [self.str, self.defn, self.spd, self.evd, self.mag, self.res]
+        
+        self.sprites = [ImgObj(Texture(os.path.join(path, sprite.rsplit["/"][1]))
+                        for sprite in glob.glob(os.path.join(path, "*.png"))]
 
         #this stat is an equation in terms of x with w being the
         # character's level.  It determines the maximum amount
