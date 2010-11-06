@@ -163,13 +163,13 @@ class Main:
         font.draw()
 
  
-    def listPath(self, path, value = ".ini", flag = None, exclude = None):
+    def listPath(self, path, value = "ini", flag = None, exclude = None):
         items = []
-        path = os.path.join("..", "data", path)
+        searchpath = os.path.join("..", "data", path)
         if flag == "filename":
-            items = [n.split("/")[-1].replace(".ini", "") for n in glob.glob(os.path.join(path, "*." + value))]
+            items = [n.rsplit("/",1)[1].replace(".ini", "") for n in glob.glob(os.path.join(searchpath, "*." + value))]
         else:
-            items = [n.split("/")[-1] for n in glob.glob(os.path.join(path, "*." + value))]
+            items = [n.rsplit("/",1)[1] for n in glob.glob(os.path.join(searchpath, "*." + value))]
         if exclude:
             items.remove(exclude)
         

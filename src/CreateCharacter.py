@@ -18,65 +18,121 @@ import Input
 
 from MenuObj import MenuObj
 
-#custom menu for character creation
-class JobMenu(MenuObj):
-    def __init__(self, scene, scenepath, position):
-    
+class StatDistMenu(MenuObj):
+    def __init__(self, scene, scenepath):
+
         self.scene    = scene
-        self.engine   = scene.engine    
+        self.engine   = scene.engine
+        w, h = self.engine.w, self.engine.h    
+
+        position = (w*.5, h*.5)
         
-        self.commands = self.engine.listPath(os.path.join("actors", "jobs"), "splitfiletype", ".ini")
-        self.direction = False          #are the buttons in order vertically 
-            
-        self.name = self.scene.name
-        self.job = self.scene.job
-        self.values = [self.name, self.job]
+        self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.6, h*.7)
+        self.window.setPosition(position[0], position[1])
         
+        self.commands = ["Strength", "Defense", "Agility", "Evasion", "Force", "Resistance"]
+
         #font setting for buttons
         fontStyle = self.engine.data.defaultFont
-        self.text     = FontObj(fontStyle)
+        self.text = FontObj(fontStyle)
 
-        #which keys select the next or previous button
-        self.moveKeys = [K_DOWN, K_UP]
-        
-        #the texture used for the buttons and the buttons themselves
         buttonStyle = Texture(os.path.join(scenepath, "button.png"))
-        self.buttons  = [ImgObj(buttonStyle, boundable = True, frameY = 2)
-                         for n in range(len(self.commands))]
+        self.buttons = [ImgObj(buttonStyle, boundable = True, frameY = 2)
+                        for n in range(len(self.commands))]
         
-        #where on the screen should the menu be displayed
-        #  verticle is positioned from the top
-        #  horizontal from the left
-        self.position = position
+        for i, button in enumerate(self.buttons):
+            button.setScale(w*.5, 64)
+            pos = [position[0], ((position[1] - self.window.scale[1]/2) + 15) + (-(button.height + 5) * i)]
+                
+            button.setPosition(pos[0], pos[1])
+
         
-        self.index = 0                  #which button is selected
+        self.statButtons = ImgObj(Texture(os.path.join(scenepath, "statdistbutton.png")), boundable = True, frameX = 2)
+                            
+        self.index = 0
         
+    #arrow keys select which button it is
+    #enter/return performs the scene's set action for that button
+    def keyPressed(self, key):
+          
+        distTo = self.scene.distAreas[self.index]
+        points = self.scene.distPoints
         
+        if key == K_DOWN:
+            if self.index + 1 < len(self.commands):
+                self.index += 1
+            else:
+                self.index = 0
+                
+        elif key == K_UP:
+            if self.index > 0:
+                self.index -= 1
+            else:
+                self.index = len(self.commands) - 1
+                
+        if key == K_LEFT:
+            if distTo > 0:
+                distTo -= 1
+                points += 1
+            else:
+                distTo = 0
+                    
+        elif key == K_RIGHT:
+            if distTo > 0:
+                distTo += 1
+                points -= 1
+            else:
+                distTo = 0
+                    
+        elif key == K_RETURN:
+            self.scene.select(self.index)
+                    
+        return None
+                              
     #renders the menu
     def render(self, visibility = 1.0):
         
-        if self.index >= 10:
-            start = self.index-9
-            end = self.index
-        else:
-            start = 0
-            end = 9
-            
-        for i, button in enumerate(self.buttons[start:end]):
+        self.window.draw()
+        
+        for i, button in enumerate(self.buttons):
             if i == self.index:
                 button.setFrame(y = 2)
             else:
                 button.setFrame(y = 1)
-            pos = [self.position[0], self.position[1] + (-(button.height + 5) * i)]
-                
-            button.setPosition(pos[0], pos[1])
             button.draw()
             
             self.text.setText(self.commands[i]) 
-            self.text.setPosition(button.position[0], button.position[1])
+            self.text.setPosition(button.position[0] - button.width/2 + 5, button.position[1])
             self.text.scaleHeight(36.0)
+            self.text.setAlignment("left")
             self.text.draw()
             
+            self.text.setText(self.scene.distAreas[i]) 
+            self.text.setPosition(button.position[0] + button.width/2 - 30, button.position[1])
+            self.text.scaleHeight(36.0)
+            self.text.setAlignment("right")
+            self.text.draw()
+            
+            self.engine.drawImage(self.statButtons, position = (button.position[0] + button.width/2 - 50, button.position[1]),
+                                  scale = (32,32), frameX = 1)
+            self.engine.drawImage(self.statButtons, position = (button.position[0] + button.width/2 - 10, button.position[1]),
+                                  scale = (32,32), frameX = 2)
+                                  
+        self.text.setText("Distribution Points: ") 
+        self.text.setPosition(button.position[0] - button.width/2 + 5, button.position[1])
+        self.text.scaleHeight(36.0)
+        self.text.setAlignment("left")
+        self.text.draw()
+            
+        self.text.setText(self.scene.distAreas[i]) 
+        self.text.setPosition(button.position[0] + button.width/2 - 30, button.position[1])
+        self.text.scaleHeight(36.0)
+        self.text.setAlignment("right")
+        self.text.draw()
+        
+            
+            
+        
 #custom menu for character creation
 class CreationMenu(MenuObj):
     def __init__(self, scene, scenepath):
@@ -88,12 +144,12 @@ class CreationMenu(MenuObj):
         #where on the screen should the menu be displayed
         position = (w*.3, h*.5)
         
-        self.commands = ["Name:", "Job"]#the commands to choose from (are drawn on the buttons)
+        self.commands = ["Name:", "Job: ", "Stat Distribution", "Create"]
+                                        #the commands to choose from (are drawn on the buttons)
         self.direction = False          #are the buttons in order vertically or horizontally
             
         self.name = self.scene.name
-        self.job = self.scene.job
-        self.values = [self.name, self.job]
+        self.values = [self.name, self.scene.job]
         
         self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.6, h*.7)
         self.window.setPosition(position[0], position[1])
@@ -117,8 +173,46 @@ class CreationMenu(MenuObj):
             button.setPosition(pos[0], pos[1])
             
         self.index = 0                  #which button is selected
+
     def refresh(self):
-        self.values = [string.join(self.name, ''), self.job]
+        self.values = [string.join(self.name, ''), self.scene.job]
+    
+    #arrow keys select which button it is
+    #enter/return performs the scene's set action for that button
+    def keyPressed(self, key):
+            
+        if key == K_DOWN:
+            if self.index + 1 < len(self.commands):
+                self.index += 1
+            else:
+                self.index = 0
+                
+        elif key == K_UP:
+            if self.index > 0:
+                self.index -= 1
+            else:
+                self.index = len(self.commands) - 1
+                
+        if self.index == 1:
+            
+            if key == K_LEFT:
+                if self.scene.jobSelect > 0:
+                    self.scene.jobSelect -= 1
+                else:
+                    self.scene.jobSelect = len(self.scene.jobs) - 1
+                self.refresh()
+                    
+            elif key == K_RIGHT:
+                if self.scene.jobSelect < len(self.scene.jobs) - 1:
+                    self.scene.jobSelect += 1
+                else:
+                    self.scene.jobSelect = 0
+                self.refresh()
+                    
+        elif key == K_RETURN:
+            self.scene.select(self.index)
+                    
+        return None
         
     #renders the menu
     def render(self, visibility = 1.0):
@@ -138,11 +232,12 @@ class CreationMenu(MenuObj):
             self.text.setAlignment("left")
             self.text.draw()
             
-            self.text.setText(self.values[i]) 
-            self.text.setPosition(button.position[0] + button.width/2 - 5, button.position[1])
-            self.text.scaleHeight(36.0)
-            self.text.setAlignment("right")
-            self.text.draw()
+            if i < 2:
+                self.text.setText(self.values[i]) 
+                self.text.setPosition(button.position[0] + button.width/2 - 5, button.position[1])
+                self.text.scaleHeight(36.0)
+                self.text.setAlignment("right")
+                self.text.draw()
             
 class CreateCharacter(Scene):
     def __init__(self, engine):
@@ -159,9 +254,13 @@ class CreateCharacter(Scene):
         self.nameWindow = WinObj(Texture(os.path.join(scenepath, "window.png")),w*.45,h*.15)
         self.nameButton = ImgObj(Texture("ok.png"), boundable = True, frameX = 2)
         
-        self.jobWindow = WinObj(Texture(os.path.join(scenepath, "window.png")),w*.45,h*.7)
-        self.jobWindow.setPosition(w*.7, h*.45)
-        self.jobMenu = JobMenu(self, scenepath, (w*.7, h*.8))
+        self.jobs = self.engine.listPath(os.path.join("actors", "jobs"), flag = "filename")
+        self.jobSelect = 0
+        self.job = self.jobs[self.jobSelect]
+        
+        self.statDistMenu = StatDistMenu(self, scenepath)
+        self.distPoints = 20
+        self.distAreas = [0,0,0,0,0,0]
         
         self.menu = CreationMenu(self, scenepath)
         
@@ -170,11 +269,9 @@ class CreateCharacter(Scene):
         self.error = False      #was an error thrown
         self.step = -1          #step -1 = basic, step 0 = naming, step 1 = choose job
 
-        Input.resetKeyPresses()
-
     def run(self):
-        pass
-
+        self.job = self.jobs[self.jobSelect]
+        
     def keyPressed(self, key, char):
         if self.step == -1:
             self.menu.keyPressed(key)
@@ -195,19 +292,15 @@ class CreateCharacter(Scene):
                     self.menu.name = string.join(self.name, '')
                     self.step = -1
                     
-                    
-        elif self.step == 1:
-                    
-            self.jobMenu.keyPressed(key)                
 
     def select(self, index):
         if self.step == -1:
             if index == 0:
                 self.step = 0
-            elif index == 1:
+            if index == 2:
                 self.step = 1
-        elif self.step == 1:
-            self.job = index
+            if index == 3:
+                self.create()
        
     def renderNaming(self, visibility):
         w, h = self.engine.w, self.engine.h
@@ -220,30 +313,25 @@ class CreateCharacter(Scene):
 
             if name:
                 self.engine.drawImage(self.nameButton, position = (w*.85, h*.8), scale = (75,75))
-                
-                
-    def renderJobs(self, visibility):
-        w, h = self.engine.w, self.engine.h
-        self.jobWindow.draw()
-        self.jobMenu.render()
-        
+            
     def create(self):
         name = string.join(self.name, '')
-        family = Character(None)
-        character.create(name, self.diffselected)
+        character = Character(None)
+        character.create(self.family.name, self.name, self.job)
         self.engine.family.refresh()
-        self.engine.viewport.changeScene("MainMenu")
+        self.engine.viewport.changeScene("MapList")
         
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
 
         self.engine.drawImage(self.background, scale = (w,h))
-        self.menu.render()
+        if not self.step == 1:
+            self.menu.render()
 
         if self.step == 0:
             self.renderNaming(visibility)
         elif self.step == 1:
-            self.renderJobs(visibility)
+            self.statDistMenu.render()
         else:
             self.menu.refresh()
         
