@@ -41,7 +41,7 @@ class Job:
         
         self.stats = [self.str, self.defn, self.spd, self.evd, self.mag, self.res]
         
-        self.sprites = [ImgObj(Texture(os.path.join(path, sprite.rsplit["/"][1]))
+        self.sprites = [ImgObj(Texture(os.path.join(path, sprite.rsplit["/"][1])))
                         for sprite in glob.glob(os.path.join(path, "*.png"))]
 
         #this stat is an equation in terms of x with w being the
