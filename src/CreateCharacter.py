@@ -27,10 +27,10 @@ class StatDistMenu(MenuObj):
 
         position = (w*.5, h*.5)
         
-        self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.6, h*.85)
+        self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.5, h*.85)
         self.window.setPosition(position[0], position[1])
         
-        self.commands = ["Strength", "Defense", "Agility", "Evasion", "Force", "Resistance"]
+        self.commands = self.scene.stats
 
         #font setting for buttons
         fontStyle = self.engine.data.defaultFont
@@ -41,8 +41,8 @@ class StatDistMenu(MenuObj):
                         for n in range(len(self.commands))]
         
         for i, button in enumerate(self.buttons):
-            button.setScale(w*.5, 64)
-            pos = [position[0], ((position[1] + self.window.scale[1]/2) - 70) + (-(button.height + 5) * i)]
+            button.setScale(self.window.scale[0]-10, 64)
+            pos = [position[0], (position[1] + self.window.scale[1]/2 - 50 + (-(button.height + 5) * i))]
                 
             button.setPosition(pos[0], pos[1])
 
@@ -55,36 +55,33 @@ class StatDistMenu(MenuObj):
     #enter/return performs the scene's set action for that button
     def keyPressed(self, key):
           
-        distTo = self.scene.distAreas[self.index]
-        points = self.scene.distPoints
-        
-        if key == K_DOWN:
+        if key == Input.DButton:
             if self.index + 1 < len(self.commands):
                 self.index += 1
             else:
                 self.index = 0
                 
-        elif key == K_UP:
+        elif key == Input.UButton:
             if self.index > 0:
                 self.index -= 1
             else:
                 self.index = len(self.commands) - 1
                 
-        elif key == K_LEFT:
-            if distTo > 0:
-                distTo -= 1
-                points += 1
+        elif key == Input.LButton:
+            if self.scene.distAreas[self.index] > 0:
+                self.scene.distAreas[self.index] -= 1
+                self.scene.distPoints += 1
             else:
-                distTo = 0
+                self.scene.distAreas[self.index] = 0
                     
-        elif key == K_RIGHT:
-            if points > 0:
-                distTo += 1
-                points -= 1
+        elif key == Input.RButton:
+            if self.scene.distPoints > 0:
+                self.scene.distAreas[self.index] += 1
+                self.scene.distPoints -= 1
             else:
-                points = 0
+                self.scene.distPoints = 0
                     
-        elif key == K_RETURN:
+        elif key == Input.AButton or key == Input.BButton:
             self.scene.step = -1
                     
         return None
@@ -146,72 +143,86 @@ class CreationMenu(MenuObj):
         #where on the screen should the menu be displayed
         position = (w*.3, h*.5)
         
-        self.commands = ["Name:", "Job: ", "Stat Distribution", "Create"]
+        self.commands = ["Name:", "Job: ", "Sprite: ", "Stat Distribution", "Create"]
                                         #the commands to choose from (are drawn on the buttons)
         self.direction = False          #are the buttons in order vertically or horizontally
             
         self.name = self.scene.name
-        self.values = [self.name, self.scene.job]
+        self.values = [self.name, self.scene.job.name]
         
-        self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.6, h*.7)
+        self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.45, h)
         self.window.setPosition(position[0], position[1])
         
         #font setting for buttons
         fontStyle = self.engine.data.defaultFont
         self.text = FontObj(fontStyle)
 
-        #which keys select the next or previous button
-        self.moveKeys = [K_DOWN, K_UP]
-        
         #the texture used for the buttons and the buttons themselves
         buttonStyle = Texture(os.path.join(scenepath, "button.png"))
         self.buttons = [ImgObj(buttonStyle, boundable = True, frameY = 2)
                         for n in range(len(self.commands))]
                          
         for i, button in enumerate(self.buttons):
-            button.setScale(w*.5, 64)
-            pos = [position[0], (position[1] + h*.2) + (-(button.height + 5) * i)]
-                
+            button.setScale(self.window.scale[0]-10, 64)
+            
+            if i == len(self.buttons) - 1:
+                pos = [position[0], position[1] - self.window.scale[1]/2 + 50]
+            else:
+                pos = [position[0], (position[1] + self.window.scale[1]/2 - 50) + (-(button.height + 5) * i)]
+            
+            
             button.setPosition(pos[0], pos[1])
             
         self.index = 0                  #which button is selected
 
     def refresh(self):
-        self.values = [string.join(self.name, ''), self.scene.job]
+        self.values = [string.join(self.name, ''), self.scene.job.name]
     
     #arrow keys select which button it is
     #enter/return performs the scene's set action for that button
     def keyPressed(self, key):
             
-        if key == K_DOWN:
+        if key == Input.DButton:
             if self.index + 1 < len(self.commands):
                 self.index += 1
             else:
                 self.index = 0
                 
-        elif key == K_UP:
+        elif key == Input.UButton:
             if self.index > 0:
                 self.index -= 1
             else:
                 self.index = len(self.commands) - 1
                 
-        if self.index == 1:
             
-            if key == K_LEFT:
+        if key == Input.LButton:
+            if self.index == 1:
                 if self.scene.jobSelect > 0:
                     self.scene.jobSelect -= 1
                 else:
                     self.scene.jobSelect = len(self.scene.jobs) - 1
                 self.refresh()
-                    
-            elif key == K_RIGHT:
+            elif self.index == 2:
+                if self.scene.selectedSprite > 0:
+                    self.scene.selectedSprite -= 1
+                else:
+                    self.scene.selectedSprite = len(self.scene.job.sprites) - 1
+                
+        elif key == Input.RButton:
+            if self.index == 1:
                 if self.scene.jobSelect < len(self.scene.jobs) - 1:
                     self.scene.jobSelect += 1
                 else:
                     self.scene.jobSelect = 0
                 self.refresh()
+            elif self.index == 2:
+                if self.scene.selectedSprite < len(self.scene.jobs.sprites):
+                    self.scene.selectedSprite += 1
+                else:
+                    self.scene.selectedSprite = 0
+                
                     
-        elif key == K_RETURN:
+        elif key == Input.AButton:
             self.scene.select(self.index)
                     
         return None
@@ -234,12 +245,27 @@ class CreationMenu(MenuObj):
             self.text.setAlignment("left")
             self.text.draw()
             
-            if i < 2:
+            if i < 3:
                 self.text.setText(self.values[i]) 
                 self.text.setPosition(button.position[0] + button.width/2 - 5, button.position[1])
                 self.text.scaleHeight(36.0)
                 self.text.setAlignment("right")
                 self.text.draw()
+            
+        for i, stat in enumerate(self.scene.stats):            
+            self.text.setText(self.scene.stats[i]) 
+            self.text.setPosition(self.buttons[2].position[0] - self.window.scale[0]/2 + 30,
+                                  self.buttons[2].position[1] - 45 - 34*i)
+            self.text.scaleHeight(32.0)
+            self.text.setAlignment("left")
+            self.text.draw()
+            
+            self.text.setText(self.scene.job.stats[i] + self.scene.distAreas[i]) 
+            self.text.setPosition(self.buttons[2].position[0] + self.window.scale[0]/2 - 20,
+                                  self.buttons[2].position[1] - 45 - 34*i)
+            self.text.scaleHeight(32.0)
+            self.text.setAlignment("right")
+            self.text.draw()
             
 class CreateCharacter(Scene):
     def __init__(self, engine):
@@ -257,22 +283,26 @@ class CreateCharacter(Scene):
         self.nameButton = ImgObj(Texture("ok.png"), boundable = True, frameX = 2)
         
         self.jobs = self.engine.listPath(os.path.join("actors", "jobs"), flag = "filename")
-        self.jobSelect = 0
-        self.job = self.jobs[self.jobSelect]
+                                                    #the jobs to choose from
+        self.jobSelect = 0                          #number of the job selected
+        self.job = Job(self.jobs[self.jobSelect])   #the job object
+        self.selectedSprite = 0                     #the sprite selected for the character from the job
         
+        #stat point distribution
+        self.stats = ["Strength", "Defense", "Agility", "Evasion", "Force", "Resistance"]
         self.statDistMenu = StatDistMenu(self, scenepath)
         self.distPoints = 20
         self.distAreas = [0,0,0,0,0,0]
-        
+                
+        #the main menu for selecting what to do in character creation
         self.menu = CreationMenu(self, scenepath)
         
-        self.font   = FontObj("default.ttf")
-
         self.error = False      #was an error thrown
-        self.step = -1          #step -1 = basic, step 0 = naming, step 1 = choose job
+        self.step = -1          #step -1 = basic, step 0 = naming, step 1 = distribute stats
 
     def run(self):
-        self.job = self.jobs[self.jobSelect]
+        self.job = Job(self.jobs[self.jobSelect])
+        self.exists = os.path.exists(os.path.join("..", "data", "actors", "families", self.engine.family.name, string.join(self.name,'')))
         
     def keyPressed(self, key, char):
         if self.step == -1:
@@ -290,7 +320,7 @@ class CreateCharacter(Scene):
                 #can only delete letters if there are some to delete
                 if key == K_BACKSPACE:
                     self.name.pop(-1)
-                if key == K_RETURN:
+                if key == K_RETURN and not self.exists:
                     self.menu.name = string.join(self.name, '')
                     self.step = -1
         elif self.step == 1:
@@ -316,7 +346,11 @@ class CreateCharacter(Scene):
             self.engine.drawText(self.font, name, (w*.5, h*.8), alignment="left")
 
             if name:
-                self.engine.drawImage(self.nameButton, position = (w*.85, h*.8), scale = (75,75))
+                if self.exists:
+                    frame = 2
+                else:
+                    frame = 1
+                self.engine.drawImage(self.nameButton, position = (w*.85, h*.8), scale = (75,75), frameX = frame)
             
     def create(self):
         name = string.join(self.name, '')
@@ -329,9 +363,13 @@ class CreateCharacter(Scene):
         w, h = self.engine.w, self.engine.h
 
         self.engine.drawImage(self.background, scale = (w,h))
+        
+        
         if not self.step == 1:
+            if len(self.job.sprites) > 0:
+                self.engine.drawImage(self.job.sprites[self.selectedSprite], position = (w*.75, h*.5))
             self.menu.render()
-
+            
         if self.step == 0:
             self.renderNaming(visibility)
         elif self.step == 1:
