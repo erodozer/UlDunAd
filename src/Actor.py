@@ -19,8 +19,8 @@ import glob
 
 class Job:
     def __init__(self, name):
-        path = os.path.join("data", "actors", "jobs", name)
-        jobini = Configuration(os.path.join("..", path, "job.ini")).job
+        path = os.path.join("actors", "jobs", name)
+        jobini = Configuration(os.path.join("..", "data", path, "job.ini")).job
         
         self.name = name
 
@@ -39,9 +39,9 @@ class Job:
         self.mag  = jobini.__getattr__("mag", int)
         self.res  = jobini.__getattr__("res", int)
         
-        self.stats = [self.str, self.defn, self.spd, self.evd, self.mag, self.res]
+        self.stats = [self.hp, self.str, self.defn, self.spd, self.evd, self.mag, self.res]
         
-        self.sprites = [ImgObj(Texture(os.path.join(path, sprite.rsplit["/"][1])))
+        self.sprites = [ImgObj(Texture(os.path.join(path, sprite.rsplit("/",1)[1])))
                         for sprite in glob.glob(os.path.join(path, "*.png"))]
 
         #this stat is an equation in terms of x with w being the
@@ -68,6 +68,12 @@ class Character:
     exp = [int(8.938*x**2.835) for x in range(_LevelMax)]
     
     def __init__(self, family, name):
+        
+        #do not try loading a character if name is not passed
+        # ONLY do this during creation
+        if not name:
+            return
+
         playerini = Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini")).character
         self.job  = Job(playerini.__getattr__("job"))
 
@@ -157,8 +163,8 @@ class Character:
             self.leveledUp = True     
 
     def create(self, family, name, job, stats):
-        Configuration(os.path.join("data", "actors", "characters", "families", family, name + ".ini")).save()
-        playerini = Configuration(os.path.join("data", "actors", "families", family, name + ".ini"))
+        Configuration(os.path.join("..", "data", "actors", "characters", "families", family, name + ".ini")).save()
+        playerini = Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini"))
         playerini.player.__setattr__("job", job)        
         playerini.player.__setattr__("level", 1)
         playerini.player.__setattr__("exp", 0)
@@ -196,7 +202,6 @@ class Family:
         members = [n.split("/")[-1] for n in glob.glob(os.path.join(path, "*.ini"))]
         if "family.ini" in members:
             members.remove("family.ini")
-        print members
         
         self.members = [Character(name, n.replace(".ini", "")) for n in members]
 

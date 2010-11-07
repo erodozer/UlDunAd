@@ -27,7 +27,7 @@ class StatDistMenu(MenuObj):
 
         position = (w*.5, h*.5)
         
-        self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.5, h*.85)
+        self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.5, h)
         self.window.setPosition(position[0], position[1])
         
         self.commands = self.scene.stats
@@ -141,14 +141,18 @@ class CreationMenu(MenuObj):
         w, h = self.engine.w, self.engine.h    
         
         #where on the screen should the menu be displayed
-        position = (w*.3, h*.5)
+        position = (w*.25, h*.5)
         
         self.commands = ["Name:", "Job: ", "Sprite: ", "Stat Distribution", "Create"]
                                         #the commands to choose from (are drawn on the buttons)
         self.direction = False          #are the buttons in order vertically or horizontally
             
         self.name = self.scene.name
-        self.values = [self.name, self.scene.job.name]
+        if len(self.scene.job.sprites) > 0:
+            sprite = self.scene.selectedSprite
+        else:
+            sprite = "None"
+        self.values = [self.name, self.scene.job.name, sprite]
         
         self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), w*.45, h)
         self.window.setPosition(position[0], position[1])
@@ -176,7 +180,11 @@ class CreationMenu(MenuObj):
         self.index = 0                  #which button is selected
 
     def refresh(self):
-        self.values = [string.join(self.name, ''), self.scene.job.name]
+        if len(self.scene.job.sprites) > 0:
+            sprite = self.scene.selectedSprite
+        else:
+            sprite = "None"
+        self.values = [string.join(self.name, ''), self.scene.job.name, sprite]
     
     #arrow keys select which button it is
     #enter/return performs the scene's set action for that button
@@ -203,23 +211,25 @@ class CreationMenu(MenuObj):
                     self.scene.jobSelect = len(self.scene.jobs) - 1
                 self.refresh()
             elif self.index == 2:
-                if self.scene.selectedSprite > 0:
-                    self.scene.selectedSprite -= 1
-                else:
-                    self.scene.selectedSprite = len(self.scene.job.sprites) - 1
+                if len(self.scene.job.sprites) > 0:
+                    if self.scene.selectedSprite > 0:
+                        self.scene.selectedSprite -= 1
+                    else:
+                        self.scene.selectedSprite = len(self.scene.job.sprites) - 1
                 
         elif key == Input.RButton:
             if self.index == 1:
-                if self.scene.jobSelect < len(self.scene.jobs) - 1:
+                if self.scene.jobSelect > len(self.scene.jobs) - 1:
                     self.scene.jobSelect += 1
                 else:
                     self.scene.jobSelect = 0
                 self.refresh()
             elif self.index == 2:
-                if self.scene.selectedSprite < len(self.scene.jobs.sprites):
-                    self.scene.selectedSprite += 1
-                else:
-                    self.scene.selectedSprite = 0
+                if len(self.scene.job.sprites) > 0:
+                    if self.scene.selectedSprite < len(self.scene.job.sprites):
+                        self.scene.selectedSprite += 1
+                    else:
+                        self.scene.selectedSprite = 0
                 
                     
         elif key == Input.AButton:
@@ -254,15 +264,15 @@ class CreationMenu(MenuObj):
             
         for i, stat in enumerate(self.scene.stats):            
             self.text.setText(self.scene.stats[i]) 
-            self.text.setPosition(self.buttons[2].position[0] - self.window.scale[0]/2 + 30,
-                                  self.buttons[2].position[1] - 45 - 34*i)
+            self.text.setPosition(self.buttons[3].position[0] - self.window.scale[0]/2 + 30,
+                                  self.buttons[3].position[1] - 45 - 34*i)
             self.text.scaleHeight(32.0)
             self.text.setAlignment("left")
             self.text.draw()
             
             self.text.setText(self.scene.job.stats[i] + self.scene.distAreas[i]) 
-            self.text.setPosition(self.buttons[2].position[0] + self.window.scale[0]/2 - 20,
-                                  self.buttons[2].position[1] - 45 - 34*i)
+            self.text.setPosition(self.buttons[3].position[0] + self.window.scale[0]/2 - 20,
+                                  self.buttons[3].position[1] - 45 - 34*i)
             self.text.scaleHeight(32.0)
             self.text.setAlignment("right")
             self.text.draw()
@@ -279,23 +289,28 @@ class CreateCharacter(Scene):
         self.background = ImgObj(Texture(os.path.join(scenepath, "creation.png")))
         
         
-        self.nameWindow = WinObj(Texture(os.path.join(scenepath, "window.png")),w*.45,h*.15)
+        self.nameWindow = WinObj(Texture(os.path.join(scenepath, "window.png")),w*.5,h*.15)
         self.nameButton = ImgObj(Texture("ok.png"), boundable = True, frameX = 2)
         
-        self.jobs = self.engine.listPath(os.path.join("actors", "jobs"), flag = "filename")
-                                                    #the jobs to choose from
+        #the jobs to choose from
+        jobpath = os.path.join("..", "data", "actors", "jobs")
+        self.jobs = [job for job in os.listdir(jobpath) 
+                     if os.path.exists(os.path.join(jobpath, job, "job.ini"))]
+                                                    
         self.jobSelect = 0                          #number of the job selected
         self.job = Job(self.jobs[self.jobSelect])   #the job object
         self.selectedSprite = 0                     #the sprite selected for the character from the job
         
         #stat point distribution
-        self.stats = ["Strength", "Defense", "Agility", "Evasion", "Force", "Resistance"]
+        self.stats = ["Hit Points", "Strength", "Defense", "Agility", "Evasion", "Force", "Resistance"]
         self.statDistMenu = StatDistMenu(self, scenepath)
         self.distPoints = 20
-        self.distAreas = [0,0,0,0,0,0]
+        self.distAreas = [0 for n in self.stats]
                 
         #the main menu for selecting what to do in character creation
         self.menu = CreationMenu(self, scenepath)
+        
+        self.font = FontObj(self.engine.data.defaultFont)
         
         self.error = False      #was an error thrown
         self.step = -1          #step -1 = basic, step 0 = naming, step 1 = distribute stats
@@ -331,31 +346,31 @@ class CreateCharacter(Scene):
         if self.step == -1:
             if index == 0:
                 self.step = 0
-            if index == 2:
-                self.step = 1
             if index == 3:
+                self.step = 1
+            if index == 4:
                 self.create()
        
     def renderNaming(self, visibility):
         w, h = self.engine.w, self.engine.h
-        self.nameWindow.setPosition(w*.7, h*.8)
+        self.nameWindow.setPosition(w*.75, h*.90)
         self.nameWindow.draw()
 
         if visibility >= 1.0:
             name = string.join(self.name, '')
-            self.engine.drawText(self.font, name, (w*.5, h*.8), alignment="left")
+            self.engine.drawText(self.font, name, (w*.5 + 10, h*.9), alignment="left")
 
             if name:
                 if self.exists:
                     frame = 2
                 else:
                     frame = 1
-                self.engine.drawImage(self.nameButton, position = (w*.85, h*.8), scale = (75,75), frameX = frame)
+                self.engine.drawImage(self.nameButton, position = (w*.9, h*.9), scale = (75,75), frameX = frame)
             
     def create(self):
         name = string.join(self.name, '')
-        character = Character(None)
-        character.create(self.family.name, self.name, self.job)
+        character = Character(None, None)
+        character.create(self.engine.family.name, name, self.job.name, self.distAreas)
         self.engine.family.refresh()
         self.engine.viewport.changeScene("MapList")
         
