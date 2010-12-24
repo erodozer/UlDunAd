@@ -16,6 +16,7 @@ from math import *
 import random
 
 import glob
+from Character import Character
         
 #the player's family
 #this class holds the code responsible for the amount of gold the family has

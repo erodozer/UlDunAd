@@ -1,3 +1,5 @@
+from Config import Configuration
+from math import *
 import Jobs
 
 class Character:
@@ -21,7 +23,7 @@ class Character:
         baseSection  = playerini.character      #contains basic information about the character
         distSection  = playerini.distribution   #contains stat distribution information
         equipSection = playerini.equipment      #contains all the equipment being worn
-        profSection  = playerini.proficency     #contains information about the character's weapon proficency
+        profSection  = playerini.proficiency    #contains information about the character's weapon proficency
         
         self.job  = eval(baseSection.__getattr__("job")+"()")
 
@@ -54,15 +56,6 @@ class Character:
         self.mag  = self.job.mag  + magDist,  #magic strength
         self.res  = self.job.res  + resDist   #magic defense
 
-        #any character can weild any weapon, to balance things there is a proficency system
-        #for equipment.  Every 100 points raises the level of the proficency.  
-        self.swordProf = self.job.swordProf + profSection.__getattr__("sword", int)
-        self.daggerProf = self.job.daggerProf + profSection.__getattr__("dagger", int)
-        self.spearProf = self.job.spearProf + profSection.__getattr__("spear", int)
-        self.staffProf = self.job.staffProf + profSection.__getattr__("staff", int)
-        self.gunsProf = self.job.gunsProf + profSection.__getattr__("guns", int)
-        self.fistProf = self.job.fistProf + profSection.__getattr__("fist", int)
-        
         #there are 10 pieces of equipment one can wear
         #left hand weapon, right hand weapon, helm, armor, legs, feet, gloves, and 3 accessories
         self.equipment = [equipSection.__getattr__("left hand"),
@@ -79,6 +72,20 @@ class Character:
         self.hand = 0       #0 = right handed, 1 = left handed
                             #dominant hand determines which weapons gets 
                             #proficency points and damage boost in battle
+        
+        #any character can weild any weapon, to balance things there is a proficency system
+        #for equipment.  Every 100 points raises the level of the proficency.  
+        self.swordProf = self.job.swordProf + profSection.__getattr__("sword", int)
+        self.daggerProf = self.job.daggerProf + profSection.__getattr__("dagger", int)
+        self.spearProf = self.job.spearProf + profSection.__getattr__("spear", int)
+        self.staffProf = self.job.staffProf + profSection.__getattr__("staff", int)
+        self.gunsProf = self.job.gunsProf + profSection.__getattr__("guns", int)
+        self.fistProf = self.job.fistProf + profSection.__getattr__("fist", int)
+        
+        self.proficiencies = [self.swordProf, self.daggerProf, self.spearProf, 
+                              self.staffProf, self.gunsProf, self.fistProf]
+                              
+        self.loadProficiency()
         
         x = self.level
         self.maxFP = int(eval(self.job.fightPT))
@@ -99,8 +106,32 @@ class Character:
 
         #this marks for the end of the battle if the character leveled up
         self.leveledUp = False
+      
+    #figures out the which proficency to use for the dominant hand weapon
+    def loadProficiency(self):
+        weapon = self.equipment[self.hand]
+        if (weapon.type = "sword")
+            self.proficiency = self.proficiencies[0]
+        else if (weapon.type = "dagger")
+            self.proficiency = self.proficiencies[1]
+        else if (weapon.type = "spear")
+            self.proficiency = self.proficiencies[2]
+        else if (weapon.type = "staff")
+            self.proficiency = self.proficiencies[3]
+        else if (weapon.type = "gun")
+            self.proficiency = self.proficiencies[4]
+        else
+            self.proficiency = self.proficiencies[5]
+    
+    def setEquipment(self, equipment):
+        reloadProficiency = False
+        if not equipment[self.hand].type == self.equipment[self.hand].type:
+            reloadProficiency = True
+            
+        self.equipment =     
+        if reloadProficiency:
+            self.loadProficiency()
         
-
     def initForBattle(self):
         self.fp = min(self.maxFP/3 + random.randInt(0, self.maxFP), self.maxFP)
         self.active = False
@@ -111,7 +142,9 @@ class Character:
         elif self.defend:
             self.defn *= 2.5
         elif self.attack:
-            self.damage = self.str + self.equipment[0].str + (self.str*
+            self.damage = self.str + self.equipment[0].str + 
+                          (self.str*(self.proficiency/100.0 - 1))
+            
     def turnEnd(self):
         self.fp += self.maxFP / 5
 
@@ -147,7 +180,7 @@ class Character:
             self.leveledUp = True     
 
     #saves a new ini for the character to be used
-    def create(self, family, name, job, stats):
+    def create(self, family, name, job, stats, equipment, proficiency):
         Configuration(os.path.join("..", "data", "actors", "characters", "families", family, name + ".ini")).save()
         ini = Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini"))
         
@@ -155,7 +188,7 @@ class Character:
         base = ini.character
         dist = ini.distribution
         eqp  = ini.equipment
-        prof = ini.proficency
+        prof = ini.proficiency
         
         base.__setattr__("job", job)      
         base.__setattr__("level", 1)
@@ -169,22 +202,22 @@ class Character:
         dist.__setattr__("magDist", stats[5])
         dist.__setattr__("resDist", stats[6])
         
-        eqp.__setattr__("left hand",  "")
-        eqp.__setattr__("right hand", "")
-        eqp.__setattr__("helmet",     "")
-        eqp.__setattr__("armor",      "") 
-        eqp.__setattr__("legs",       "") 
-        eqp.__setattr__("feet",       "")
-        eqp.__setattr__("gloves",     "")
-        eqp.__setattr__("accessory1", "")
-        eqp.__setattr__("accessory2", "")
-        eqp.__setattr__("accessory3", "")
+        eqp.__setattr__("left hand",  equipment[0])
+        eqp.__setattr__("right hand", equipment[1])
+        eqp.__setattr__("helmet",     equipment[2])
+        eqp.__setattr__("armor",      equipment[3]) 
+        eqp.__setattr__("legs",       equipment[4]) 
+        eqp.__setattr__("feet",       equipment[5])
+        eqp.__setattr__("gloves",     equipment[6])
+        eqp.__setattr__("accessory1", equipment[7])
+        eqp.__setattr__("accessory2", equipment[8])
+        eqp.__setattr__("accessory3", equipment[9])
         
-        prof.__setattr__("sword",  0)
-        prof.__setattr__("dagger", 0)
-        prof.__setattr__("spear",  0)
-        prof.__setattr__("staff",  0)
-        prof.__setattr__("guns",   0)
-        prof.__setattr__("fist",   0)
+        prof.__setattr__("sword",  proficiency[0])
+        prof.__setattr__("dagger", proficiency[1])
+        prof.__setattr__("spear",  proficiency[2])
+        prof.__setattr__("staff",  proficiency[3])
+        prof.__setattr__("guns",   proficiency[4])
+        prof.__setattr__("fist",   proficiency[5])
         
         ini.save()
