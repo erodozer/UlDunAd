@@ -18,6 +18,8 @@ import Input
 
 from MenuObj import MenuObj
 
+from Jobs import *
+
 class StatDistMenu(MenuObj):
     def __init__(self, scene, scenepath):
 
@@ -148,7 +150,7 @@ class CreationMenu(MenuObj):
         self.direction = False          #are the buttons in order vertically or horizontally
             
         self.name = self.scene.name
-        if len(self.scene.job.sprites) > 0:
+        if len(self.scene.sprites) > 0:
             sprite = self.scene.selectedSprite
         else:
             sprite = "None"
@@ -180,7 +182,7 @@ class CreationMenu(MenuObj):
         self.index = 0                  #which button is selected
 
     def refresh(self):
-        if len(self.scene.job.sprites) > 0:
+        if len(self.scene.sprites) > 0:
             sprite = self.scene.selectedSprite
         else:
             sprite = "None"
@@ -211,11 +213,11 @@ class CreationMenu(MenuObj):
                     self.scene.jobSelect = len(self.scene.jobs) - 1
                 self.refresh()
             elif self.index == 2:
-                if len(self.scene.job.sprites) > 0:
+                if len(self.scene.sprites) > 0:
                     if self.scene.selectedSprite > 0:
                         self.scene.selectedSprite -= 1
                     else:
-                        self.scene.selectedSprite = len(self.scene.job.sprites) - 1
+                        self.scene.selectedSprite = len(self.scene.sprites) - 1
                 
         elif key == Input.RButton:
             if self.index == 1:
@@ -225,8 +227,8 @@ class CreationMenu(MenuObj):
                     self.scene.jobSelect = 0
                 self.refresh()
             elif self.index == 2:
-                if len(self.scene.job.sprites) > 0:
-                    if self.scene.selectedSprite < len(self.scene.job.sprites):
+                if len(self.scene.sprites) > 0:
+                    if self.scene.selectedSprite < len(self.scene.sprites):
                         self.scene.selectedSprite += 1
                     else:
                         self.scene.selectedSprite = 0
@@ -294,12 +296,14 @@ class CreateCharacter(Scene):
         
         #the jobs to choose from
         jobpath = os.path.join("..", "data", "actors", "jobs")
-        self.jobs = [job for job in os.listdir(jobpath) 
-                     if os.path.exists(os.path.join(jobpath, job, "job.ini"))]
+        self.jobs = ["Adventurer"]
                                                     
         self.jobSelect = 0                          #number of the job selected
-        self.job = Job(self.jobs[self.jobSelect])   #the job object
-        self.selectedSprite = 0                     #the sprite selected for the character from the job
+        self.job = eval(self.jobs[self.jobSelect]+"()")   
+                                                    #the job object
+                                                    
+        self.selectedSprite = 0                     #the sprite selected for the character
+        self.sprites = []#[n for n in os.path.listdir(os.path.join("..", "data", "actors", "sprites")) if n.split(".")[1] == (".png")]
         
         #stat point distribution
         self.stats = ["Hit Points", "Strength", "Defense", "Agility", "Evasion", "Force", "Resistance"]
@@ -316,7 +320,7 @@ class CreateCharacter(Scene):
         self.step = -1          #step -1 = basic, step 0 = naming, step 1 = distribute stats
 
     def run(self):
-        self.job = Job(self.jobs[self.jobSelect])
+        self.job = eval(self.jobs[self.jobSelect]+"()")
         self.exists = os.path.exists(os.path.join("..", "data", "actors", "families", self.engine.family.name, string.join(self.name,'')))
         
     def keyPressed(self, key, char):
@@ -370,7 +374,7 @@ class CreateCharacter(Scene):
     def create(self):
         name = string.join(self.name, '')
         character = Character(None, None)
-        character.create(self.engine.family.name, name, self.job.name, self.distAreas)
+        character.create(self.engine.family.name, name, self.job.name, self.distAreas, self.distPoints)
         self.engine.family.refresh()
         self.engine.viewport.changeScene("MapList")
         
@@ -381,8 +385,8 @@ class CreateCharacter(Scene):
         
         
         if not self.step == 1:
-            if len(self.job.sprites) > 0:
-                self.engine.drawImage(self.job.sprites[self.selectedSprite], position = (w*.75, h*.5))
+            #if len(self.sprites) > 0:
+            #    self.engine.drawImage(self.sprites[self.selectedSprite], position = (w*.75, h*.5))
             self.menu.render()
             
         if self.step == 0:
