@@ -17,6 +17,8 @@ import random
 
 import glob
 
+from Skill import *
+
 class Job:
     def __init__(self):
         
@@ -43,14 +45,17 @@ class Job:
         
         self.stats = [self.hp, self.str, self.defn, self.spd, self.evd, self.mag, self.res]
         
-        #this stat is an equation in terms of x with w being the
-        # character's level.  It determines the maximum amount
-        # of fighting power the character has.
-        #self.fightPT  = jobini.__getattr__("fightCurve")
-
         #skill tree
         self.skills = []
-                
+
+        #jobs have their own weapon proficiency buffs to being with
+        self.swordProf  = 0
+        self.daggerProf = 0
+        self.spearProf  = 0
+        self.staffProf  = 0
+        self.gunsProf   = 0
+        self.fistProf   = 0
+
     def drawStatGraph(self):
         glBegin(GL_LINE_STRIP)
         glColor3f(1.0, 0.0, 0.0); glVertex2f(-self.stats[0],   0)
@@ -66,9 +71,9 @@ class Adventurer(Job):
         
         self.name = "Adventurer"
 
-        self.description = "Adventurers are masters of combat and are at a rise.\n" + 
-                           "With war at a historical low, people are in search of\n" + 
-                           "a thrill for their lives.  Adventuring fills that void\n" + 
+        self.description = "Adventurers are masters of combat and are at a rise.\n" + \
+                           "With war at a historical low, people are in search of\n" + \
+                           "a thrill for their lives.  Adventuring fills that void\n" + \
                            "by reopening their eyes to the nature and the wild." 
         
         self.hp   = 150
@@ -81,11 +86,20 @@ class Adventurer(Job):
         
         self.stats = [self.hp, self.str, self.defn, self.spd, self.evd, self.mag, self.res]
         
-        #this stat is an equation in terms of x with w being the
-        # character's level.  It determines the maximum amount
-        # of fighting power the character has.
-        #self.fightPT  = jobini.__getattr__("fightCurve")
-
+        #jobs have their own weapon proficiency buffs to being with
+        self.swordProf  = 300
+        self.daggerProf = 100
+        self.spearProf  = 200
+        self.staffProf  = 0
+        self.gunsProf   = 0
+        self.fistProf   = 150
+        
+        self.proficiencies = [self.swordProf, self.daggerProf, self.spearProf, 
+                              self.staffProf, self.gunsProf, self.fistProf]
+        
         #skill tree
-        self.skills = [Skill("Sword Mastery")]
+        self.skills = [SwordMastery(self)]
+        
+        
+
                 
