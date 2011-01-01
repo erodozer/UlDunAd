@@ -14,7 +14,7 @@ Licensed under the GNU General Public License V3
 #helps make things easier when it comes to memory management
 
 
-scenes = ["MainMenu", "CreateFamily", "CreateCharacter", "MapList",
+scenes = ["MainMenu", "CreateFamily", "CreateCharacter", "Maplist",
           "BattleSystem", "FamilyList"]
 
 def create(engine, name):
