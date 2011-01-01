@@ -376,7 +376,7 @@ class CreateCharacter(Scene):
         character = Character(None, None)
         character.create(self.engine.family.name, name, self.job.name, self.distAreas, self.distPoints)
         self.engine.family.refresh()
-        self.engine.viewport.changeScene("MapList")
+        self.engine.viewport.changeScene("Maplist")
         
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
