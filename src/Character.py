@@ -1,6 +1,19 @@
+'''
+
+2010 Nicholas Hydock
+UlDunAd
+Ultimate Dungeon Adventure
+
+Licensed under the GNU General Public License V3
+     http://www.gnu.org/licenses/gpl.html
+
+'''
+
 from Config import Configuration
 from math import *
-import Jobs
+from Jobs import *
+from Item import *
+import os
 
 class Character:
     _LevelMax = 20      #this is the current level cap, I will adjust this with the number of content available
@@ -46,15 +59,13 @@ class Character:
         #distribution amongst his stats
         self.points = baseSection.__getattr__("points", int)
 
-        self.currentHp = baseSection.__getattr__("currenthp", int)
-
-        self.hp   = self.job.hp   + hpDist,   #hit points
-        self.str  = self.job.str  + strDist,  #strength
-        self.defn = self.job.defn + defDist,  #defense
-        self.spd  = self.job.spd  + spdDist,  #speed
-        self.evd  = self.job.evd  + evdDist,  #evasion
-        self.mag  = self.job.mag  + magDist,  #magic strength
-        self.res  = self.job.res  + resDist   #magic defense
+        self.hp   = self.job.hp   + self.hpDist   #hit points
+        self.str  = self.job.str  + self.strDist  #strength
+        self.defn = self.job.defn + self.defDist  #defense
+        self.spd  = self.job.spd  + self.spdDist  #speed
+        self.evd  = self.job.evd  + self.evdDist  #evasion
+        self.mag  = self.job.mag  + self.magDist  #magic strength
+        self.res  = self.job.res  + self.resDist  #magic defense
 
         #there are 10 pieces of equipment one can wear
         #left hand weapon, right hand weapon, helm, armor, legs, feet, gloves, and 3 accessories
@@ -75,12 +86,14 @@ class Character:
         
         #any character can weild any weapon, to balance things there is a proficency system
         #for equipment.  Every 100 points raises the level of the proficency.  
-        self.swordProf = self.job.swordProf + profSection.__getattr__("sword", int)
-        self.daggerProf = self.job.daggerProf + profSection.__getattr__("dagger", int)
-        self.spearProf = self.job.spearProf + profSection.__getattr__("spear", int)
-        self.staffProf = self.job.staffProf + profSection.__getattr__("staff", int)
-        self.gunsProf = self.job.gunsProf + profSection.__getattr__("guns", int)
-        self.fistProf = self.job.fistProf + profSection.__getattr__("fist", int)
+        #max proficency is 1100 points or SS rank
+        
+        self.swordProf  = min(self.job.swordProf  + profSection.__getattr__("sword",  int), 1100)
+        self.daggerProf = min(self.job.daggerProf + profSection.__getattr__("dagger", int), 1100)
+        self.spearProf  = min(self.job.spearProf  + profSection.__getattr__("spear",  int), 1100)
+        self.staffProf  = min(self.job.staffProf  + profSection.__getattr__("staff",  int), 1100)
+        self.gunsProf   = min(self.job.gunsProf   + profSection.__getattr__("guns",   int), 1100)
+        self.fistProf   = min(self.job.fistProf   + profSection.__getattr__("fist",   int), 1100)
         
         self.proficiencies = [self.swordProf, self.daggerProf, self.spearProf, 
                               self.staffProf, self.gunsProf, self.fistProf]
@@ -88,7 +101,7 @@ class Character:
         self.loadProficiency()
         
         x = self.level
-        self.maxFP = int(eval(self.job.fightPT))
+        self.maxFP = 100
         
         #is the character attacking
         self.attack = False
@@ -109,18 +122,18 @@ class Character:
       
     #figures out the which proficency to use for the dominant hand weapon
     def loadProficiency(self):
-        weapon = self.equipment[self.hand]
-        if (weapon.type = "sword")
+        weapon = Weapon(self.equipment[self.hand])
+        if (weapon.type == "sword"):
             self.proficiency = self.proficiencies[0]
-        else if (weapon.type = "dagger")
+        elif (weapon.type == "dagger"):
             self.proficiency = self.proficiencies[1]
-        else if (weapon.type = "spear")
+        elif (weapon.type == "spear"):
             self.proficiency = self.proficiencies[2]
-        else if (weapon.type = "staff")
+        elif (weapon.type == "staff"):
             self.proficiency = self.proficiencies[3]
-        else if (weapon.type = "gun")
+        elif (weapon.type == "gun"):
             self.proficiency = self.proficiencies[4]
-        else
+        else:
             self.proficiency = self.proficiencies[5]
     
     def setEquipment(self, equipment):
@@ -128,7 +141,7 @@ class Character:
         if not equipment[self.hand].type == self.equipment[self.hand].type:
             reloadProficiency = True
             
-        self.equipment =     
+        self.equipment = equipment   
         if reloadProficiency:
             self.loadProficiency()
         
@@ -142,8 +155,7 @@ class Character:
         elif self.defend:
             self.defn *= 2.5
         elif self.attack:
-            self.damage = self.str + self.equipment[0].str + 
-                          (self.str*(self.proficiency/100.0 - 1))
+            self.damage = self.str + self.equipment[0].str + (self.str*(self.proficiency/100.0 - 1))
             
     def turnEnd(self):
         self.fp += self.maxFP / 5
@@ -159,8 +171,16 @@ class Character:
 
         self.boost = False
         self.defend = False
+
+    def levelUp(self):
+        if self.exp == Character.exp[self.level-1]:
+            self.level += 1
+            self.exp = 0
+            self.points += 5
+            self.leveledUp = True     
             
-    #not working, I wish it did
+    #not working, I wish it did, it's supposed to be a pentagon with each vertex further from the
+    #center depending on how high the stat is
     def drawStatGraph(self):
         glBegin(GL_LINE_STRIP)
         glColor3f(1.0, 0.0, 0.0); glVertex2f(-self.stats[0],   0)
@@ -171,17 +191,31 @@ class Character:
         glColor3f(0.0, 1.0, 0.0); glVertex2f(-self.stats[5]/2, -self.stats[5]/2)
         glEnd()
 
-
-    def levelUp(self):
-        if self.exp == Character.exp[self.level-1]:
-            self.level += 1
-            self.exp = 0
-            self.points += 5
-            self.leveledUp = True     
+    #proficiency is displayed by letter grade
+    def getProfLetter(self, prof = 0):
+        grade = int(self.proficencies[prof]/100.0)
+        if grade < 4:
+            return "F"
+        elif grade < 5:
+            return "E"
+        elif grade < 6:
+            return "D"
+        elif grade < 7:
+            return "C"
+        elif grade < 8:
+            return "B"
+        elif grade < 9:
+            return "A"
+        elif grade < 10:
+            return "A+"
+        elif grade < 11:
+            return "S"
+        else:
+            return "SS"
 
     #saves a new ini for the character to be used
-    def create(self, family, name, job, stats, equipment, proficiency):
-        Configuration(os.path.join("..", "data", "actors", "characters", "families", family, name + ".ini")).save()
+    def create(self, family, name, job, stats, points = 0, equipment = None, proficiency = None):
+        Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini")).save()
         ini = Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini"))
         
         #nothing like short-handing
@@ -190,9 +224,16 @@ class Character:
         eqp  = ini.equipment
         prof = ini.proficiency
         
+        if proficiency == None:
+            proficiency = eval(job+"()").proficiencies
+            print proficiency
+        if equipment == None:
+            equipment = [None for i in range(10)]
+            
         base.__setattr__("job", job)      
         base.__setattr__("level", 1)
         base.__setattr__("exp",   0)
+        base.__setattr__("points", points)
         
         dist.__setattr__("hpDist",  stats[0])
         dist.__setattr__("strDist", stats[1])
