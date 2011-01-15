@@ -12,6 +12,8 @@ Licensed under the GNU General Public License V3
 from sysobj import *
 from View import *
 
+from Actor import Family
+
 from MenuObj import MenuObj
 
 class MainMenu(Scene):
@@ -61,7 +63,12 @@ class MainMenu(Scene):
         if index == 0:
             self.engine.viewport.changeScene("CreateFamily")
         elif index == 1:
+            #forcing for testing purposes
+            #self.engine.family = Family("default")
+            #self.engine.viewport.changeScene("MapList")
             self.engine.viewport.changeScene("FamilyList")
+        else:
+            self.engine.finished = True
         
     def run(self):
         pass
