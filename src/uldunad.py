@@ -30,8 +30,6 @@ import glob
 FPS = 60
 caption = 'UlDunAd - Ultimate Dungeon Adventure'
 
-finished = False
-
 if not os.path.exists(os.path.join("uldunad.ini")):
     Configuration(os.path.join("uldunad.ini")).save()
     runini = Configuration(os.path.join("uldunad.ini"))
@@ -69,7 +67,8 @@ class Error(Scene):
 
 class Main:
     def __init__(self, caption, flags):
-
+        self.finished = False   #is the app done
+        
         pygame.mixer.pre_init(44100)
 
         pygame.init()
@@ -88,13 +87,13 @@ class Main:
         self.viewport.addScene("MainMenu")
 
         self.family = None      #your selected family and party
-
+        
     def run(self):
         global finished
 
         # main event loop
         Input.update()
-        finished = Input.finished
+        self.finished = Input.finished
 
         self.viewport.run()
     
@@ -192,5 +191,5 @@ class Main:
 
 #main loop to run the program
 game = Main(caption, video_flags)
-while not finished:
+while not game.finished:
     game.run()
