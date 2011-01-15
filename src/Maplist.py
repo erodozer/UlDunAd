@@ -28,7 +28,7 @@ class Maplist(Scene):
         self.button = ImgObj(Texture("ok.png"), boundable = True, frameX = 2)
         self.font   = FontObj("default.ttf")
 
-        self.maps   = self.engine.listPath("places")
+        self.maps   = self.engine.listPath("places", value = "town.ini", flag = "folderDeepSearch")
         self.startIndex = 0
         self.endIndex = min(10, len(self.maps))
         
