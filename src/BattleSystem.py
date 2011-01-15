@@ -1,7 +1,25 @@
+'''
+
+2010 Nicholas Hydock
+UlDunAd
+Ultimate Dungeon Adventure
+
+Licensed under the GNU General Public License V3
+     http://www.gnu.org/licenses/gpl.html
+
+'''
+
 from sysobj import *
 from operator import itemgetter
 
-from View import Scene
+from View   import *
+from Actor  import *
+
+import string
+import Input
+
+from MenuObj import MenuObj
+
 
 #this is the hud that displays the character information
 #it's not one big window, instead it is 1-3 little windows
@@ -81,15 +99,16 @@ class Battle(Scene):
         self.commandWheel.setPosition(700, 500)
         self.command = 0
 
-        
         self.inMenu = False
 
-        self.active = 0
-        self.battling = False
+        self.active = 0         #which character is currently selecting commands
+        self.battling = False   #are commands being selected or is fighting occuring?
 
         self.turns = {character:0 for character in self.party,
                       enemy:0 for enemy in self.formation}
         self.order = []
+
+	self.targetMenu = None
 
     def run(self):
         if not self.battling:
@@ -136,6 +155,14 @@ class Battle(Scene):
         for character in self.party:
             character.turnEnd()
 
+    def generateTargets(self, actor):
+        targetMenu = []
+        if actor.attacking or actor.spell.target == 0:
+            targetMenu = MenuObj(self.formation)
+        else:
+            targetMenu = MenuObj(self.party)
+        return targetMenu
+        
     def render(self):
         for hud in self.huds:
             hud.draw()
