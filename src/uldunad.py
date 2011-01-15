@@ -163,13 +163,23 @@ class Main:
         font.draw()
 
  
+    #searches path for files with filetype or folder
     def listPath(self, path, value = "ini", flag = None, exclude = None):
         items = []
         searchpath = os.path.join("..", "data", path)
+        #retrieve just the file names
         if flag == "filename":
             items = [n.rsplit("/",1)[1].replace(".ini", "") for n in glob.glob(os.path.join(searchpath, "*." + value))]
+        #returns a list of the folders in the path
+        elif flag == "folder":
+            items = os.listdir(searchpath)
+        #returns a list of the folders in the path that contain the searched file
+        elif flag == "folderDeepSearch":
+            items = [n for n in os.listdir(searchpath) if os.path.isfile(os.path.join(searchpath, n, value))]
+        #retrieve the entire filename, extension included
         else:
             items = [n.rsplit("/",1)[1] for n in glob.glob(os.path.join(searchpath, "*." + value))]
+        #removes this file from list
         if exclude:
             items.remove(exclude)
         
