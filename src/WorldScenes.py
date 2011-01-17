@@ -15,7 +15,7 @@ Licensed under the GNU General Public License V3
 
 
 scenes = ["MainMenu", "CreateFamily", "CreateCharacter", "Maplist",
-          "BattleSystem", "FamilyList"]
+          "BattleSystem", "FamilyList", "MenuSystem"]
 
 def create(engine, name):
 
