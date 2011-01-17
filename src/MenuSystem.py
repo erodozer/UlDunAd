@@ -103,7 +103,7 @@ class MenuSystem(Scene):
         
             #close the character submenu
             if key == Input.BButton:
-                self.engine.viewport.changeScene("Maplist")
+                self.dimension = 0
         else:
             self.menu.keyPressed(key)
         
