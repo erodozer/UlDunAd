@@ -23,7 +23,7 @@ class CreateFamily(Scene):
         self.engine = engine
 
         scenepath = os.path.join("scenes", "creation")
-        self.background = ImgObj(Texture(os.path.join(scenepath, "creation.png")))
+        self.background = ImgObj(Texture(os.path.join(scenepath, "background.png")))
         self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), self.engine.w/4, 0)
         self.button = ImgObj(Texture("ok.png"), boundable = True, frameX = 2)
         self.font   = FontObj("default.ttf")

@@ -288,7 +288,7 @@ class CreateCharacter(Scene):
         self.job    = None
     
         scenepath = os.path.join("scenes", "creation")
-        self.background = ImgObj(Texture(os.path.join(scenepath, "creation.png")))
+        self.background = ImgObj(Texture(os.path.join(scenepath, "background.png")))
         
         
         self.nameWindow = WinObj(Texture(os.path.join(scenepath, "window.png")),w*.5,h*.15)
