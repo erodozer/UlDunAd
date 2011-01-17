@@ -14,7 +14,7 @@ from math import *
 # can be made using the same texture and use
 # less ram
 class Texture:
-    def __init__(self, path = "", surface = pygame.Surface((1,1))):
+    def __init__(self, path = "", surface = pygame.Surface((1,1)), flip = True):
     
         self.id = glGenTextures(1)
         
@@ -24,14 +24,14 @@ class Texture:
         else:
             self.textureSurface = surface
             
-        self.changeTexture(self.textureSurface)
+        self.changeTexture(self.textureSurface, flip)
 
     #changes the texture without creating a new id to save on memory
-    def changeTexture(self, texture):
+    def changeTexture(self, texture, flip = True):
         self.textureSurface = texture
         self.pixelSize = self.textureSurface.get_size()
         
-        self.finalSurface = self.makePOT()
+        self.finalSurface = self.makePOT(flip)
         self.textureData = pygame.image.tostring(self.finalSurface, "RGBA", 1)
 
         self.bind()
@@ -39,13 +39,13 @@ class Texture:
                       0, GL_RGBA, GL_UNSIGNED_BYTE, self.textureData)
         
     #makes sure the texture is a power of two for compatibilies sake
-    def makePOT(self):
+    def makePOT(self, flip = True):
         wid = 2**ceil(log(self.pixelSize[0], 2))         #makes the width of the surface a power of two
         hgt = 2**ceil(log(self.pixelSize[1], 2))         #makes the height of the surface a power of two
 
         #scales the texture to the new power of two size
         surface = pygame.transform.smoothscale(self.textureSurface, (int(wid),int(hgt)))
-        surface = pygame.transform.flip(surface, False, True)
+        surface = pygame.transform.flip(surface, False, flip)
 
         return surface 
 

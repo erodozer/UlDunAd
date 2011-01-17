@@ -23,6 +23,7 @@ from math import *
 class WinObj:
     def __init__(self, texture, width = 64, height = 64):
         self.texture = texture
+        self.texture.changeTexture(texture.textureSurface, False)
         
         #attributes
         self.scale       = [width, height]          #image bounds (width, height)
@@ -116,13 +117,19 @@ class WinObj:
             return
         
         self.scale = list(self.scale)
-        if self.xAdd == None and self.yAdd == None:
-            self.getRates(width, height)
+        
+        #if it is 0 then it should be instantaneous
+        if self.transitionTime > 0.0: 
+            #creates a smooth scaling transition
+            if self.xAdd == None and self.yAdd == None:
+                self.getRates(width, height)
 
-        if self.currentFrame <= self.transitionTime:
-            self.scale[0] += self.xAdd
-            self.scale[1] += self.yAdd
-            self.currentFrame += 1
+            if self.currentFrame <= self.transitionTime:
+                self.scale[0] += self.xAdd
+                self.scale[1] += self.yAdd
+                self.currentFrame += 1
+            else:
+                self.scale = [width, height]
         else:
             self.scale = [width, height]
 
