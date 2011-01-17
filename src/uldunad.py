@@ -48,23 +48,6 @@ video_flags = DOUBLEBUF|OPENGL|HWPALETTE|HWSURFACE#|NOFRAME
 if fullscreen == "F":
     video_flags |= FULLSCREEN
 
-class Error(Scene):
-    def __init__(self, engine):
-        self.engine = engine
-        self.text = ""
-        self.font = FontObj("default.ttf")
-        backTex = pygame.Surface((w,h))
-        backTex.fill((0,0,0,150))
-        self.background = ImgObj(Texture(surface = backTex))
-
-    def setText(self, text):
-        if self.text != text:
-            self.text = text
-
-    def render(self):
-        self.engine.drawImage(self.background)
-        self.engine.drawText(self.font, self.text)
-
 class Main:
     def __init__(self, caption, flags):
         self.finished = False   #is the app done
@@ -183,11 +166,6 @@ class Main:
             items.remove(exclude)
         
         return items
-
-    def showError(self, error):
-        self.error.setText(error)
-        self.error.render()
-
 
 #main loop to run the program
 game = Main(caption, video_flags)
