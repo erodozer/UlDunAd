@@ -25,7 +25,7 @@ class Maplist(Scene):
         scenepath = os.path.join("scenes", "maplist")
         self.background = ImgObj(Texture(os.path.join(scenepath, "background.png")))
         self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), self.engine.w/4, 0)
-        self.button = ImgObj(Texture("ok.png"), boundable = True, frameX = 2)
+        self.menubutton = ImgObj(Texture(os.path.join(scenepath, "menubutton.png")), boundable = True)
         self.font   = FontObj("default.ttf")
 
         self.maps   = self.engine.listPath("places", value = "town.ini", flag = "folderDeepSearch")
@@ -38,11 +38,6 @@ class Maplist(Scene):
         commands.append("Down")
         self.menu   = MenuObj(self, commands, position = (100, 400))
         
-        #family info
-        self.name = []          #name of the family
-        self.diffselected = 1   #the difficulty selected (match up number with position in difficulty array
-                                # (1 = default, Normal difficulty)
-
         self.fadeIn     = True  #are the windows transitioning in or out
 
         self.error = False      #was an error thrown
@@ -54,7 +49,12 @@ class Maplist(Scene):
         pass
         
     def keyPressed(self, key, char):    
-        self.menu.keyPressed(key)                
+        self.menu.keyPressed(key)   
+        
+        #opens up the menu
+        if key == Input.CButton:
+            self.engine.viewport.changeScene("MenuSystem")
+             
 
     def select(self, index):
         #if Up is selected
@@ -98,5 +98,5 @@ class Maplist(Scene):
         w, h = self.engine.w, self.engine.h
 
         self.engine.drawImage(self.background, scale = (w,h))
-
+        self.engine.drawImage(self.menubutton, position = (w*.9, h*.1))
         self.menu.render()
