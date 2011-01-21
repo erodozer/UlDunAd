@@ -124,24 +124,22 @@ class Viewport:
     #checks to see where the position of the mouse is over 
     #an object and if that object has been clicked
     def detect(self, scene):
-
-        mouse = pygame.mouse
-        mouseEvent = mouse.get_pressed()
+        glDisable(GL_TEXTURE_2D)
+        glDisable(GL_FOG)
+        glDisable(GL_LIGHTING)
 
         for key, char in Input.getKeyPresses():
             scene.keyPressed(key, char)
 
-	    #ONLY DO THIS IF MOUSE CLICKED
-        if mouseEvent[0]:
-            x, y = mouse.get_pos()
-            
-            for image in self.inputObjects:
-                scene.buttonClicked(image)
-                
-            hits = glRenderMode(GL_RENDER)
-            if hits > 0:
-                print hits
-        
+        if Input.clicks:
+            #print Input.clicks
+            for press in Input.clicks:
+                for image in self.inputObjects:
+                    if image.getCollision(press):
+             #           print "image clicked!", image
+                        scene.buttonClicked(image)
+                        break
+    
     #renders a scene fully textured
     def render(self, scene, visibility):
         glEnable(GL_TEXTURE_2D)
@@ -154,8 +152,6 @@ class Viewport:
 
     def run(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
-        self.input = False                          #tell the scene to reset input at the beginning of each cycle
 
         if self.scenes:
             #ticks/rate of change in time
@@ -177,7 +173,6 @@ class Viewport:
                     self.render(scene, visibility)      #renders anything to the scene that is 2D
                     pygame.display.flip()               #switches back buffer to the front
                     if topmost:                         #only should the topmost scene be checked for input
-                        self.input = True               #sets it so now images are just drawn in their color ID
                         self.detect(scene)              #checks to see if any object on the back buffer has been clicked
                 finally:
                     self.camera.resetProjection()       #resets the projection to have perspective
