@@ -95,7 +95,7 @@ class MenuObj:
                 button.setFrame(y = 2)
             else:
                 button.setFrame(y = 1)
-            button.draw()
+            self.engine.drawImage(button)
             
             self.text.setText(self.commands[i]) 
             self.text.setPosition(button.position[0], button.position[1])

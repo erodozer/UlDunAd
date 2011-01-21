@@ -58,11 +58,20 @@ class FamilyMenu(MenuObj):
             
         self.endIndex = min(self.startIndex + 4, len(self.commands))
 
+    def buttonClicked(self, image):
+        if (image in self.buttons[:(self.endIndex-self.startIndex)]):
+            i = self.buttons.index(image)
+            if not self.index == i + self.startIndex:
+                self.index = i + self.startIndex
+            else:
+                self.scene.select(self.index)
     
     #renders the menu
     def render(self, visibility = 1.0):
 
         families = self.commands[self.startIndex:self.endIndex]
+        
+        #rendersthe buttons
         for i, button in enumerate(self.buttons[:(self.endIndex-self.startIndex)]):
             family = families[i]
         
@@ -71,14 +80,16 @@ class FamilyMenu(MenuObj):
             else:
                 button.setFrame(y = 1)
         
-            button.draw()
+            self.engine.drawImage(button)
         
+            #renders family name
             self.text.setText(family.name) 
             self.text.setPosition(button.position[0] - self.engine.w/10, button.position[1])
             self.text.scaleHeight(36.0)
             self.text.setAlignment("left")
             self.text.draw()
             
+            #renders the number of members in the family
             self.text.setPosition(button.position[0] + button.width - self.engine.w/10, button.position[1])
             self.text.setText("Members:%i" % len(family.members)) 
             self.text.scaleHeight(36.0)
@@ -115,8 +126,15 @@ class FamilyList(Scene):
         
         self.selected   = 0
     
+    def buttonClicked(self, image):
+        self.menu.buttonClicked(image)
+        
     def keyPressed(self, key, char):
         self.menu.keyPressed(key)
+        
+        if key == Input.BButton:
+            self.engine.viewport.changeScene("MainMenu")
+            
       
     def select(self, index):
         self.engine.family = self.families[index]

@@ -44,7 +44,13 @@ class CreateFamily(Scene):
         self.exists = False
 
     def buttonClicked(self, image):
-        pass
+        if self.step == 0:
+            if image == self.button:
+                if not self.exists:
+                    self.step += 1:
+        else:
+            self.menu.buttonClicked(image)
+                
         
     def keyPressed(self, key, char):
         if self.step == 0:
@@ -126,9 +132,6 @@ class CreateFamily(Scene):
             self.renderDifficulty()
         else:
             self.create()
-
-        if self.error:
-            self.engine.showError("You must enter a name")
 
 
         
