@@ -79,7 +79,7 @@ class Main:
         self.finished = Input.finished
 
         self.viewport.run()
-    
+        Input.reset()
         self.clock.tick()
    
     #allows you to load an image and change the default values for it
@@ -104,14 +104,16 @@ class Main:
         return image
 
     #simple method used to quicken the typing process
-    def drawImage(self, image, position = (w/2, h/2), scale = (1,1), angle = None, color = None, frameX = None, frameY = None):
+    def drawImage(self, image, position = None, scale = None, angle = None, color = None, frameX = None, frameY = None):
 
         #prevents it from drawing an object that does not exist in the first place
         if not image:
             return
 
-        image.setPosition(position[0], position[1])
-        image.setScale(scale[0], scale[1])
+        if position:
+            image.setPosition(position[0], position[1])
+        if scale:
+            image.setScale(scale[0], scale[1])
         if angle:
             image.setAngle(angle)
         if color:
