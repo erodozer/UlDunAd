@@ -43,15 +43,43 @@ class StatDistMenu(MenuObj):
                         for n in range(len(self.commands))]
         
         for i, button in enumerate(self.buttons):
-            button.setScale(self.window.scale[0]-10, 64)
-            pos = [position[0], (position[1] + self.window.scale[1]/2 - 50 + (-(button.height + 5) * i))]
-                
+            pos = (position[0], (position[1] + self.window.scale[1]/2 - 50 + (-(button.height + 5) * i)))
+            button.setScale(self.window.scale[0]-10, 64)    
             button.setPosition(pos[0], pos[1])
 
         
-        self.statButtons = ImgObj(Texture(os.path.join(scenepath, "statdistbutton.png")), boundable = True, frameX = 2)
+        self.statButtons = [[ImgObj(Texture(os.path.join(scenepath, "statdistbutton.png")), boundable = True, frameX = 2)
+                             for n in range(2)]
+                             for i in range(len(self.buttons))]
                             
+        for i, buttons in enumerate(self.statButtons):
+            for n, button in enumerate(buttons):
+                pos = (position[0] + button.width/2 - (30 + (100*n)), 
+                       self.buttons[i].position[1])
+                button.setPosition(pos[0], pos[1])
+                button.setFrame(x = n+1)
+                                    
         self.index = 0
+        
+    def buttonClicked(self, image):
+        
+        if image in self.statButtons[:]:
+            #click on the plus
+            if self.statButtons[:].index(image) == 0:
+                if self.scene.distAreas[self.index] > 0:
+                    self.scene.distAreas[self.index] -= 1
+                    self.scene.distPoints += 1
+                else:
+                    self.scene.distAreas[self.index] = 0
+            #click on the minus
+            elif self.statButtons[:].index(image) == 1:
+                if self.scene.distPoints > 0:
+                    self.scene.distAreas[self.index] += 1
+                    self.scene.distPoints -= 1
+                else:
+                    self.scene.distPoints = 0
+        elif image in self.buttons:
+            self.index = self.buttons.index(image)
         
     #arrow keys select which button it is
     #enter/return performs the scene's set action for that button
@@ -112,11 +140,9 @@ class StatDistMenu(MenuObj):
             self.text.setAlignment("center")
             self.text.draw()
             
-            self.engine.drawImage(self.statButtons, position = (button.position[0] + button.width/2 - 130, button.position[1]),
-                                  scale = (32,32), frameX = 1)
-            self.engine.drawImage(self.statButtons, position = (button.position[0] + button.width/2 - 30, button.position[1]),
-                                  scale = (32,32), frameX = 2)
-                                  
+            self.engine.drawImage(self.statButtons[i][0])
+            self.engine.drawImage(self.statButtons[i][1])
+            
         self.text.setText("Distribution Points: ") 
         self.text.setPosition(self.window.position[0] - self.window.scale[0]/2 + 15 , 
                               self.window.position[1] - self.window.scale[1]/2 + 50)

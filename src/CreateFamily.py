@@ -47,7 +47,7 @@ class CreateFamily(Scene):
         if self.step == 0:
             if image == self.button:
                 if not self.exists:
-                    self.step += 1:
+                    self.step += 1
         else:
             self.menu.buttonClicked(image)
                 
@@ -124,7 +124,7 @@ class CreateFamily(Scene):
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
 
-        self.engine.drawImage(self.background, scale = (w,h))
+        self.engine.drawImage(self.background)
 
         if self.step == 0:
             self.renderNaming()
