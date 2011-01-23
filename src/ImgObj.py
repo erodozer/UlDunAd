@@ -59,7 +59,13 @@ class ImgObj:
 					   [0.0, 100.0]]
         self.targets = [[0.0,0.0],
 						[0.0]]
-        self.currentFrame = [0, 0]
+                        
+        #for animation purposes
+        self.frames = [frameX, frameY]      #number of frames (x axis, y axis)
+        self.currentFrame = [0, 0]          #current frame
+                                            #will reverse the animation when looping
+        self.reverseH = False               #   reverse along frameX
+        self.reverseV = False               #   reverse along frameY
         
         self.transformed = False                    #did the image's attributes change
 
@@ -160,8 +166,8 @@ class ImgObj:
                 self.angle = angle
                     
     #changes the size of the image and scales the surface
-    def setScale(self, width, height):
-        if (width >= 0 and width <= 1) and (height >= 0 and height <= 1):
+    def setScale(self, width = 1.0, height = 1.0, inPixels = False):
+        if not inPixels:
             if not self.scale == (width, height):
                 self.scale = (width,height)
                 self.transformed = True
@@ -226,10 +232,11 @@ class ImgObj:
     def setBoundable(self, boundable):
         self.isBoundable = boundable
 
-    #changes the "frame" number of the image
+    #changes the frame number of the image
     def setFrame(self, x = 1, y = 1):
-        self.rect = (float(x-1)*self.frameSize[0], float(y-1)*self.frameSize[1], 
-                     float(x)*self.frameSize[0], float(y)*self.frameSize[1])
+        self.rect = (float(int(x)-1)*self.frameSize[0], float(int(x)-1)*self.frameSize[1], 
+                     float(int(x))*self.frameSize[0], float(int(x))*self.frameSize[1])
+        self.currentFrame = [x, y]
         self.createTex()
 
     #crops the texture

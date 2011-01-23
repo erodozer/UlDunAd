@@ -27,6 +27,12 @@ from Data import Data
 #for list files
 import glob
 
+#command line parser, if running python 2.7 use argparse, else fall-back to optparse
+try:
+    import argparse
+except ImportError:
+    import optparse as argparse
+
 FPS = 60
 caption = 'UlDunAd - Ultimate Dungeon Adventure'
 
@@ -48,6 +54,15 @@ video_flags = DOUBLEBUF|OPENGL|HWPALETTE|HWSURFACE#|NOFRAME
 if fullscreen == "F":
     video_flags |= FULLSCREEN
 
+
+startingScene = "MainMenu"
+
+#sets the starting scene to be TestScene instead of MainMenu    
+class testMode(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        global startingScene
+        startingScene = "TestScene"
+
 class Main:
     def __init__(self, caption, flags):
         self.finished = False   #is the app done
@@ -67,9 +82,12 @@ class Main:
 
         self.data = Data()
 
-        self.viewport.addScene("MainMenu")
+        #
+        self.viewport.addScene(startingScene)
 
         self.family = None      #your selected family and party
+        
+        self.currentFPS = 60    #the currentFPS the engine is rendering at
         
     def run(self):
         global finished
@@ -80,7 +98,7 @@ class Main:
 
         self.viewport.run()
         Input.reset()
-        self.clock.tick()
+        self.currentFPS = self.clock.tick(FPS)
    
     #allows you to load an image and change the default values for it
     def loadImage(self, path = "", position = None, scale = None, angle = None, color = None, rect = None, frameX = 1, frameY = 1, boundable = False):
@@ -129,6 +147,62 @@ class Main:
         if image.isBoundable:
             self.viewport.inputObjects.append(image)
 
+    #animates an image with multiple frames
+    # direction     image will animate along 0 = frameX, 1 = frameY, 2 = both
+    # loop          image will animate continously
+    # reverse       image will reverse animation after it hits the end when looping
+    #                    (1...n then n...1) (-1 = neither, 0 = frameX, 1 = frameY, 2 = both)
+    # delay         millisecond delay for animation
+    def drawAnimation(self, image, direction = 0, loop = True, reverse = -1, delay = 10):
+        x = image.currentFrame[0]
+        y = image.currentFrame[1]
+        
+        delay = self.currentFPS/delay
+        
+        if not direction == 1:  #horizontal
+            if x >= image.frames[0]:
+                if loop:
+                    if reverse == 0 or reverse == 2:
+                        if not image.reverseH:
+                            image.reverseH = True
+                        else:
+                            x += 1.0/delay
+                            if x > image.frames[0] + .5:
+                                x -= 1
+                    else:
+                        x = 1
+            elif image.reverseH and x - 1.0/delay <= 1:
+                x = 1
+                image.reverseH = False
+            else:
+                if image.reverseH:
+                    x -= 1.0/delay
+                else:
+                    x += 1.0/delay
+        if not direction == 0:  #vertical
+            if y >= image.frames[1]:
+                if loop:
+                    if reverse == 1 or reverse == 2:
+                        if not image.reverseV:
+                            image.reverseV = True
+                        else:
+                            x += 1.0/delay
+                            if y > image.frames[1] + .5:
+                                y -= 1.0
+                    else:
+                        y = 1
+            elif image.reverseV and y - 1 == 1:
+                y = 1
+                image.reverseV = False
+            else:
+                if image.reverseV:
+                    y -= 1.0/delay
+                else:
+                    y += 1.0/delay
+                    
+        image.setFrame(x, y)
+        image.draw()
+        
     def drawText(self, font, text, position = (w/2, h/2), scale = None, angle = None, color = None, alignment = "center"):
 
         #prevents it from drawing if no font exists or text exists
@@ -168,6 +242,12 @@ class Main:
             items.remove(exclude)
         
         return items
+
+#extra arguments for running
+parser = argparse.ArgumentParser(description='Runs UlDunAd Engine')
+parser.add_argument('-t', '--test', nargs = '?', action = testMode,
+                   help='Runs the test scene instead of the game')
+args = parser.parse_args()
 
 #main loop to run the program
 game = Main(caption, video_flags)
