@@ -119,7 +119,9 @@ class Character:
 
         #this marks for the end of the battle if the character leveled up
         self.leveledUp = False
-      
+
+        self.sprites = self.job.sprites
+        
     #figures out the which proficency to use for the dominant hand weapon
     def loadProficiency(self):
         weapon = Weapon(self.equipment[self.hand])
