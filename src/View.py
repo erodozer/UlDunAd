@@ -57,13 +57,51 @@ class Scene:
 class TestScene(Scene):
     def __init__(self, engine):
         self.engine = engine
-        Texture(self, "textTex", "test.png")
-        self.image  = ImgObj(self.textTex, True)
-        self.image2 = ImgObj(self.textTex, True)
+        
+        #tests drawing of windows
+        self.window     = WinObj(Texture("window.png"), 300, 128)
+        self.size       = 0
+        
+        #tests drawing of images, sliding, and spinning
+        self.test       = [ImgObj(Texture("test.png")), 0, 0]
+        
+        #animation testing
+        from Jobs import *
+        self.job = Adventurer()
+        self.sprite = self.job.sprites[self.job.state]
+        self.sprite.setPosition(self.engine.w * .8, self.engine.h * .8)
+        #self.sprite.setScale(1.0, 1.0)
+        self.spriteSize = 0
         
     def buttonPressed(self, image):
         if image == self.image2:
             print 1
+            
+    def keyPressed(self, key, char):
+        if key == K_SPACE:
+            if self.size < 4:
+                self.size += 1
+            else:
+                self.size = 0
+            print self.size
+        elif key == K_z:
+            if self.test[1] < 2:
+                self.test[1] += 1
+            else:
+                self.test[1] = 0
+            print self.test[1]
+        elif key == K_UP:
+            self.test[2] += 45
+            print self.test[0].angle
+        elif key == K_DOWN:
+            self.test[2] -= 45
+            print self.test[0].angle
+        elif key == K_x:
+            if self.spriteSize == 0:
+                self.spriteSize = 1
+            else:
+                self.spriteSize = 0
+            
     
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
@@ -73,11 +111,38 @@ class TestScene(Scene):
                      (w/2,0),
                      (0,h/2),
                      (w/2,h/2)]
+
+        self.window.setPosition(w*.5, h*.5)
+        if self.size == 1:
+            self.window.setDimensions(500, 320)
+        elif self.size == 2:
+            self.window.setDimensions(200, 200)
+        elif self.size == 3:
+            self.window.setDimensions(128, 450)
+        elif self.size == 4:
+            self.window.setDimensions(700, 500)
+        else:
+            self.window.setDimensions(300, 128)
+        self.window.setColor((1.0,1.0,1.0,.4))
+        self.window.draw()
         
-        for i in range(len(positions) - 1):
-            self.engine.drawImage(self.image, position = positions[i])
-        self.engine.drawImage(self.image2, position = position[-1])
+        self.test[0].spin(self.test[2])
         
+        if self.test[1] == 1:
+            self.test[0].slide(w*.8, h*.25)
+        elif self.test[1] == 2:
+            self.test[0].slide(w*.2, h*.75)
+        else:
+            self.test[0].slide(w*.5, h*.5)
+        self.test[0].draw()
+
+        if self.spriteSize == 0:
+            self.sprite.setScale(1.0, 1.0)
+        else:
+            self.sprite.setScale(3.0, 3.0)
+            
+        self.engine.drawAnimation(self.sprite, direction = 0, loop = True, reverse = 0)
+                
 #this is the main viewport/engine
 #it handles the mouse input, the opengl window
 #and which scenes are being rendered.
@@ -102,7 +167,10 @@ class Viewport:
             Input.resetKeyPresses()
             self.scenes.pop(-1)
             self.visibility.pop(-1)
-            scene = WorldScenes.create(self.engine, scene)
+            if scene == "TestScene":
+                scene = TestScene(self.engine)
+            else:
+                scene = WorldScenes.create(self.engine, scene)
             self.scenes.append(scene)
             self.visibility.append(0.0)
             self.hasTransitioned = True
@@ -117,7 +185,10 @@ class Viewport:
     #adds the passed scene
     def addScene(self, scene):
         Input.resetKeyPresses()
-        scene = WorldScenes.create(self.engine, scene)
+        if scene == "TestScene":
+            scene = TestScene(self.engine)
+        else:
+            scene = WorldScenes.create(self.engine, scene)
         self.scenes.append(scene)
         self.visibility.append(0.0)
     
