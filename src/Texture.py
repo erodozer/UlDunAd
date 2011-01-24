@@ -17,10 +17,13 @@ class Texture:
     def __init__(self, path = "", surface = pygame.Surface((1,1)), flip = True):
     
         self.id = glGenTextures(1)
-        
+        path = os.path.join("..", "data", path)
         #using pygame to load the image because it already is opengl friendly
-        if path != "":
-            self.textureSurface = pygame.image.load(os.path.join("..", "data", path))
+        if not os.path.isfile(path):
+            print "Image was not found, creating pygame surface in its place"
+            self.textureSurface = surface
+        elif path != "":
+            self.textureSurface = pygame.image.load(path)
         else:
             self.textureSurface = surface
             
