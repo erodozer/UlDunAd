@@ -77,17 +77,17 @@ class Main:
         self.viewport = Viewport(self, resolution)
      
         self.clock = pygame.time.Clock()
+        self.currentFPS = 60    #the currentFPS the engine is rendering at
+    
         self.w, self.h = resolution[0], resolution[1]
         sysobj.w, sysobj.h = resolution[0], resolution[1]
 
         self.data = Data()
 
-        #
         self.viewport.addScene(startingScene)
 
         self.family = None      #your selected family and party
         
-        self.currentFPS = 60    #the currentFPS the engine is rendering at
         
     def run(self):
         global finished
@@ -153,11 +153,15 @@ class Main:
     # reverse       image will reverse animation after it hits the end when looping
     #                    (1...n then n...1) (-1 = neither, 0 = frameX, 1 = frameY, 2 = both)
     # delay         millisecond delay for animation
-    def drawAnimation(self, image, direction = 0, loop = True, reverse = -1, delay = 10):
+    def drawAnimation(self, image, direction = 0, loop = True, reverse = -1, delay = 20):
         x = image.currentFrame[0]
         y = image.currentFrame[1]
         
-        delay = self.currentFPS/delay
+        #adjusts the rate so then it changes at the same rate each frame
+        if self.currentFPS/delay < 1.0:
+            delay = delay
+        else:
+            delay = self.currentFPS/delay
         
         if not direction == 1:  #horizontal
             if x >= image.frames[0]:
@@ -165,13 +169,13 @@ class Main:
                     if reverse == 0 or reverse == 2:
                         if not image.reverseH:
                             image.reverseH = True
+                        if x <= image.frames[0] + .5:
+                            x -= 1.0
                         else:
                             x += 1.0/delay
-                            if x > image.frames[0] + .5:
-                                x -= 1
                     else:
                         x = 1
-            elif image.reverseH and x - 1.0/delay <= 1:
+            elif image.reverseH and x - (1.0/delay) <= 1:
                 x = 1
                 image.reverseH = False
             else:
@@ -179,18 +183,17 @@ class Main:
                     x -= 1.0/delay
                 else:
                     x += 1.0/delay
+                    
         if not direction == 0:  #vertical
             if y >= image.frames[1]:
                 if loop:
                     if reverse == 1 or reverse == 2:
                         if not image.reverseV:
                             image.reverseV = True
+                        if y <= image.frames[1] + .5:
+                            y -= 1.0
                         else:
-                            x += 1.0/delay
-                            if y > image.frames[1] + .5:
-                                y -= 1.0
-                    else:
-                        y = 1
+                            y += 1.0/delay
             elif image.reverseV and y - 1 == 1:
                 y = 1
                 image.reverseV = False
