@@ -58,6 +58,13 @@ class TestScene(Scene):
     def __init__(self, engine):
         self.engine = engine
         
+        self.font = FontObj("default.ttf", self.engine.currentFPS, size = 15)
+        self.font.setPosition(5, self.engine.h-20)
+        self.font.setAlignment("left")
+        
+        self.updateRate = 100           #updates the clock after this many milliseconds
+        self.counter = 0                #update counter
+        
         #tests drawing of windows
         self.window     = WinObj(Texture("window.png"), 300, 128)
         self.size       = 0
@@ -101,7 +108,11 @@ class TestScene(Scene):
                 self.spriteSize = 1
             else:
                 self.spriteSize = 0
-            
+     
+    def run(self):
+        self.counter += 1
+        if self.counter % self.updateRate == 0:
+            self.counter = 0
     
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
@@ -142,6 +153,10 @@ class TestScene(Scene):
             self.sprite.setScale(3.0, 3.0)
             
         self.engine.drawAnimation(self.sprite, direction = 0, loop = True, reverse = 0)
+        
+        if self.counter == 0:
+            self.font.setText(self.engine.currentFPS)
+        self.font.draw()
                 
 #this is the main viewport/engine
 #it handles the mouse input, the opengl window
