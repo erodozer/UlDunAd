@@ -14,14 +14,21 @@ from math import *
 # can be made using the same texture and use
 # less ram
 class Texture:
-    def __init__(self, path = "", surface = pygame.Surface((1,1)), flip = True):
+    def __init__(self, path = "", surface = pygame.Surface((1,1)), flip = True, fallback = None):
     
         self.id = glGenTextures(1)
         path = os.path.join("..", "data", path)
         #using pygame to load the image because it already is opengl friendly
         if not os.path.isfile(path):
-            print "Image was not found, creating pygame surface in its place"
-            self.textureSurface = surface
+            #fallback texture support
+            #value passed for fallback must be a valid texture, not a path
+            if isinstance(fallback, Texture):
+                print "Image was not found, using fallback image instead"
+                self = fallback
+                return
+            else:
+                print "Image was not found, creating pygame surface in its place"
+                self.textureSurface = surface
         elif path != "":
             self.textureSurface = pygame.image.load(path)
         else:
