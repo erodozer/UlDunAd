@@ -234,10 +234,9 @@ class ImgObj:
 
     #changes the frame number of the image
     def setFrame(self, x = 1, y = 1):
-        self.rect = (float(int(x)-1)*self.frameSize[0], float(int(x)-1)*self.frameSize[1], 
-                     float(int(x))*self.frameSize[0], float(int(x))*self.frameSize[1])
         self.currentFrame = [x, y]
-        self.createTex()
+        self.setRect((float(int(x)-1)*self.frameSize[0], float(int(y)-1)*self.frameSize[1], 
+                      float(int(x))*self.frameSize[0], float(int(y))*self.frameSize[1]))
 
     #crops the texture
     def setRect(self, rect):
