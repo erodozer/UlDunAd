@@ -15,11 +15,14 @@ import sys
 import pygame, pygame.image
 from pygame.locals import *
 
+enabled = True
+
 #an object for sound effects
 # do not use this to play music
 # use BGMObj for that
 class SoundObj:
     def __init__(self, path, loop = -1):
+        
         filePath = os.path.join("..", "data", path)
 
         #sound object must be wav or it will not work!
@@ -43,7 +46,8 @@ class SoundObj:
 
     #plays the audio
     def play(self):
-        self.audio.play(self.loop)
+        if enabled:
+            self.audio.play(self.loop)
 
     #stops the audio
     def stop(self):
@@ -58,6 +62,9 @@ class BGMObj:
         self.volume = 10            #volume of the song (0-10 scale)
         self.loop = -1              #how many times it will loop (default = forever)
 
+        if not enabled:
+            return
+            
         #checks if the file exists and if it does then it should play it
         if os.path.exists(os.path.join(audiopath)):
             if queue == True:
@@ -74,7 +81,8 @@ class BGMObj:
 
     #plays the music
     def play(self):
-        pygame.mixer.music.play(self.loop)
+        if enabled:
+            pygame.mixer.music.play(self.loop)
 
     #stops the music
     def stop(self):

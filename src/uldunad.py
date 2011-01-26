@@ -21,6 +21,8 @@ from View import *
 import sysobj
 from sysobj import *
 
+import Audio
+
 import Input
 from Data import Data
 
@@ -56,6 +58,7 @@ if fullscreen == "F":
 
 
 startingScene = "MainMenu"
+enableSound = True
 
 #sets the starting scene to be TestScene instead of MainMenu    
 class testMode(argparse.Action):
@@ -63,6 +66,12 @@ class testMode(argparse.Action):
         global startingScene
         startingScene = "TestScene"
 
+#allows you to turn off sound
+class disableSound(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        global enableSound
+        enableSound = False
+        
 class Main:
     def __init__(self, caption, flags):
         self.finished = False   #is the app done
@@ -75,6 +84,7 @@ class Main:
 
         self.screen = pygame.display.set_mode(resolution, flags)
         self.viewport = Viewport(self, resolution)
+        Audio.enabled = enableSound
      
         self.clock = pygame.time.Clock()
         self.currentFPS = 60    #the currentFPS the engine is rendering at
@@ -136,13 +146,13 @@ class Main:
             image.setAngle(angle)
         if color:
             image.setColor(color)
-        if frameX:
+        if frameX and frameY:
+            image.setFrame(frameX, frameY)
+        elif frameX:
             image.setFrame(x = frameX)
         elif frameY:
             image.setFrame(y = frameY)
-        if frameX and frameY:
-            image.setFrame(frameX, frameY)
-
+        
         image.draw()
         if image.isBoundable:
             self.viewport.inputObjects.append(image)
@@ -250,6 +260,8 @@ class Main:
 parser = argparse.ArgumentParser(description='Runs UlDunAd Engine')
 parser.add_argument('-t', '--test', nargs = '?', action = testMode,
                    help='Runs the test scene instead of the game')
+parser.add_argument('-s', '--sound', nargs = '?', action = disableSound,
+                   help='Disables sound')
 args = parser.parse_args()
 
 #main loop to run the program
