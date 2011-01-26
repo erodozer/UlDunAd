@@ -22,6 +22,8 @@ class MainMenu(Scene):
         self.menu       = MenuObj(self, commands = ["New Game", "Continue", "Exit"], 
                                   position = (150, 75), horizontal = True)
         self.background = ImgObj(Texture("mainbg.png"))
+        self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
+        self.background.setPosition(self.engine.w/2, self.engine.h/2)
         
         self.music = BGMObj("test.mp3")
         
@@ -49,8 +51,6 @@ class MainMenu(Scene):
         pass
         
     def render(self, visibility):
-        w, h = self.engine.w, self.engine.h
-
-        self.engine.drawImage(self.background, scale = (w,h))        
+        self.background.draw()     
         
         self.menu.render(visibility)
