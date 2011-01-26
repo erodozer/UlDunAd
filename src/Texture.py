@@ -24,8 +24,7 @@ class Texture:
             #value passed for fallback must be a valid texture, not a path
             if isinstance(fallback, Texture):
                 print "Image was not found, using fallback image instead"
-                self = fallback
-                return
+                self.textureSurface = fallback.textureSurface
             else:
                 print "Image was not found, creating pygame surface in its place"
                 self.textureSurface = surface
