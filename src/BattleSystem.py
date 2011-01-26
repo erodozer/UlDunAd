@@ -26,7 +26,7 @@ from MenuObj import MenuObj
 #arranged to save space in an efficent manner when more or
 #less characters are present in your party
 class BattleHUDCharacter:
-    def __init__(self, character, position = (0,0)):
+    def __init__(self, character, position = (0,0), scale = 1.0):
         self.character = character
 
         self.x, self.y = position
@@ -56,8 +56,12 @@ class BattleHUDCharacter:
         self.barFP.setAlignment("left")
         self.barFP.setPosition(375 + self.x, self.y + 5)        
 
-
+        self.scale = scale
+        
     def draw(self):
+        
+        glScalef(self.scale, self.scale, 1)
+        
         if character.active:
             self.hudImg.setFrame(frameY = 2)
         else:
@@ -69,7 +73,7 @@ class BattleHUDCharacter:
         self.font.setPosition(self.x + 5, self.y)
         self.font.draw()
 
-        self.font.setText(str(self.character.currentHP) + "/" _ str(self.character.hp))        
+        self.font.setText(str(self.character.currentHP) + "/" + str(self.character.hp))        
         self.font.setPosition(self.x + 200, self.y - 5)
 
         self.barback.draw()
@@ -79,7 +83,7 @@ class BattleHUDCharacter:
         
 #unlike most other scenes in this game, the battle scene 
 #is completely controlled by the keyboard instead of mouse
-class Battle(Scene):
+class BattleSystem(Scene):
     def __init__(self, engine):
 
         self.engine = engine
@@ -88,11 +92,11 @@ class Battle(Scene):
         self.party = self.engine.family.party
         self.formation = self.engine.formation
 
-        self.background = self.engine.location.background
+        self.background = self.engine.formation.terrain
         self.start = ImgObj(Texture("start.png"))
         self.start.setPosition(self.engine.w / 2, self.engine.h / 2)
 
-        self.huds = [BattleHUDCharacter(character, (0, 575 - 45*i) for i, character in enumerate(self.party)]
+        self.huds = [BattleHUDCharacter(character, (0, 575 - 45*i)) for i, character in enumerate(self.party)]
             
         #0 = attack menu, 1 = spell menu, 2 = strategic menu, 3 = item menu
         self.commandWheel = ImgObj(Texture("commands.png"))
@@ -104,8 +108,11 @@ class Battle(Scene):
         self.active = 0         #which character is currently selecting commands
         self.battling = False   #are commands being selected or is fighting occuring?
 
-        self.turns = {character:0 for character in self.party,
-                      enemy:0 for enemy in self.formation}
+        self.turns = {}
+        for character in self.party:
+            self.turns[character] = 0
+        for enemy in self.formation.enemies:
+            self.turns[enemy] = 0
         self.order = []
 
 	self.targetMenu = None
@@ -164,15 +171,22 @@ class Battle(Scene):
         return targetMenu
         
     def render(self):
-        for hud in self.huds:
+        for hud in enumerate(self.huds):
+            if active < len(self.party):
+                if self.party[active]:
+                    hud.scale = 1.0
+                else:
+                    hud.scale = .5
+            else:
+                hud.scale = .5
             hud.draw()
 
         if not self.battling:
             if active < len(self.party):
-                face = self.party[self.active].portrait
-                face.setPosition(700, 500)
-                face.draw()
-
                 self.commandWheel.draw()
             else:
                 self.start.draw()
+                
+    def victory(self):
+        self.engine.changeScene("VictoryScene")
+        

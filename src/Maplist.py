@@ -23,7 +23,11 @@ class Maplist(Scene):
         self.engine = engine
 
         scenepath = os.path.join("scenes", "maplist")
+        
         self.background = ImgObj(Texture(os.path.join(scenepath, "background.png")))
+        self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
+        self.background.setPosition(self.engine.w/2, self.engine.h/2)
+        
         self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), self.engine.w/4, 0)
         self.menubutton = ImgObj(Texture(os.path.join(scenepath, "menubutton.png")), boundable = True)
         self.font   = FontObj("default.ttf")
@@ -49,11 +53,16 @@ class Maplist(Scene):
         pass
         
     def keyPressed(self, key, char):    
-        self.menu.keyPressed(key)   
-        
         #opens up the menu
         if key == Input.CButton:
             self.engine.viewport.changeScene("MenuSystem")
+        #creates a test battle scene
+        if key == Input.DButton:
+            from Enemy import Formation
+            self.engine.formation = Formation("formation001")
+            self.engine.viewport.changeScene("BattleSystem")
+        
+        self.menu.keyPressed(key)   
              
 
     def select(self, index):
@@ -97,6 +106,6 @@ class Maplist(Scene):
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
 
-        self.engine.drawImage(self.background, scale = (w,h))
+        self.background.draw()
         self.engine.drawImage(self.menubutton, position = (w*.9, h*.1))
         self.menu.render()
