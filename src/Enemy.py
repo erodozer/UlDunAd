@@ -23,7 +23,7 @@ class Enemy:
     #in the victory scene it is scaled to the player party's average level
     exp = [100]     #good calculation still needs to be found
     
-    def __init__(self, family, name):
+    def __init__(self, name):
         
         #do not try loading a character if name is not passed
         # ONLY do this during creation
@@ -71,13 +71,13 @@ class Enemy:
         #but their def is multiplied by 250%
         self.defend = False
 
-        self.sprites = self.loadSprites()
+        self.sprites = self.loadSprites(path)
         
         #position and scale are defined in the formation of the enemies and not the enemy.ini
         self.position = (0, 0)
         self.scale = (1, 1)
         
-    def loadSprites(self):
+    def loadSprites(self, path):
         normal = Texture(os.path.join(path, "normal.png"))
         sprites =  {'normal':ImgObj(normal)}
                         #at least normal is required, especially as fallback
@@ -172,11 +172,16 @@ class Formation:
         self.name = name
 
         #all the members in your party
-        enemies = [Enemy(n) for n in formationini.enemies.split("|")]
+        self.enemies = [Enemy(n) for n in formationini.enemies.split("|")]
         
-        for i, enemy in enumerate(enemies):
-            enemy.position = (int)formationini.coord.split("|")[i]
-            enemy.scale = (float)formationini.scale.split("|")[i]
+        #assigns the positions and scales to the enemies
+        for i, enemy in enumerate(self.enemies):
+            n = formationini.__getattr__("coord").split("|")[i]
+            x = int(n.split(",")[0])
+            y = int(n.split(",")[1])
+            enemy.position = (x,y)
+            n = formationini.__getattr__("scale").split("|")[i]
+            enemy.scale =  float(n)
 
         self.terrain = ImgObj(Texture(os.path.join("terrains", formationini.__getattr__("terrain"))))
    
