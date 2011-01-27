@@ -16,16 +16,80 @@ from math import *
 import random
 
 import glob
-from Character import Character
 
 from Item import *
         
+#this class contains the basic variables and methods for characters and enemies
+#most shared variables and methods are just for battle since enemies are supposed
+#to have just as many options as characters to create a far fight and flexibility
+class Actor:
+    def __init__(self, name):
+
+        #used in battle
+        self.maxFP = 100
+        self.currentHP = self.hp
+        
+        #is the character attacking
+        self.attack = False
+        self.power = 0          #0 = normal attack, 1 = strong attack, 2 = accurate attack
+        
+        #are they casting a spell or technique, if they are, which one
+        self.cast = False
+        self.command = None
+        
+        #when an enemy boosts instead of defends,
+        #their def is halved but they get full FP the next turn
+        self.boost = False
+        
+        #when a character defends they gain the normal amount of FP per turn (20%)
+        #but their def is multiplied by 250%
+        self.defend = False        
+
+        #the enemy or ally being targeted
+        self.target = None
+
+    def initForBattle(self):
+        self.currentHP = self.hp
+        self.fp = min(self.maxFP/3 + random.randInt(0, self.maxFP), self.maxFP)
+        self.active = False
+
+    def turnStart(self):
+        if self.boost:
+            self.defn /= 2
+        elif self.defend:
+            self.defn *= 2.5
+        elif self.cast or self.attack:
+           calculateDamage()
+           
+    #calculates the amount of damage towards a target
+    def calculateDamage(self):
+        pass
+        
+    #ends the enemy's turn
+    def turnEnd(self):
+        self.fp += self.maxFP / 5
+
+        #resets defense
+        if self.boost:
+            self.fp = self.maxFP
+            self.defn *= 2
+        elif self.defend:
+            self.defn /= 2.5
+
+        self.fp = min(self.fp, self.maxFP)
+
+        self.boost = False
+        self.defend = False
+
 #the player's family
 #this class holds the code responsible for the amount of gold the family has
 #the inventory of the family, the difficulty of the game, and the members in
 #the family.  It is very important and one of the main gameplay additions
 #to UlDunAd.  No longer are you loading individual characters, you are now
 #loading families.
+
+from Character import Character #import character after Actor class has been defined
+
 class Family:
     def __init__(self, name):
 
@@ -52,7 +116,7 @@ class Family:
         if len(self.members) >= 3:
             self.party = self.members[0:2]
         else:
-            self.party = self.members[0:len(self.members)-1]
+            self.party = self.members[0:len(self.members)]
 
         #the items your family has
         items = [n.strip() for n in familyini.__getattr__("inventory").split(",")]

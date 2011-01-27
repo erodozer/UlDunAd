@@ -16,8 +16,9 @@ from Item import *
 from ImgObj import *
 from Texture import *
 import os
+from Actor import Actor
 
-class Enemy:
+class Enemy(Actor):
     _LevelMax = 20      #this is the current level cap, I will adjust this with the number of content available
     #exp is calculated by enemy level and their stats
     #in the victory scene it is scaled to the player party's average level
@@ -51,26 +52,6 @@ class Enemy:
         self.mag  = distSection.__getattr__("mag", int)
         self.res  = distSection.__getattr__("res", int)
         
-        #used in battle
-        x = self.level
-        self.maxFP = 100
-        self.currentHP = self.hp
-        
-        #is the character attacking
-        self.attack = False
-        
-        #are they casting a spell or technique, if they are, which one
-        self.cast = False
-        self.command = None
-        
-        #when an enemy boosts instead of defends,
-        #their def is halved but they get full FP the next turn
-        self.boost = False
-        
-        #when a character defends they gain the normal amount of FP per turn (20%)
-        #but their def is multiplied by 250%
-        self.defend = False
-
         self.sprites = self.loadSprites(path)
         
         #position and scale are defined in the formation of the enemies and not the enemy.ini
@@ -88,61 +69,15 @@ class Enemy:
         sprites['boost'] = ImgObj(Texture(os.path.join(path, "boost.png"), fallback = normal))
         
         return sprites
-        
-    #figures out the which proficency to use for the dominant hand weapon
-    def loadProficiency(self):
-        weapon = Weapon(self.equipment[self.hand])
-        if (weapon.type == "sword"):
-            self.proficiency = self.proficiencies[0]
-        elif (weapon.type == "dagger"):
-            self.proficiency = self.proficiencies[1]
-        elif (weapon.type == "spear"):
-            self.proficiency = self.proficiencies[2]
-        elif (weapon.type == "staff"):
-            self.proficiency = self.proficiencies[3]
-        elif (weapon.type == "gun"):
-            self.proficiency = self.proficiencies[4]
-        else:
-            self.proficiency = self.proficiencies[5]
-    
-    def setEquipment(self, equipment):
-        reloadProficiency = False
-        if not equipment[self.hand].type == self.equipment[self.hand].type:
-            reloadProficiency = True
-            
-        self.equipment = equipment   
-        if reloadProficiency:
-            self.loadProficiency()
-        
-    def initForBattle(self):
-        self.currentHP = self.hp
-        self.fp = min(self.maxFP/3 + random.randInt(0, self.maxFP), self.maxFP)
-        self.active = False
 
-    def turnStart(self):
-        if self.boost:
-            self.defn /= 2
-        elif self.defend:
-            self.defn *= 2.5
+    def calculateDamage(self):
+         #first was calculate to see if the actor hits his target
+        hit = random.randint(0, 255) - self.target.evd >= self.target.evd*1.5
+        if hit:
+            self.damage = (self.mag + self.command.damage) - (self.target.res * 1.368295)
         elif self.attack:
-            self.damage = self.str + self.equipment[0].str + (self.str*(self.proficiency/100.0 - 1))
+            self.damage = self.str - (self.target.defn * 1.368295)
     
-    #ends the enemy's turn
-    def turnEnd(self):
-        self.fp += self.maxFP / 5
-
-        #resets defense
-        if self.boost:
-            self.fp = self.maxFP
-            self.defn *= 2
-        elif self.defend:
-            self.defn /= 2.5
-
-        self.fp = min(self.fp, self.maxFP)
-
-        self.boost = False
-        self.defend = False
-
     #draws the enemy sprite in battle
     def draw(self):
         sprite = self.sprites['normal']

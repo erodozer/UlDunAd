@@ -14,8 +14,9 @@ from math import *
 from Jobs import *
 from Item import *
 import os
+from Actor import Actor
 
-class Character:
+class Character(Actor):
     _LevelMax = 20      #this is the current level cap, I will adjust this with the number of content available
     #these mark the required amount of exp to level up
     #I calculated the curve myself in order to provide a fast, yet balanced
@@ -64,8 +65,8 @@ class Character:
         self.defn = self.job.defn + self.defDist  #defense
         self.spd  = self.job.spd  + self.spdDist  #speed
         self.evd  = self.job.evd  + self.evdDist  #evasion
-        self.mag  = self.job.mag  + self.magDist  #magic strength
-        self.res  = self.job.res  + self.resDist  #magic defense
+        self.mag  = self.job.mag  + self.magDist  #magic strength 
+        self.res  = self.job.res  + self.resDist  #magic defense (resistance)
 
         #there are 10 pieces of equipment one can wear
         #left hand weapon, right hand weapon, helm, armor, legs, feet, gloves, and 3 accessories
@@ -100,27 +101,12 @@ class Character:
                               
         self.loadProficiency()
         
-        x = self.level
-        self.maxFP = 100
+        self.skills = self.job.skills
         
-        #is the character attacking
-        self.attack = False
-        
-        #are they casting a spell or technique, if they are, which one
-        self.cast = False
-        self.command = None
-        
-        #when a character boosts instead of defends,
-        #their def is halved but they get full FP the next turn
-        self.boost = False
-        #when a character defends they gain the normal amount of FP per turn (20%)
-        #but their def is multiplied by 250%
-        self.defend = False
-
         #this marks for the end of the battle if the character leveled up
         self.leveledUp = False
-
-        self.sprites = self.job.sprites
+        
+        self.sprites = self.job.sprites #for now, more work will be done later
         
     #figures out the which proficency to use for the dominant hand weapon
     def loadProficiency(self):
@@ -147,33 +133,6 @@ class Character:
         if reloadProficiency:
             self.loadProficiency()
         
-    def initForBattle(self):
-        self.fp = min(self.maxFP/3 + random.randInt(0, self.maxFP), self.maxFP)
-        self.active = False
-
-    def turnStart(self):
-        if self.boost:
-            self.defn /= 2
-        elif self.defend:
-            self.defn *= 2.5
-        elif self.attack:
-            self.damage = self.str + self.equipment[0].str + (self.str*(self.proficiency/100.0 - 1))
-            
-    def turnEnd(self):
-        self.fp += self.maxFP / 5
-
-        #resets defense
-        if self.boost:
-            self.fp = self.maxFP
-            self.defn *= 2
-        elif self.defend:
-            self.defn /= 2.5
-
-        self.fp = min(self.fp, self.maxFP)
-
-        self.boost = False
-        self.defend = False
-
     def levelUp(self):
         if self.exp == Character.exp[self.level-1]:
             self.level += 1
@@ -215,6 +174,14 @@ class Character:
         else:
             return "SS"
 
+    def calculateDamage(self):
+         #first was calculate to see if the actor hits his target
+        hit = (self.proficency*2) - self.target.evd >= self.target.evd*1.5
+        if hit:
+            self.damage = (self.mag + self.command.damage) - (self.target.res * 1.368295)
+        elif self.attack:
+            self.damage = self.str - (self.target.defn * 1.368295)
+    
     #saves a new ini for the character to be used
     def create(self, family, name, job, stats, points = 0, equipment = None, proficiency = None):
         Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini")).save()
