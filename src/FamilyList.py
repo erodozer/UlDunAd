@@ -10,7 +10,7 @@ class FamilyMenu(MenuObj):
         self.scene = scene
         self.engine = scene.engine
         self.commands = families
-        self.moveKeys = [Input.DButton, Input.UButton]
+        self.moveKeys = [Input.DnButton, Input.UpButton]
         
         scenepath = os.path.join("scenes", "familylist")
         
@@ -23,7 +23,7 @@ class FamilyMenu(MenuObj):
                         
         self.position = (self.engine.w/10, self.engine.h - self.buttons[0].height)
         for i, button in enumerate(self.buttons):
-            button.setScale(self.engine.w*.80, self.engine.h/6)
+            button.setScale(self.engine.w*.80, self.engine.h/6, inPixels = True)
             button.setPosition(self.position[0], self.position[1] - ((button.height + 10) * i))
             button.setAlignment("left")
         self.slideRate = 150.0/512.0
@@ -37,7 +37,7 @@ class FamilyMenu(MenuObj):
             self.scene.select(self.index)
             
         if key == self.moveKeys[0]:
-            if self.index == self.endIndex-1:
+            if self.index + 1 == self.endIndex:
                 if len(self.commands) > 4:
                     self.startIndex = min(self.startIndex+4, len(self.commands)-4)
             else:
@@ -45,16 +45,18 @@ class FamilyMenu(MenuObj):
                     self.index += 1
                 else:
                     self.index = 0
+                    self.startIndex = 0
                 
         elif key == self.moveKeys[1]:
-            if self.index == self.startIndex-1:
+            if self.index - 1 == self.startIndex-1:
                 if len(self.commands) > 0:
                     self.startIndex = max(self.startIndex - 4, 0)
             else:
                 if self.index > 0:
                     self.index -= 1
                 else:
-                    self.index = len(self.commands) - 1        
+                    self.index = len(self.commands) - 1 
+                    self.startIndex = len(self.commands) - 4       
             
         self.endIndex = min(self.startIndex + 4, len(self.commands))
 
@@ -75,7 +77,7 @@ class FamilyMenu(MenuObj):
         for i, button in enumerate(self.buttons[:(self.endIndex-self.startIndex)]):
             family = families[i]
         
-            if i == self.index:
+            if i == self.index%4:
                 button.setFrame(y = 2)
             else:
                 button.setFrame(y = 1)
@@ -107,7 +109,9 @@ class FamilyList(Scene):
         
         scenepath = os.path.join("scenes", "familylist")
         self.background = ImgObj(Texture(os.path.join(scenepath, "background.png")))
-        
+        self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
+        self.background.setPosition(self.engine.w/2, self.engine.h/2)
+                
         self.hlTex      = Texture(os.path.join(scenepath, "highlight.png"))
         self.highlight  = [ImgObj(self.hlTex, boundable = True, frameY = 2)
                            for n in range(4)]
@@ -146,10 +150,10 @@ class FamilyList(Scene):
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
 
-        self.engine.drawImage(self.background, scale = (w, h))
-
-        self.selectwin.draw()
-
+        self.background.draw()
+        
+        #self.selectwin.draw()
+        
         self.engine.drawImage(self.slide_b[0], position = (w*.9, h*.1), frameX = 1)
         self.engine.drawImage(self.slide_b[1], position = (w*.9, h*.9), frameX = 2) 
 
