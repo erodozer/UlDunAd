@@ -92,7 +92,11 @@ class BattleMenu(MenuObj):
         
         #0 = attack menu, 2 = strategic menu, 3 = item menu
         self.commandWin = WinObj(Texture("window.png"), 0, 0)
-        self.commandWin.setDimensions(self.engine.w, 400, inPixels = True)
+        self.commandWin.setDimensions(self.engine.w, 400)
+        
+        #the wheel backdrop
+        self.back = ImgObj(Texture("commandwheel.png"))
+        self.back.setPosition(self.engine.w - self.back.width/2, self.engine.h - self.back.height/2)
         
         self.command = 0        #command selected
         self.index = 0          #index selected in the window
@@ -165,7 +169,7 @@ class BattleMenu(MenuObj):
         
         if self.step == 3:
             for i, item in enumerate(self.itemCommands):
-                position = (self.engine.w/2 * i%2) + 10, 32.0 * int(i/2))
+                position = ((self.engine.w/2 * i%2) + 10, 32.0 * int(i/2))
                 
                 if i == self.index:
                     self.highlight.setPosition(position[0], position[1])
@@ -178,10 +182,10 @@ class BattleMenu(MenuObj):
             self.highlight.draw()
          
         else:
-            self.commandWheel.draw()
+            self.back.draw()
             
             self.text.setText(self.basicCommands[self.index])
-            self.text.setPosition(700,500)
+            self.text.setPosition(self.back.position[0],self.back.position[1])
             self.text.scaleHeight(24.0)
             self.text.draw()
         
@@ -205,7 +209,7 @@ class BattleSystem(Scene):
         self.start.setPosition(self.engine.w / 2, self.engine.h / 2)
 
         self.huds = [BattleHUDCharacter(character, (0, 575 - 45*i)) for i, character in enumerate(self.party)]
-            
+        self.commandWheel = BattleMenu(self, self.party[0])
         self.inMenu = False
 
         self.active = 0         #which character is currently selecting commands
@@ -218,7 +222,8 @@ class BattleSystem(Scene):
             self.turns[enemy] = 0
         self.order = []
 
-	self.targetMenu = None
+        self.targetMenu = None
+        self.targeting = True
 
     def run(self):
         if not self.battling:
@@ -227,21 +232,6 @@ class BattleSystem(Scene):
 
             next = False
             back = False
-            for key, char in Input.getKeyPresses():
-                if key == K_UP:
-                    character.command = 0
-                    next = True
-                elif key == K_RIGHT:
-                    character.command = 1
-                    next = True
-                elif key == K_DOWN:
-                    character.command = 2
-                    next = True
-                elif key == K_LEFT:
-                    character.command = 3
-                    next = True
-                elif key == K_BACKSPACE:
-                    back = True
 
             if next:
                 self.active += 1
@@ -250,7 +240,8 @@ class BattleSystem(Scene):
                 self.active -= 1
                 self.back = False
 
-    def turnStart(self):
+    #organizes all the turns for order of execution
+    def battleStart(self):
         for character in self.party:
             if not (character.boost or character.defend):
                 self.turns.update(character = random.randInt(0, 50) + character.spd)
@@ -260,11 +251,33 @@ class BattleSystem(Scene):
                 self.turns.update(enemy = random.randInt(0, 50) + enemy.spd)
 
         self.order = sorted(self.turns.items(), key=itemgetter(1))
+        print self.order
+        
+    #executes all of the commands
+    def execute(self):
+        for i in self.order:
+            i.turnStart()
             
+            if i.target:
+                target.hp -= i.damage
+                
+                #draws the damage on screen
+                self.engine.drawText(self.text, i.damage, position = target.position, size = 32.0)
+                
+                #stalls the engine for 1 second to show the damage
+                pygame.time.wait(100)
+        
+        self.turnEnd()
+    
     def turnEnd(self):
         for character in self.party:
             character.turnEnd()
+        for enemy in self.enemies:
+            enemy.turnEnd()
+        
+        self.active = 0
 
+    #
     def generateTargets(self, actor):
         targetMenu = []
         if actor.attacking or actor.spell.target == 0:
@@ -272,6 +285,16 @@ class BattleSystem(Scene):
         else:
             targetMenu = MenuObj(self.party)
         return targetMenu
+    
+    #advances the character for command selection
+    def next(self):
+        self.active += 1
+        if self.active < len(self.party):
+            self.commandWheel = CommandWheel(self, self.party[self.active])
+        else:
+            self.commandWheel = None
+            self.turnStart()
+        self.targeting = False
         
     def render(self):
         for hud in enumerate(self.huds):
@@ -286,9 +309,12 @@ class BattleSystem(Scene):
 
         if not self.battling:
             if active < len(self.party):
-                self.commandWheel.draw()
+                if self.targeting:
+                    self.targetMenu.render(visibility)
+                else:
+                    self.commandWheel.render(visiblity)
             else:
-                self.start.draw()
+                self.execute()
                 
     def victory(self):
         self.engine.changeScene("VictoryScene")
