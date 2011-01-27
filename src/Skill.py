@@ -9,18 +9,31 @@
 class Skill:
     def __init__(self, job, lvl = 0):
         pass
-        
+
+#increases one's sword proficency
 class SwordMastery(Skill):
-    def __init__(self, job, l = 0):
+    def __init__(self, job, lvl = 0):
         
         self.job = job
         
         self.name = "Sword Mastery"
-        self.level = l
+        self.level = lvl
         
         #adds .5 level to the sword proficiency of the job for every level it goes up
         self.job.swordProf += 50.0*self.level
         
+        self.active = False #the skill is passive
+        
+#a skill that can be used in battle that inflicts fire damage on the target
+class Fire(Skill):
+    def __init__(self, job, lvl = 0):
+        self.job = job
+        self.name = "Fire"
+        self.level = lvl
+        
+        self.damage = 50 + (5*lvl)
+        
+        self.active = True
         
         
         
