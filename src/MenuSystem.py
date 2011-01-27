@@ -33,7 +33,7 @@ class Menu(MenuObj):
         self.text     = FontObj(fontStyle)
 
         #which keys select the next or previous button
-        self.moveKeys = [Input.RButton, Input.LButton]
+        self.moveKeys = [Input.RtButton, Input.LtButton]
         
         #the texture used for the buttons and the buttons themselves
         self.buttons  = [0 for n in range(len(self.commands))]
