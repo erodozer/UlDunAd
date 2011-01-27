@@ -50,14 +50,16 @@ class Maplist(Scene):
         self.exists = False
 
     def buttonClicked(self, image):
-        pass
+        if image == self.menuButton:
+            self.engine.viewport.changeScene("MenuSystem")
         
     def keyPressed(self, key, char):    
         #opens up the menu
         if key == Input.CButton:
             self.engine.viewport.changeScene("MenuSystem")
+            
         #creates a test battle scene
-        if key == Input.DButton:
+        if key == Input.DButton and len(self.engine.family.members) > 0:
             from Enemy import Formation
             self.engine.formation = Formation("formation001")
             self.engine.viewport.changeScene("BattleSystem")
@@ -109,3 +111,9 @@ class Maplist(Scene):
         self.background.draw()
         self.engine.drawImage(self.menubutton, position = (w*.9, h*.1))
         self.menu.render()
+        
+        self.engine.drawText(self.font, "%s:%i" % (self.engine.family.name, len(self.engine.family.members)),
+                             position = (self.engine.w*.8, self.engine.h*.8))
+
+        self.engine.drawText(self.font, "Party:%i" % (len(self.engine.family.party)),
+                             position = (self.engine.w*.8, self.engine.h*.6))
