@@ -80,7 +80,115 @@ class BattleHUDCharacter:
 
         self.barHP.setRect((0, self.character.currentHP/self.character.HP, .5, 1))
         self.barHP.draw()
+
+class BattleMenu(MenuObj):
+    def __init__(self, scene, character):
+        self.scene = scene
+        self.engine = scene.engine
+        self.character = character
         
+        fontStyle = self.engine.data.defaultFont
+        self.text = FontObj(fontStyle)
+        
+        #0 = attack menu, 2 = strategic menu, 3 = item menu
+        self.commandWin = WinObj(Texture("window.png"), 0, 0)
+        self.commandWin.setDimensions(self.engine.w, 400, inPixels = True)
+        
+        self.command = 0        #command selected
+        self.index = 0          #index selected in the window
+        self.step = 0           #menu showing
+        
+        self.basicCommands = ["Attack", "Tactical", "Item"] #basic command menu
+        self.attackCommands = ["Weapon", "Spell/Technique"] #attack menu
+        self.tactCommands = ["Boost", "Defend", "Flee"]     #tactical menu
+        self.itemCommands = self.engine.family.inventory    #item menu
+        self.techCommands = character.skills                #character's list of skills
+        
+    def keyPressed(self, key, char):
+        
+        if key == Input.UpButton:
+            #since item and skill menus have two columns
+            #to go up a row you have to subtract 2
+            if self.step == 3 or self.step == 4:
+                if self.index > 1:
+                    self.index -= 2
+            else:
+                if self.index > 0:
+                    self.index -= 1
+        if key == Input.DnButton:
+            #since item and skill menus have two columns
+            #to go up a row you have to subtract 2
+            if self.step == 3 or self.step == 4:
+                if self.index > 1:
+                    self.index -= 2
+            else:
+                if self.index > 0:
+                    self.index -= 1
+            
+                
+        #overrides default a button pressing
+        if key == Input.AButton:
+            if self.step == 0:
+                if self.index == 0:
+                    self.step = 1       #attacking menu
+                elif self.index == 1:
+                    self.step = 2       #tactical menu
+                elif self.index == 2:
+                    self.step = 3       #item menu
+            elif self.step == 1:
+                if self.index == 0:     #attack
+                    self.scene.selectTarget()
+                elif self.index == 1:   #skill menu
+                    self.step = 4
+            elif self.step == 2:
+                if self.index == 0:
+                    self.character.boost = True
+                elif self.index == 1:
+                    self.character.defend = True
+                elif self.index == 2:
+                    self.scene.flee()
+            elif self.step == 3:
+                self.character.command = self.itemCommands[index]
+                self.scene.selectTarget()
+            elif self.step == 4:
+                self.character.command = self.techCommands[index]
+                self.scene.selectTarget()
+        
+        if key == Input.BButton:
+            if self.step == 1 or self.step == 2 or self.step == 3:
+                self.step = 0
+            elif self.step == 4:
+                self.step = 1
+                    
+        
+    def render(self, visibility):
+        
+        if self.step == 3:
+            for i, item in enumerate(self.itemCommands):
+                position = (self.engine.w/2 * i%2) + 10, 32.0 * int(i/2))
+                
+                if i == self.index:
+                    self.highlight.setPosition(position[0], position[1])
+                    
+                self.text.setText(item.name)
+                self.text.setPosition(position[0], position[1])
+                self.text.scaleHeight(28.0)
+                self.text.draw()
+                
+            self.highlight.draw()
+         
+        else:
+            self.commandWheel.draw()
+            
+            self.text.setText(self.basicCommands[self.index])
+            self.text.setPosition(700,500)
+            self.text.scaleHeight(24.0)
+            self.text.draw()
+        
+        
+        
+        
+    
 #unlike most other scenes in this game, the battle scene 
 #is completely controlled by the keyboard instead of mouse
 class BattleSystem(Scene):
@@ -98,11 +206,6 @@ class BattleSystem(Scene):
 
         self.huds = [BattleHUDCharacter(character, (0, 575 - 45*i)) for i, character in enumerate(self.party)]
             
-        #0 = attack menu, 1 = spell menu, 2 = strategic menu, 3 = item menu
-        self.commandWheel = ImgObj(Texture("commands.png"))
-        self.commandWheel.setPosition(700, 500)
-        self.command = 0
-
         self.inMenu = False
 
         self.active = 0         #which character is currently selecting commands
