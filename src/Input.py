@@ -26,10 +26,10 @@ AButton = K_v
 BButton = K_c
 CButton = K_x
 DButton = K_z
-LButton = K_LEFT
-RButton = K_RIGHT
-UButton = K_UP
-DButton = K_DOWN
+LtButton = K_LEFT
+RtButton = K_RIGHT
+UpButton = K_UP
+DnButton = K_DOWN
 
 def processMouseMove(newpos):
     global mousepos

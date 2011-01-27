@@ -30,9 +30,9 @@ class MenuObj:
 
         #which keys select the next or previous button
         if self.direction:
-            self.moveKeys = [Input.RButton, Input.LButton]
+            self.moveKeys = [Input.RtButton, Input.LtButton]
         else:
-            self.moveKeys = [Input.DButton, Input.UButton]
+            self.moveKeys = [Input.DnButton, Input.UpButton]
         
         #the texture used for the buttons and the buttons themselves
         if buttonStyle == None:

@@ -85,26 +85,26 @@ class StatDistMenu(MenuObj):
     #enter/return performs the scene's set action for that button
     def keyPressed(self, key):
           
-        if key == Input.DButton:
+        if key == Input.DnButton:
             if self.index + 1 < len(self.commands):
                 self.index += 1
             else:
                 self.index = 0
                 
-        elif key == Input.UButton:
+        elif key == Input.UpButton:
             if self.index > 0:
                 self.index -= 1
             else:
                 self.index = len(self.commands) - 1
                 
-        elif key == Input.LButton:
+        elif key == Input.LtButton:
             if self.scene.distAreas[self.index] > 0:
                 self.scene.distAreas[self.index] -= 1
                 self.scene.distPoints += 1
             else:
                 self.scene.distAreas[self.index] = 0
                     
-        elif key == Input.RButton:
+        elif key == Input.RtButton:
             if self.scene.distPoints > 0:
                 self.scene.distAreas[self.index] += 1
                 self.scene.distPoints -= 1
