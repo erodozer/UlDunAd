@@ -17,6 +17,8 @@ import random
 
 import glob
 from Character import Character
+
+from Item import *
         
 #the player's family
 #this class holds the code responsible for the amount of gold the family has
@@ -53,7 +55,21 @@ class Family:
             self.party = self.members[0:len(self.members)-1]
 
         #the items your family has
-        self.inventory = [n.strip() for n in familyini.__getattr__("inventory").split(",")]
+        items = [n.strip() for n in familyini.__getattr__("inventory").split(",")]
+        self.inventory = []
+        for item in items:
+            path = os.path.join("..", "data", "items", item)
+            if os.path.exists(path):
+                ini = Configuration(os.path.join("..", "data", "items", name, "item.ini"))
+                #detecting what type of item it is
+                if ini.parser.has_section("weapon"):
+                    items.append(Weapon(item))
+                elif ini.parser.has_section("armor"):
+                    items.append(Armor(item))
+                else:
+                    items.append(Item(item))
+                
+            
         #amount of money your family possesses
         self.gold = familyini.__getattr__("gold", int)
         #gameplay difficulty (0 - easy, 1- normal, 2 - hard)

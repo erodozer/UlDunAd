@@ -3,16 +3,19 @@ from Config import Configuration
 class Item:
     def __init__(self, name):
         itemini = Configuration(os.path.join("..", "data", "items", name, "item.ini")).item
+        self.name = name
         
 class Weapon(Item):
     def __init__(self, name):
+        itemini = Configuration(os.path.join("..", "data", "items", name, "item.ini")).weapon
         self.name = name
         self.type = "unknown"
         self.str  = 0
         
 class Armor(Item):
     def __init__(self, name):
-        Item.__init__(self, name)
+        itemini = Configuration(os.path.join("..", "data", "items", name, "item.ini")).armor
+        self.name = name
         
         self.defn = itemini.__getattr__("def", int)
         self.spd  = itemini.__getattr__("str", int)
