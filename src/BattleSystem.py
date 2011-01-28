@@ -14,12 +14,12 @@ from operator import itemgetter
 
 from View   import *
 from Actor  import *
+from Enemy import Enemy
 
 import string
 import Input
 
 from MenuObj import MenuObj
-
 
 #this is the hud that displays the character information
 #it's not one big window, instead it is 1-3 little windows
@@ -230,6 +230,9 @@ class BattleSystem(Scene):
         self.engine = engine
         w, h = self.engine.w, self.engine.h
 
+        fontStyle = self.engine.data.defaultFont
+        self.text = FontObj(fontStyle, size = 32.0)
+
         self.party = self.engine.family.party
         self.formation = self.engine.formation.enemies
 
@@ -270,7 +273,7 @@ class BattleSystem(Scene):
             self.commandWheel.keyPressed(key)
     
     def select(self, index):
-        self.party[self.active] = self.formation[index]
+        self.party[self.active].target = self.formation[index]
         self.next()
                
     def run(self):
@@ -301,17 +304,22 @@ class BattleSystem(Scene):
         self.order = sorted(self.turns.items(), key=itemgetter(1))
         print self.order
     
+        self.execute()
+        
     #executes all of the commands
     def execute(self):
         self.battling = True
         for i in self.order:
-            i.turnStart()
+            if isinstance(i[0], Enemy):
+                i[0].getCommand(self.generateEnemyTargets(i[0]))
+            i[0].turnStart()
             
-            if i.target:
-                target.hp -= i.damage
+            if i[0].target:
+                if not i[0].damage == "Miss":
+                    i[0].target.hp -= i[0].damage
                 
                 #draws the damage on screen
-                self.engine.drawText(self.text, i.damage, position = target.position, size = 32.0)
+                self.engine.drawText(self.text, i[0].damage, position = i[0].target.getSprite().position)
                 
                 #stalls the engine for 1 second to show the damage
                 pygame.time.wait(100)
@@ -326,15 +334,20 @@ class BattleSystem(Scene):
         
         self.active = 0
 
+    #generates the target list for enemies
+    def generateEnemyTargets(self, actor):
+        targets = [t for t in self.party]
+        return targets
+        
+    #generates the target list/menu for allies
     def generateTargets(self, actor):
-        targetMenu = []
         position = (140, self.engine.h - 30)
+
         if actor.attacking or actor.cast:
-            enemies = [enemy.name for enemy in self.formation]
-            targetMenu = MenuObj(self, enemies, position)
+            targets = [enemy.name for enemy in self.formation]
         else:
-            members = [member.name for member in self.party]
-            targetMenu = MenuObj(self, members, position)
+            targets= [member.name for member in self.party]
+        targetMenu = MenuObj(self, targets, position)
         return targetMenu
     
     def selectTarget(self):
@@ -378,8 +391,6 @@ class BattleSystem(Scene):
                     self.targetMenu.render(visibility)
                 else:
                     self.commandWheel.render(visibility)
-            else:
-                self.execute()
                 
     def victory(self):
         self.engine.changeScene("VictoryScene")

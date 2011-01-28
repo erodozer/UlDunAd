@@ -58,8 +58,8 @@ class Actor:
             self.defn /= 2
         elif self.defend:
             self.defn *= 2.5
-        elif self.cast or self.attack:
-           calculateDamage()
+        elif self.cast or self.attacking:
+            self.calculateDamage()
            
     #calculates the amount of damage towards a target
     def calculateDamage(self):

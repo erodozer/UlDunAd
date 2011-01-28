@@ -180,11 +180,14 @@ class Character(Actor):
 
     def calculateDamage(self):
          #first was calculate to see if the actor hits his target
-        hit = (self.proficency*2) - self.target.evd >= self.target.evd*1.5
+        hit = (self.proficiency*2) - self.target.evd >= self.target.evd*1.5
         if hit:
-            self.damage = (self.mag + self.command.damage) - (self.target.res * 1.368295)
-        elif self.attack:
-            self.damage = self.str - (self.target.defn * 1.368295)
+            if self.cast:
+                self.damage = (self.mag + self.command.damage) - (self.target.res * 1.368295)
+            elif self.attacking:
+                self.damage = self.str - (self.target.defn * 1.368295)
+        else:
+            self.damage = "Miss"
     
     def getSprite(self):
         sprite = self.sprites['standing']

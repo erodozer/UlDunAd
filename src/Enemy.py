@@ -61,8 +61,32 @@ class Enemy(Actor):
         #position and scale are defined in the formation of the enemies and not the enemy.ini
         self.position = (0, 0)
         self.scale = 1
-
+        
+        try:
+            self.skills = [Skill(s.strip()) for s in baseSection.__getattr__("skills", str).split("|") if s]
+        except AttributeError:
+            self.skills = []
+            
         Actor.__init__(self, name)
+     
+    def getCommand(self, targets):
+        '''commented out due to skills not yet working
+        if len(self.skills) > 0:
+            command = random.randint(0,2)   #randomly picks attack, tactical, or skill
+        else:
+            command = random.randint(0,1)   #randomly picks attack, tactical
+        '''
+        command = random.randint(0,1)   #randomly picks attack or tactical
+        if command == 0:    #attack and targeting
+            self.attacking = True
+            self.target = random.choice(targets)
+            self.power = random.randint(0,2)
+        elif command == 1:  #tactical/defense choosing
+            command = random.randint(0,1)
+            if command == 0:
+                self.boost = True
+            else:
+                self.defend = True
         
     def loadSprites(self, path):
         normal = Texture(os.path.join(path, "normal.png"))
@@ -80,9 +104,12 @@ class Enemy(Actor):
          #first was calculate to see if the actor hits his target
         hit = random.randint(0, 255) - self.target.evd >= self.target.evd*1.5
         if hit:
-            self.damage = (self.mag + self.command.damage) - (self.target.res * 1.368295)
-        elif self.attack:
-            self.damage = self.str - (self.target.defn * 1.368295)
+            if self.cast:
+                self.damage = (self.mag + self.command.damage) - (self.target.res * 1.368295)
+            elif self.attacking:
+                self.damage = self.str - (self.target.defn * 1.368295)
+        else:
+            self.damage = "Miss"
     
     #draws the enemy sprite in battle
     def getSprite(self):
