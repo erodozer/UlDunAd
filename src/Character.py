@@ -30,8 +30,10 @@ class Character(Actor):
         # ONLY do this during creation
         if not name:
             return
-
+        
         playerini = Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini"))
+        
+        self.name = name
         
         #divides the character ini into resonable chunks
         baseSection  = playerini.character      #contains basic information about the character
@@ -108,6 +110,8 @@ class Character(Actor):
         
         self.sprites = self.job.sprites #for now, more work will be done later
         
+        Actor.__init__(self, name)
+
     #figures out the which proficency to use for the dominant hand weapon
     def loadProficiency(self):
         weapon = Weapon(self.equipment[self.hand])
@@ -182,6 +186,10 @@ class Character(Actor):
         elif self.attack:
             self.damage = self.str - (self.target.defn * 1.368295)
     
+    def getSprite(self):
+        sprite = self.sprites['standing']
+        return sprite
+        
     #saves a new ini for the character to be used
     def create(self, family, name, job, stats, points = 0, equipment = None, proficiency = None):
         Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini")).save()

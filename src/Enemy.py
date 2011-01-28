@@ -18,6 +18,8 @@ from Texture import *
 import os
 from Actor import Actor
 
+import random
+
 class Enemy(Actor):
     _LevelMax = 20      #this is the current level cap, I will adjust this with the number of content available
     #exp is calculated by enemy level and their stats
@@ -33,6 +35,8 @@ class Enemy(Actor):
 
         path = os.path.join("actors", "enemies", name)
         enemyini = Configuration(os.path.join("..", "data", path, "enemy.ini"))
+        
+        self.name = name
         
         #divides the enemy ini into resonable chunks
         baseSection  = enemyini.enemy          #contains basic information about the enemy
@@ -56,7 +60,9 @@ class Enemy(Actor):
         
         #position and scale are defined in the formation of the enemies and not the enemy.ini
         self.position = (0, 0)
-        self.scale = (1, 1)
+        self.scale = 1
+
+        Actor.__init__(self, name)
         
     def loadSprites(self, path):
         normal = Texture(os.path.join(path, "normal.png"))
@@ -79,7 +85,7 @@ class Enemy(Actor):
             self.damage = self.str - (self.target.defn * 1.368295)
     
     #draws the enemy sprite in battle
-    def draw(self):
+    def getSprite(self):
         sprite = self.sprites['normal']
         if self.currentHP < self.hp / 3.0:
             sprite = self.sprites['weakened']
@@ -89,8 +95,9 @@ class Enemy(Actor):
             sprite = self.sprites['boost']
         
         sprite.setPosition(self.position[0], self.position[1])
-        sprite.setScale(self.scale[0], self.scale[1])
-        sprite.draw()
+        sprite.setScale(self.scale, self.scale)
+        
+        return sprite
         
 #an enemy formation
 class Formation:
@@ -118,8 +125,8 @@ class Formation:
             n = formationini.__getattr__("scale").split("|")[i]
             enemy.scale =  float(n)
 
-        self.terrain = ImgObj(Texture(os.path.join("terrains", formationini.__getattr__("terrain"))))
+        self.terrain = ImgObj(Texture(os.path.join("terrain", formationini.__getattr__("terrain") + ".png")))
    
     def draw(self):
         for enemy in self.enemies:
-            enemy.draw()
+            enemy.getSprite().draw()

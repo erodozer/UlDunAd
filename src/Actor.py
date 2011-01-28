@@ -30,7 +30,7 @@ class Actor:
         self.currentHP = self.hp
         
         #is the character attacking
-        self.attack = False
+        self.attacking = False
         self.power = 0          #0 = normal attack, 1 = strong attack, 2 = accurate attack
         
         #are they casting a spell or technique, if they are, which one
@@ -50,7 +50,7 @@ class Actor:
 
     def initForBattle(self):
         self.currentHP = self.hp
-        self.fp = min(self.maxFP/3 + random.randInt(0, self.maxFP), self.maxFP)
+        self.fp = min(self.maxFP/3 + random.randint(0, self.maxFP), self.maxFP)
         self.active = False
 
     def turnStart(self):
