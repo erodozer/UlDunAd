@@ -31,6 +31,8 @@ class Camera:
         glEnable (GL_LIGHTING)
         glEnable (GL_LIGHT0)
         glShadeModel (GL_SMOOTH)
+        glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE )
+        glEnable ( GL_COLOR_MATERIAL )
 
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
