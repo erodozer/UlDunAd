@@ -33,7 +33,7 @@ class BattleHUDCharacter:
 
         #hud back
         self.hudtex = Texture("battlehud.png")
-        self.hudImg = ImgObj(self.hudtex, frameY = 2)
+        self.hudImg = ImgObj(self.hudtex)
         self.hudImg.setAlignment("left")
         self.hudImg.setPosition(self.x, self.y)
 
@@ -62,10 +62,6 @@ class BattleHUDCharacter:
         
         glScalef(self.scale, self.scale, 1)
         
-        if character.active:
-            self.hudImg.setFrame(frameY = 2)
-        else:
-            self.hudImg.setFrame(frameY = 1)
         self.hudImg.draw()
 
         self.font.setColor(self.vis)
@@ -92,23 +88,25 @@ class BattleMenu(MenuObj):
         
         #0 = attack menu, 2 = strategic menu, 3 = item menu
         self.commandWin = WinObj(Texture("window.png"), 0, 0)
-        self.commandWin.setDimensions(self.engine.w, 400)
+        self.commandWin.setDimensions(self.engine.w-30, 400)
+        self.highlight = ImgObj(Texture("window_selected.png"))
+        self.highlight.setScale(self.engine.w/2 - 10, 32.0, inPixels = True)
         
         #the wheel backdrop
         self.back = ImgObj(Texture("commandwheel.png"))
-        self.back.setPosition(self.engine.w - self.back.width/2, self.engine.h - self.back.height/2)
+        self.back.setPosition(self.engine.w - self.back.width/2, self.back.height/2)
         
         self.command = 0        #command selected
         self.index = 0          #index selected in the window
         self.step = 0           #menu showing
         
-        self.basicCommands = ["Attack", "Tactical", "Item"] #basic command menu
-        self.attackCommands = ["Weapon", "Spell/Technique"] #attack menu
+        self.basicCommands = ["Attack", "Spell/Technique", "Tactical", "Item"] #basic command menu
+        self.attackCommands = ["Normal", "Strong", "Accurate"] #attack menu
         self.tactCommands = ["Boost", "Defend", "Flee"]     #tactical menu
         self.itemCommands = self.engine.family.inventory    #item menu
         self.techCommands = character.skills                #character's list of skills
         
-    def keyPressed(self, key, char):
+    def keyPressed(self, key):
         
         if key == Input.UpButton:
             #since item and skill menus have two columns
@@ -119,15 +117,24 @@ class BattleMenu(MenuObj):
             else:
                 if self.index > 0:
                     self.index -= 1
+                    
         if key == Input.DnButton:
             #since item and skill menus have two columns
-            #to go up a row you have to subtract 2
+            #to go down a row you have to add 2
             if self.step == 3 or self.step == 4:
-                if self.index > 1:
-                    self.index -= 2
+                if self.step == 3:
+                    commands = self.itemCommands
+                else:
+                    commands = self.techCommands
+                if self.index + 2 < len(commands):
+                    self.index += 2
             else:
-                if self.index > 0:
-                    self.index -= 1
+                if self.step == 0:
+                    commands = self.attackCommands
+                else:
+                    commands = self.basicCommands
+                if self.index + 1< len(self.basicCommands):
+                    self.index += 1
             
                 
         #overrides default a button pressing
@@ -139,36 +146,51 @@ class BattleMenu(MenuObj):
                     self.step = 2       #tactical menu
                 elif self.index == 2:
                     self.step = 3       #item menu
+                elif self.index == 3:
+                    self.step = 4       #skill menu
+                self.index = 0
+                
             elif self.step == 1:
-                if self.index == 0:     #attack
-                    self.scene.selectTarget()
-                elif self.index == 1:   #skill menu
-                    self.step = 4
+                if self.index == 1:     #strong attack
+                    self.character.power = 1
+                elif self.index == 2:   #accurate attack
+                    self.character.power = 2
+                else:                   #normal attack
+                    self.character.power = 0
+                self.character.attacking = True
+                self.scene.selectTarget()
+
             elif self.step == 2:
-                if self.index == 0:
+                if self.index == 0:     #boost
                     self.character.boost = True
-                elif self.index == 1:
+                elif self.index == 1:   #defend
                     self.character.defend = True
-                elif self.index == 2:
+                elif self.index == 2:   #flee
                     self.scene.flee()
             elif self.step == 3:
-                self.character.command = self.itemCommands[index]
-                self.scene.selectTarget()
+                self.character.command = self.itemCommands[self.index]
+                self.scene.generateTargets(self.character)
+                self.scene.targeting = True
             elif self.step == 4:
-                self.character.command = self.techCommands[index]
-                self.scene.selectTarget()
+                self.character.command = self.techCommands[self.index]
+                self.scene.generateTargets(self.character)
+                self.scene.targeting = True
         
         if key == Input.BButton:
-            if self.step == 1 or self.step == 2 or self.step == 3:
-                self.step = 0
-            elif self.step == 4:
-                self.step = 1
-                    
+            self.step = 0
+            self.index = 0
         
     def render(self, visibility):
         
-        if self.step == 3:
-            for i, item in enumerate(self.itemCommands):
+        if self.step == 3 or self.step == 4:
+            if self.step == 3:
+                commands = self.itemCommands
+            elif self.step == 4:
+                commands = self.techCommands
+                
+            self.commandWin.draw()
+            
+            for i, item in enumerate(commands):
                 position = ((self.engine.w/2 * i%2) + 10, 32.0 * int(i/2))
                 
                 if i == self.index:
@@ -184,7 +206,14 @@ class BattleMenu(MenuObj):
         else:
             self.back.draw()
             
-            self.text.setText(self.basicCommands[self.index])
+            if self.step == 0:
+                commands = self.basicCommands
+            elif self.step == 1:
+                commands = self.attackCommands
+            elif self.step == 2:
+                commands = self.tactCommands
+                
+            self.text.setText(commands[self.index])
             self.text.setPosition(self.back.position[0],self.back.position[1])
             self.text.scaleHeight(24.0)
             self.text.draw()
@@ -202,13 +231,16 @@ class BattleSystem(Scene):
         w, h = self.engine.w, self.engine.h
 
         self.party = self.engine.family.party
-        self.formation = self.engine.formation
+        self.formation = self.engine.formation.enemies
 
         self.background = self.engine.formation.terrain
+        self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
+        self.background.setPosition(self.engine.w/2, self.engine.h/2)
+        
         self.start = ImgObj(Texture("start.png"))
         self.start.setPosition(self.engine.w / 2, self.engine.h / 2)
 
-        self.huds = [BattleHUDCharacter(character, (0, 575 - 45*i)) for i, character in enumerate(self.party)]
+        #self.huds = [BattleHUDCharacter(character, (0, 575 - 45*i)) for i, character in enumerate(self.party)]
         self.commandWheel = BattleMenu(self, self.party[0])
         self.inMenu = False
 
@@ -217,14 +249,30 @@ class BattleSystem(Scene):
 
         self.turns = {}
         for character in self.party:
+            character.initForBattle()
             self.turns[character] = 0
-        for enemy in self.formation.enemies:
+            
+        for enemy in self.formation:
+            enemy.initForBattle()
             self.turns[enemy] = 0
+            
         self.order = []
 
         self.targetMenu = None
-        self.targeting = True
+        self.targeting = False
 
+    def keyPressed(self, key, char):
+        if self.targeting:
+            self.targetMenu.keyPressed(key)
+            if key == Input.BButton:
+                self.targeting = False
+        else:
+            self.commandWheel.keyPressed(key)
+    
+    def select(self, index):
+        self.party[self.active] = self.formation[index]
+        self.next()
+               
     def run(self):
         if not self.battling:
             character = self.party[self.active]
@@ -244,17 +292,18 @@ class BattleSystem(Scene):
     def battleStart(self):
         for character in self.party:
             if not (character.boost or character.defend):
-                self.turns.update(character = random.randInt(0, 50) + character.spd)
+                self.turns.update(character = random.randint(0, 50) + character.spd)
 
         for enemy in self.formation:
             if not (enemy.boost or enemy.defend):
-                self.turns.update(enemy = random.randInt(0, 50) + enemy.spd)
+                self.turns.update(enemy = random.randint(0, 50) + enemy.spd)
 
         self.order = sorted(self.turns.items(), key=itemgetter(1))
         print self.order
-        
+    
     #executes all of the commands
     def execute(self):
+        self.battling = True
         for i in self.order:
             i.turnStart()
             
@@ -277,15 +326,21 @@ class BattleSystem(Scene):
         
         self.active = 0
 
-    #
     def generateTargets(self, actor):
         targetMenu = []
-        if actor.attacking or actor.spell.target == 0:
-            targetMenu = MenuObj(self.formation)
+        position = (140, self.engine.h - 30)
+        if actor.attacking or actor.cast:
+            enemies = [enemy.name for enemy in self.formation]
+            targetMenu = MenuObj(self, enemies, position)
         else:
-            targetMenu = MenuObj(self.party)
+            members = [member.name for member in self.party]
+            targetMenu = MenuObj(self, members, position)
         return targetMenu
     
+    def selectTarget(self):
+        self.targetMenu = self.generateTargets(self.party[self.active])
+        self.targeting = True
+        
     #advances the character for command selection
     def next(self):
         self.active += 1
@@ -293,29 +348,43 @@ class BattleSystem(Scene):
             self.commandWheel = CommandWheel(self, self.party[self.active])
         else:
             self.commandWheel = None
-            self.turnStart()
+            self.battleStart()
         self.targeting = False
-        
-    def render(self):
-        for hud in enumerate(self.huds):
-            if active < len(self.party):
-                if self.party[active]:
+    
+    def render(self, visibility):
+        ''' commenting out due to lack of image
+        for i, hud in enumerate(self.huds):
+            if self.active < len(self.party):
+                if self.party[self.active]:
                     hud.scale = 1.0
                 else:
                     hud.scale = .5
             else:
                 hud.scale = .5
             hud.draw()
-
+        '''
+        
+        self.background.draw()
+        
+        for i, member in enumerate(self.party):
+            member.getSprite().setPosition(self.engine.w*.8 - 20*i, self.engine.h*.4 + 80*i)
+            self.engine.drawAnimation(member.getSprite(), loop = True, reverse = False, delay = 20)
+            
+        self.engine.formation.draw()
+        
         if not self.battling:
-            if active < len(self.party):
+            if self.active < len(self.party):
                 if self.targeting:
                     self.targetMenu.render(visibility)
                 else:
-                    self.commandWheel.render(visiblity)
+                    self.commandWheel.render(visibility)
             else:
                 self.execute()
                 
     def victory(self):
         self.engine.changeScene("VictoryScene")
+        
+    def flee(self):
+        self.engine.changeScene("Maplist")
+        
         
