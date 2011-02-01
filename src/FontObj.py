@@ -105,7 +105,7 @@ class FontObj:
         else:
             self.text = str(text)       #converts any passed value into a string
         
-        self.texture.changeTexture(self.font.render(self.text, True, self.color))
+        self.texture.changeTexture(self.font.render(self.text, True, (255,255,255)))
         self.pixelSize = self.texture.pixelSize
         self.setScale(1,1)  #makes sure the surface is resized because 
                             #the text is now different
@@ -154,7 +154,8 @@ class FontObj:
         
     #sets the colour of the image (RGBA 0.0 -> 1.0)
     def setColor(self, color):
-        for i in range(len(self.color)):
+        self.color = list(self.color)
+        for i in range(len(color)):
             self.color[i] = color[i]
 
     #finally draws the image to the screen
