@@ -27,7 +27,9 @@ class Actor:
 
         #used in battle
         self.maxFP = 100
+        self.fp = 0
         self.currentHP = self.hp
+        self.incap = False      #actors become incapacitated when their hp reaches 0
         
         #is the character attacking
         self.attacking = False
