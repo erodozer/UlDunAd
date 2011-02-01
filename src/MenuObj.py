@@ -15,7 +15,7 @@ import Input
 #creates a little button menu
 class MenuObj:
     def __init__(self, scene, commands, position = (0, 0), fontStyle = None,
-                 buttonStyle = None, window = False, horizontal = False):
+                 buttonStyle = None, window = None, horizontal = False):
     
         self.scene    = scene
         self.engine   = scene.engine    
@@ -39,7 +39,7 @@ class MenuObj:
             buttonStyle = self.engine.data.defaultButton  
         self.buttons  = [ImgObj(buttonStyle, boundable = True, frameY = 2)
                          for n in range(len(self.commands))]
-                         
+                   
         #where on the screen should the menu be displayed
         #  verticle is positioned from the top
         #  horizontal from the left
@@ -52,7 +52,15 @@ class MenuObj:
                 pos = [self.position[0], self.position[1] + (-(button.height + 5) * i)]
                 
             button.setPosition(pos[0], pos[1])
-            
+        
+        #window setup
+        self.window = None
+        if window:
+            button = self.buttons[0]
+            self.window = WinObj(Texture(window))
+            #vertical position is based on center button
+            self.window.setPosition(position[0], self.buttons[len(self.buttons)/2].position[1])
+        
         self.index = 0                  #which button is selected
         
     #arrow keys select which button it is
@@ -89,18 +97,30 @@ class MenuObj:
     #renders the menu
     def render(self, visibility = 1.0):
         
-
-        for i, button in enumerate(self.buttons):
-            if i == self.index:
-                button.setFrame(y = 2)
-            else:
-                button.setFrame(y = 1)
-            self.engine.drawImage(button)
+        draw = False
+        if not self.window:
+            draw = True
+        
+        if self.window:
+            button = self.buttons[0]
+            self.window.setDimensions(button.width + 20, (button.height + 20) * len(self.buttons))
+            self.window.draw()
+            if (self.window.scale[0] >= button.width + 10 and \
+                self.window.scale[0] >= (button.height + 10) * len(self.buttons)):
+                draw = True
+                
+        if draw:
+            for i, button in enumerate(self.buttons):
+                if i == self.index:
+                    button.setFrame(y = 2)
+                else:
+                    button.setFrame(y = 1)
+                self.engine.drawImage(button)
             
-            self.text.setText(self.commands[i]) 
-            self.text.setPosition(button.position[0], button.position[1])
-            self.text.scaleHeight(36.0)
-            self.text.draw()
+                self.text.setText(self.commands[i]) 
+                self.text.setPosition(button.position[0], button.position[1])
+                self.text.scaleHeight(36.0)
+                self.text.draw()
         
                 
                 
