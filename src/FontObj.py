@@ -164,7 +164,7 @@ class FontObj:
             
             glPushMatrix()
 
-            x = self.position[0]
+            x = position[0]
             if self.alignment == 0:
                 x += float(self.pixelSize[0])/2.0
             elif self.alignment == 2:
@@ -173,7 +173,7 @@ class FontObj:
             glTranslatef(x, position[1],-.1)
             glScalef(scale[0], -scale[1], 1.0)
             glRotatef(angle, 0, 0, 1)
-            glColor4f(*self.color)
+            glColor4f(*color)
 
             self.texture.bind()
 
@@ -188,7 +188,7 @@ class FontObj:
             glPopMatrix()
             
             
-        #if self.shadow:
-        #    render(position = (self.position[0] + 2, self.position[1] - 2), color = (0,0,0,1))
+        if self.shadow:
+            render(position = (self.position[0] + 1, self.position[1] - 2), color = (0,0,0,1))
         render()    
 
