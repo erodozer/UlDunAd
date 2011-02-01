@@ -52,19 +52,25 @@ class BattleHUDCharacter:
                       ImgObj(Texture(os.path.join(scenepath, "fp_bar.png"))), 
                       ImgObj(Texture(os.path.join(scenepath, "top_bar.png")))]
 
-        for bar in self.hpBar:
-            bar.setAlignment("left")
-            bar.setPosition(200 + self.x, self.y - 5)
-
-        for bar in self.fpBar:
-            bar.setAlignment("left")
-            bar.setPosition(200 + self.x, self.y - 25)
+        self.setPosition(self.x, self.y)
     
         self.scale = scale
         
     def update(self):
         self.hpBar[1].setRect((0, 0, self.character.currentHP/self.character.hp, 1))
         self.fpBar[1].setRect((0, 0, self.character.fp/self.character.maxFP, 1))
+       
+    def setPosition(self, x, y):
+        self.x = x
+        self.y = y
+        
+        for bar in self.hpBar:
+            bar.setAlignment("left")
+            bar.setPosition(200 + x, y - 5)
+
+        for bar in self.fpBar:
+            bar.setAlignment("left")
+            bar.setPosition(200 + x, y - 25)
         
     def draw(self):
         
@@ -247,6 +253,9 @@ class BattleSystem(Scene):
         self.party = self.engine.family.party
         self.formation = self.engine.formation.enemies
 
+        self.incapParty = 0     #keeps track of how many in the party are incapacitated
+                                #when all members are then the battle is over
+        
         self.background = self.engine.formation.terrain
         self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
         self.background.setPosition(self.engine.w/2, self.engine.h/2)
@@ -254,13 +263,14 @@ class BattleSystem(Scene):
         #self.start = ImgObj(Texture("start.png"))
         #self.start.setPosition(self.engine.w / 2, self.engine.h / 2)
 
-        self.huds = [BattleHUDCharacter(character, (0, 575 - 45*i)) for i, character in enumerate(self.party)]
+        self.huds = [BattleHUDCharacter(character) for character in self.party]
         self.commandWheel = BattleMenu(self, self.party[0])
         self.inMenu = False
 
         self.active = 0         #which character is currently selecting commands
         self.battling = False   #are commands being selected or is fighting occuring?
 
+        self.turn = 0           #whose turn is it
         self.turns = {}
         for character in self.party:
             character.initForBattle()
@@ -274,13 +284,28 @@ class BattleSystem(Scene):
 
         self.targetMenu = None
         self.targeting = False
+        
+        self.displayDelay = 0   #little delay ticker for displaying damage dealt upon a target
 
+        self.victory = False    #win battle
+        self.flee = False       #lose battle or retreat
+        
     def keyPressed(self, key, char):
+        if self.battling:
+            return
+            
         if self.targeting:
             self.targetMenu.keyPressed(key)
             if key == Input.BButton:
                 self.targeting = False
         else:
+            if key == Input.BButton:
+                if self.commandWheel.step == 0:
+                    self.active -= 1
+                    if self.active < 0:
+                        self.active = 0
+                    self.commandWheel = BattleMenu(self, self.party[self.active])
+                    
             self.commandWheel.keyPressed(key)
     
     def select(self, index):
@@ -288,25 +313,40 @@ class BattleSystem(Scene):
         self.next()
                
     def run(self):
-        if not self.battling:
-            character = self.party[self.active]
-            character.active = True
-
-            next = False
-            back = False
-
-            if next:
-                self.active += 1
-                self.next = False
-            elif back:
-                self.active -= 1
-                self.back = False
-                
         for hud in self.huds:
             hud.update()
-
+            
+        for character in self.party:
+            if character.currentHP <= 0:
+                character.currentHP = 0
+                character.incap = True
+            else:
+                character.incap = False
+        
+        for enemy in self.formation:
+            if enemy.currentHP <= 0:
+                self.formation.remove(enemy)
+                
+        if len(self.formation):
+            self.victory = True
+        elif self.incapParty == len(self.party):
+            self.flee = True
+        
+        
     #organizes all the turns for order of execution
     def battleStart(self):
+        self.turn = 0
+        
+        #this needs to be called in case an enemy or actor has died
+        self.turns = {}
+        for character in self.party:
+            if not character.incap:
+                self.turns[character] = 0
+            
+        for enemy in self.formation:
+            self.turns[enemy] = 0
+
+
         for character in self.party:
             if not (character.boost or character.defend):
                 self.turns[character] = random.randint(0, 50) + character.spd
@@ -314,45 +354,60 @@ class BattleSystem(Scene):
         for enemy in self.formation:
             if not (enemy.boost or enemy.defend):
                 self.turns[enemy] = random.randint(0, 50) + enemy.spd
-
+                enemy.getCommand(self.generateEnemyTargets(enemy))  #gets enemy's command and target
+        
         self.order = sorted(self.turns.items(), key=itemgetter(1))
         print self.order
     
-        self.execute()
+        self.battling = True
         
     #executes all of the commands
     def execute(self):
-        self.battling = True
-        for i in self.order:
-            if isinstance(i[0], Enemy):
-                i[0].getCommand(self.generateEnemyTargets(i[0]))
-            i[0].turnStart()
+        print self.displayDelay
+        
+        actor = self.order[self.turn][0]
+        
+        if self.displayDelay == 0:
+            actor.turnStart()
             
-            if i[0].target:
-                if not i[0].damage == "Miss":
-                    i[0].target.hp -= i[0].damage
+        if actor.target != None:
+            #if the actor's target was knocked out during this phase then a new target
+            # is automatically selected and damage is recalculated
+            if actor.target.incap:
+                actor.target = random.choice(self.generatePartyTargets(actor))
+                actor.calculateDamage()
                 
-                #draws the damage on screen
-                self.engine.drawText(self.text, i[0].damage, position = i[0].target.getSprite().position)
-                
-                #stalls the engine for 1 second to show the damage
-                pygame.time.wait(100)
-        
-        self.turnEnd()
-    
-    def turnEnd(self):
-        for character in self.party:
-            character.turnEnd()
-        for enemy in self.enemies:
-            enemy.turnEnd()
-        
-        self.active = 0
+            pos = actor.target.getSprite().position    
+            #draws the damage on screen
+            bounce = lambda t:(-.0023*t**2 + .00134*t + pos[1])+50
+            y = bounce(self.displayDelay-150)
+            if self.displayDelay > 150:
+                color = (1,1,1, (250 - self.displayDelay)/250.0)
+            else:
+                color = (1,1,1,1)
+            self.engine.drawText(self.text, actor.damage, position = (pos[0], y), color = color)
+            self.displayDelay += 5
+            
+            if self.displayDelay >= 300:
+                actor.target.currentHP -= actor.damage
+                if isinstance(actor.target, Character) and actor.target.currentHP <= 0:
+                    self.incapParty += 1
+                self.next()
+        else:
+            self.next()
 
-    #generates the target list for enemies
+    #generates the target list for enemies and auto-targetting
     def generateEnemyTargets(self, actor):
-        targets = [t for t in self.party]
+        targets = []
+        if isinstance(actor, Character):
+            targetGroup = self.formation
+        else:
+            targetGroup = self.party
+        for t in targetGroup:
+            if not t.incap:
+                targets.append(t)
         return targets
-        
+       
     #generates the target list/menu for allies
     def generateTargets(self, actor):
 
@@ -371,26 +426,39 @@ class BattleSystem(Scene):
         
     #advances the character for command selection
     def next(self):
-        self.active += 1
-        if self.active < len(self.party):
-            self.commandWheel = CommandWheel(self, self.party[self.active])
+        if self.battling:
+            self.order[self.active][0].turnEnd()
+            self.displayDelay = 0
+            self.turn += 1
+            if self.turn >= len(self.order):
+                self.battling = False
+                self.turn = 0
+                self.active = -1
+                self.next()
         else:
-            self.commandWheel = None
-            self.battleStart()
-        self.targeting = False
+            self.active += 1
+            if self.active < len(self.party):
+                self.commandWheel = BattleMenu(self, self.party[self.active])
+            else:
+                self.commandWheel = None
+                self.battleStart()
+            self.targeting = False
     
     def render(self, visibility):
         self.background.draw()
         
         #commenting out due to lack of image
         for i, hud in enumerate(self.huds):
-            if self.active < len(self.party):
+            if len(self.party)>1 and self.active < len(self.party):
                 if self.party[self.active]:
                     hud.scale = 1.0
+                    hud.setPosition(0, self.engine.h - 60)
                 else:
                     hud.scale = .5
+                    hud.setPosition(0, self.engine.h - 30*i - 60)
             else:
                 hud.scale = .5
+                hud.setPosition(0, self.engine.h - 30*i)
             hud.draw()
         
         for i, member in enumerate(self.party):
@@ -405,7 +473,9 @@ class BattleSystem(Scene):
                     self.targetMenu.render(visibility)
                 else:
                     self.commandWheel.render(visibility)
-                
+        else:
+            self.execute()
+            
     def victory(self):
         self.engine.changeScene("VictoryScene")
         
