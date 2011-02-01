@@ -108,6 +108,7 @@ class Enemy(Actor):
                 self.damage = (self.mag + self.command.damage) - (self.target.res * 1.368295)
             elif self.attacking:
                 self.damage = self.str - (self.target.defn * 1.368295)
+            self.damage = int(self.damage)
         else:
             self.damage = "Miss"
     
@@ -117,7 +118,7 @@ class Enemy(Actor):
         if self.currentHP < self.hp / 3.0:
             sprite = self.sprites['weakened']
         if self.defend:
-            sprite = self.sprites['defending']
+            sprite = self.sprites['defend']
         if self.boost:
             sprite = self.sprites['boost']
         
