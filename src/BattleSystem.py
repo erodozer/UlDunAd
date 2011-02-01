@@ -30,9 +30,11 @@ class BattleHUDCharacter:
         self.character = character
 
         self.x, self.y = position
-
+        
+        scenepath = os.path.join("scenes", "battlesystem")
+        
         #hud back
-        self.hudtex = Texture("battlehud.png")
+        self.hudtex = Texture(os.path.join(scenepath, "battlehud.png"))
         self.hudImg = ImgObj(self.hudtex)
         self.hudImg.setAlignment("left")
         self.hudImg.setPosition(self.x, self.y)
@@ -42,29 +44,35 @@ class BattleHUDCharacter:
         self.font.setAlignment("left")
 
         #these are for drawing the HP and FP bars
-        self.bartex = Texture("bars.png")
-        self.bar    = ImgObj(self.bartex, frameY = 2)
-        self.barHP  = ImgObj(self.bartex, frameY = 1)
-        self.barFP  = ImgObj(self.bartex, frameY = 1)
+        #each bar consists of 3 textures
+        self.hpBar = [ImgObj(Texture(os.path.join(scenepath, "bottom_bar.png"))),
+                      ImgObj(Texture(os.path.join(scenepath, "hp_bar.png"))), 
+                      ImgObj(Texture(os.path.join(scenepath, "top_bar.png")))]
+        self.fpBar = [ImgObj(Texture(os.path.join(scenepath, "bottom_bar.png"))),
+                      ImgObj(Texture(os.path.join(scenepath, "fp_bar.png"))), 
+                      ImgObj(Texture(os.path.join(scenepath, "top_bar.png")))]
 
-        self.bar.setAlignment("left")
-        self.bar.setPosition(200 + self.x, self.y + 5)
+        for bar in self.hpBar:
+            bar.setAlignment("left")
+            bar.setPosition(200 + self.x, self.y - 5)
 
-        self.barHP.setAlignment("left")
-        self.barHP.setPosition(200 + self.x, self.y + 5)        
-
-        self.barFP.setAlignment("left")
-        self.barFP.setPosition(375 + self.x, self.y + 5)        
-
+        for bar in self.fpBar:
+            bar.setAlignment("left")
+            bar.setPosition(200 + self.x, self.y - 25)
+    
         self.scale = scale
+        
+    def update(self):
+        self.hpBar[1].setRect((0, 0, self.character.currentHP/self.character.hp, 1))
+        self.fpBar[1].setRect((0, 0, self.character.fp/self.character.maxFP, 1))
         
     def draw(self):
         
+        glPushMatrix()
         glScalef(self.scale, self.scale, 1)
         
         self.hudImg.draw()
 
-        self.font.setColor(self.vis)
         self.font.setText(self.character.name)
         self.font.setPosition(self.x + 5, self.y)
         self.font.draw()
@@ -72,10 +80,13 @@ class BattleHUDCharacter:
         self.font.setText(str(self.character.currentHP) + "/" + str(self.character.hp))        
         self.font.setPosition(self.x + 200, self.y - 5)
 
-        self.barback.draw()
+        for bar in self.hpBar:
+            bar.draw()
 
-        self.barHP.setRect((0, self.character.currentHP/self.character.HP, .5, 1))
-        self.barHP.draw()
+        for bar in self.fpBar:
+            bar.draw()
+        glPopMatrix()
+        
 
 class BattleMenu(MenuObj):
     def __init__(self, scene, character):
@@ -93,7 +104,7 @@ class BattleMenu(MenuObj):
         self.highlight.setScale(self.engine.w/2 - 10, 32.0, inPixels = True)
         
         #the wheel backdrop
-        self.back = ImgObj(Texture("commandwheel.png"))
+        self.back = ImgObj(Texture(os.path.join("scenes", "battlesystem", "commandwheel.png")))
         self.back.setPosition(self.engine.w - self.back.width/2, self.back.height/2)
         
         self.command = 0        #command selected
@@ -240,10 +251,10 @@ class BattleSystem(Scene):
         self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
         self.background.setPosition(self.engine.w/2, self.engine.h/2)
         
-        self.start = ImgObj(Texture("start.png"))
-        self.start.setPosition(self.engine.w / 2, self.engine.h / 2)
+        #self.start = ImgObj(Texture("start.png"))
+        #self.start.setPosition(self.engine.w / 2, self.engine.h / 2)
 
-        #self.huds = [BattleHUDCharacter(character, (0, 575 - 45*i)) for i, character in enumerate(self.party)]
+        self.huds = [BattleHUDCharacter(character, (0, 575 - 45*i)) for i, character in enumerate(self.party)]
         self.commandWheel = BattleMenu(self, self.party[0])
         self.inMenu = False
 
@@ -290,16 +301,19 @@ class BattleSystem(Scene):
             elif back:
                 self.active -= 1
                 self.back = False
+                
+        for hud in self.huds:
+            hud.update()
 
     #organizes all the turns for order of execution
     def battleStart(self):
         for character in self.party:
             if not (character.boost or character.defend):
-                self.turns.update(character = random.randint(0, 50) + character.spd)
+                self.turns[character] = random.randint(0, 50) + character.spd
 
         for enemy in self.formation:
             if not (enemy.boost or enemy.defend):
-                self.turns.update(enemy = random.randint(0, 50) + enemy.spd)
+                self.turns[enemy] = random.randint(0, 50) + enemy.spd
 
         self.order = sorted(self.turns.items(), key=itemgetter(1))
         print self.order
@@ -341,13 +355,14 @@ class BattleSystem(Scene):
         
     #generates the target list/menu for allies
     def generateTargets(self, actor):
-        position = (140, self.engine.h - 30)
 
         if actor.attacking or actor.cast:
             targets = [enemy.name for enemy in self.formation]
         else:
             targets= [member.name for member in self.party]
-        targetMenu = MenuObj(self, targets, position)
+
+        position = (self.engine.w - 150, self.engine.h/2 + 30*len(targets)/2)
+        targetMenu = MenuObj(self, targets, position, window = os.path.join("scenes", "battlesystem", "window.png"))
         return targetMenu
     
     def selectTarget(self):
@@ -365,7 +380,9 @@ class BattleSystem(Scene):
         self.targeting = False
     
     def render(self, visibility):
-        ''' commenting out due to lack of image
+        self.background.draw()
+        
+        #commenting out due to lack of image
         for i, hud in enumerate(self.huds):
             if self.active < len(self.party):
                 if self.party[self.active]:
@@ -375,9 +392,6 @@ class BattleSystem(Scene):
             else:
                 hud.scale = .5
             hud.draw()
-        '''
-        
-        self.background.draw()
         
         for i, member in enumerate(self.party):
             member.getSprite().setPosition(self.engine.w*.8 - 20*i, self.engine.h*.4 + 80*i)
