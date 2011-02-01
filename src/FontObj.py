@@ -172,7 +172,7 @@ class FontObj:
             glTranslatef(x, position[1],-.1)
             glScalef(scale[0], -scale[1], 1.0)
             glRotatef(angle, 0, 0, 1)
-            glColor4f(1.0, 0.0, 0.0, 1.0)
+            glColor4f(*self.color)
 
             self.texture.bind()
 
