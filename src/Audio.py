@@ -57,7 +57,7 @@ class SoundObj:
 class BGMObj:
     def __init__(self, AudioFile, volume = 10, queue = False):
         #the music file
-        audiopath = os.path.join("..", "data", AudioFile)
+        audiopath = os.path.join("..", "data", "audio", AudioFile)
 
         self.volume = 10            #volume of the song (0-10 scale)
         self.loop = -1              #how many times it will loop (default = forever)
