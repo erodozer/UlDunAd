@@ -240,7 +240,7 @@ class Main:
         searchpath = os.path.join("..", "data", path)
         #retrieve just the file names
         if flag == "filename":
-            items = [n.rsplit("/",1)[1].replace(".ini", "") for n in glob.glob(os.path.join(searchpath, "*." + value))]
+            items = [n.rsplit("/",1)[1].replace("." + value, "") for n in glob.glob(os.path.join(searchpath, "*." + value))]
         #returns a list of the folders in the path
         elif flag == "folder":
             items = os.listdir(searchpath)
