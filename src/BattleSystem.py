@@ -46,31 +46,34 @@ class BattleHUDCharacter:
         #these are for drawing the HP and FP bars
         #each bar consists of 3 textures
         self.hpBar = [ImgObj(Texture(os.path.join(scenepath, "bottom_bar.png"))),
-                      ImgObj(Texture(os.path.join(scenepath, "hp_bar.png"))), 
+                      BarObj(Texture(os.path.join(scenepath, "hp_bar.png"))), 
                       ImgObj(Texture(os.path.join(scenepath, "top_bar.png")))]
         self.fpBar = [ImgObj(Texture(os.path.join(scenepath, "bottom_bar.png"))),
-                      ImgObj(Texture(os.path.join(scenepath, "fp_bar.png"))), 
+                      BarObj(Texture(os.path.join(scenepath, "fp_bar.png"))), 
                       ImgObj(Texture(os.path.join(scenepath, "top_bar.png")))]
 
+        self.hpBar[0].setAlignment("left")
+        self.hpBar[2].setAlignment("left")
+        self.fpBar[0].setAlignment("left")
+        self.fpBar[2].setAlignment("left")
+        
         self.setPosition(self.x, self.y)
     
         self.scale = scale
         
     def update(self):
-        self.hpBar[1].setRect((0, 0, float(self.character.currentHP)/float(self.character.hp), 1))
-        self.fpBar[1].setRect((0, 0, float(self.character.fp)/float(self.character.maxFP), 1))
+        self.hpBar[1].setLength(self.hpBar[0].width*(float(self.character.currentHP)/float(self.character.hp)))
+        self.fpBar[1].setLength(self.fpBar[0].width*(float(self.character.fp)/float(self.character.maxFP)))
        
     def setPosition(self, x, y):
         self.x = x
         self.y = y
         
         for bar in self.hpBar:
-            bar.setAlignment("left")
-            bar.setPosition(200 + x, y - 5)
+            bar.setPosition(100 + x, y - 5)
 
         for bar in self.fpBar:
-            bar.setAlignment("left")
-            bar.setPosition(200 + x, y - 25)
+            bar.setPosition(100 + x, y - 25)
         
     def draw(self):
         
@@ -112,20 +115,19 @@ class BattleHUDEnemy:
         #these are for drawing the HP and FP bars
         #each bar consists of 3 textures
         self.hpBar = [ImgObj(Texture(os.path.join(scenepath, "bottom_bar.png"))),
-                      ImgObj(Texture(os.path.join(scenepath, "hp_bar.png"))), 
+                      BarObj(Texture(os.path.join(scenepath, "hp_bar.png"))), 
                       ImgObj(Texture(os.path.join(scenepath, "top_bar.png")))]
+        self.hpBar[0].setAlignment("left")
+        self.hpBar[2].setAlignment("left")
+        self.hpBar[1].setLength(self.hpBar[0].width*(float(self.enemy.currentHP)/float(self.enemy.hp)))
         
         self.setPosition(0, 15)
-    
-    def update(self):
-        self.hpBar[1].setRect((0, 0, float(self.enemy.currentHP)/float(self.enemy.hp), 1))
-       
+        
     def setPosition(self, x, y):
         self.x = x
         self.y = y
         
         for bar in self.hpBar:
-            bar.setAlignment("left")
             bar.setPosition(x + 10, y - 5)
 
     def draw(self):
@@ -445,7 +447,8 @@ class BattleSystem(Scene):
             self.displayDelay += 5
             
             if self.displayDelay >= 100:
-                actor.target.currentHP += actor.damage
+                if not actor.damage == "Miss":
+                    actor.target.currentHP += actor.damage
                 if actor.target.currentHP <= 0:
                     if isinstance(actor.target, Character):
                         self.incapParty += 1
