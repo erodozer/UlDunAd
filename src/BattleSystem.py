@@ -57,8 +57,8 @@ class BattleHUDCharacter:
         self.scale = scale
         
     def update(self):
-        self.hpBar[1].setRect((0, 0, self.character.currentHP/self.character.hp, 1))
-        self.fpBar[1].setRect((0, 0, self.character.fp/self.character.maxFP, 1))
+        self.hpBar[1].setRect((0, 0, float(self.character.currentHP)/float(self.character.hp), 1))
+        self.fpBar[1].setRect((0, 0, float(self.character.fp)/float(self.character.maxFP), 1))
        
     def setPosition(self, x, y):
         self.x = x
@@ -118,7 +118,7 @@ class BattleHUDEnemy:
         self.setPosition(0, 15)
     
     def update(self):
-        self.hpBar[1].setRect((0, 0, self.enemy.currentHP/self.enemy.hp, 1))
+        self.hpBar[1].setRect((0, 0, float(self.enemy.currentHP)/float(self.enemy.hp), 1))
        
     def setPosition(self, x, y):
         self.x = x
@@ -139,11 +139,6 @@ class BattleHUDEnemy:
         self.font.setPosition(self.x + 5, self.y + 15)
         self.font.draw()
 
-        self.font.setText(str(self.enemy.currentHP) + "/" + str(self.enemy.hp))        
-        self.font.setAlignment('right')        
-        self.font.scaleHeight(24.0)
-        self.font.setPosition(self.x + self.hpBar[0].width-20, self.y + 15)
-        self.font.draw()
         
 
 class BattleMenu(MenuObj):
