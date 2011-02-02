@@ -34,10 +34,10 @@ class BattleHUDCharacter:
         scenepath = os.path.join("scenes", "battlesystem")
         
         #hud back
-        self.hudtex = Texture(os.path.join(scenepath, "battlehud.png"))
-        self.hudImg = ImgObj(self.hudtex)
-        self.hudImg.setAlignment("left")
-        self.hudImg.setPosition(self.x, self.y)
+        #self.hudtex = Texture(os.path.join(scenepath, "battlehud.png"))
+        #self.hudImg = ImgObj(self.hudtex)
+        #self.hudImg.setAlignment("left")
+        #self.hudImg.setPosition(self.x, self.y)
 
         #font used in the hud for displaying HP by number and name of the character
         self.font   = FontObj("default.ttf")
@@ -76,21 +76,26 @@ class BattleHUDCharacter:
         
         glPushMatrix()
         glScalef(self.scale, self.scale, 1)
-        self.hudImg.draw()
+        #self.hudImg.draw()
 
-        self.font.setText(self.character.name)
-        self.font.setPosition(self.x + 5, self.y)
-        self.font.draw()
-
-        self.font.setText(str(self.character.currentHP) + "/" + str(self.character.hp))        
-        self.font.setPosition(self.x + 200, self.y - 5)
-        self.font.draw()
-        
         for bar in self.hpBar:
             bar.draw()
 
         for bar in self.fpBar:
             bar.draw()
+        
+        self.font.setText(self.character.name)
+        self.font.setAlignment('left')
+        self.font.scaleHeight(32.0)
+        self.font.setPosition(self.x + 5, self.y)
+        self.font.draw()
+
+        self.font.setText(str(self.character.currentHP) + "/" + str(self.character.hp))
+        self.font.setAlignment('right')        
+        self.font.scaleHeight(24.0)
+        self.font.setPosition(self.x + self.hpBar[0].width-20, self.y + 15)
+        self.font.draw()
+        
         glPopMatrix()
         
 #this is the hud that displays the enemy's basic information (hp, lvl)
@@ -110,7 +115,7 @@ class BattleHUDEnemy:
                       ImgObj(Texture(os.path.join(scenepath, "hp_bar.png"))), 
                       ImgObj(Texture(os.path.join(scenepath, "top_bar.png")))]
         
-        self.setPosition(0, 70)
+        self.setPosition(0, 15)
     
     def update(self):
         self.hpBar[1].setRect((0, 0, self.enemy.currentHP/self.enemy.hp, 1))
@@ -129,11 +134,15 @@ class BattleHUDEnemy:
             bar.draw()
 
         self.font.setText(self.enemy.name)
-        self.font.setPosition(self.x + 5, self.y)
+        self.font.setAlignment('left')
+        self.font.scaleHeight(32.0)
+        self.font.setPosition(self.x + 5, self.y + 15)
         self.font.draw()
 
         self.font.setText(str(self.enemy.currentHP) + "/" + str(self.enemy.hp))        
-        self.font.setPosition(self.x + 200, self.y - 5)
+        self.font.setAlignment('right')        
+        self.font.scaleHeight(24.0)
+        self.font.setPosition(self.x + self.hpBar[0].width-20, self.y + 15)
         self.font.draw()
         
 
@@ -447,9 +456,11 @@ class BattleSystem(Scene):
                         self.incapParty += 1
                     #makes sure to remove the target from the order so they 
                     #don't attack if they die before their turn
-                    for i in self.order:
-                        if i[0] == actor.target:
-                            self.order.remove(i[0])
+                    for i, target in enumerate(self.order):
+                        if target[0] == actor.target:
+                            self.order.pop(i)
+                            if i < self.turn:
+                                self.turn -= 1
                 self.next()
         else:
             self.next()
@@ -485,7 +496,7 @@ class BattleSystem(Scene):
     #advances the character for command selection
     def next(self):
         if self.battling:
-            self.order[self.active][0].turnEnd()
+            self.order[self.turn][0].turnEnd()
             self.displayDelay = 0
             self.turn += 1
             if self.turn >= len(self.order):
