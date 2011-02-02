@@ -73,7 +73,7 @@ class TestScene(Scene):
         self.test       = [ImgObj(Texture("test.png")), 0, 0]
         
         #animation testing
-        from Jobs import *
+        from Jobs import Adventurer
         self.job = Adventurer()
         self.sprite = self.job.sprites[self.job.state]
         self.sprite.setPosition(self.engine.w * .8, self.engine.h * .8)
@@ -171,8 +171,10 @@ class Viewport:
         self.inputObjects = []                  #list of images that can be clicked
         self.input = False                      #is the viewport in its mouse input cycle
         
-        self.transitionTime = 512.0             #time it takes to transition between scenes (milliseconds)
+        self.transitionTime = 16.0             #time it takes to transition between scenes (milliseconds)
         
+        self.fade = ImgObj(Texture(surface = pygame.Surface(resolution)))
+        self.fade.setPosition(.5, .5)
         #creates an OpenGL Viewport
         glViewport(0, 0, resolution[0], resolution[1])
 
@@ -180,8 +182,6 @@ class Viewport:
     def changeScene(self, scene):
         if scene not in self.scenes:
             Input.resetKeyPresses()
-            self.scenes.pop(-1)
-            self.visibility.pop(-1)
             if scene == "TestScene":
                 scene = TestScene(self.engine)
             else:
@@ -222,7 +222,6 @@ class Viewport:
             for press in Input.clicks:
                 for image in self.inputObjects:
                     if image.getCollision(press):
-             #           print "image clicked!", image
                         scene.buttonClicked(image)
                         break
     
@@ -233,7 +232,6 @@ class Viewport:
         glEnable(GL_LIGHTING)
 
         glScalef(self.resolution[0]/800.0,self.resolution[1]/600.0, 1.0)
-
         scene.render(visibility)
 
     def run(self):
@@ -241,13 +239,20 @@ class Viewport:
 
         if self.scenes:
             #ticks/rate of change in time
-            t = float(self.engine.clock.get_time()) / self.transitionTime
+            t = 1.0 / self.transitionTime
 
             #all scenes should be rendered but not checked for input
             for i, scene in enumerate(self.scenes):
-                topmost = bool(scene == self.scenes[-1])#is the scene the topmost scene
-                visibility = self.visibility[i] = min(1.0, self.visibility[i] + t)
-                
+                topmost = bool(i == len(self.scenes)-1)#is the scene the topmost scene
+                if not topmost:
+                    visibility = self.visibility[i] = max(0.0, self.visibility[i] - t)
+                    if visibility <= 0.0:
+                        self.scenes.pop(i)
+                        self.visibility.pop(i)
+                        continue
+                else:
+                    visibility = self.visibility[i] = min(1.0, self.visibility[i] + t)
+                    
                 if topmost:
                     scene.run()                         #any calculations of interactions are processed from the
                                                         # previous loop before anything new is rendered
@@ -257,12 +262,20 @@ class Viewport:
                 try:
                     self.camera.setOrthoProjection()    #changes projection so the hud/menus can be drawn
                     self.render(scene, visibility)      #renders anything to the scene that is 2D
-                    pygame.display.flip()               #switches back buffer to the front
-                    if topmost:                         #only should the topmost scene be checked for input
-                        self.detect(scene)              #checks to see if any object on the back buffer has been clicked
                 finally:
                     self.camera.resetProjection()       #resets the projection to have perspective
 
+        
+            if len(self.scenes) > 1:
+                self.fade.setColor((1,1,1,self.visibility[-2] - self.visibility[-1]))
+                self.fade.draw()
+                
+            pygame.display.flip()               #switches back buffer to the front
+            
+            #only the topmost scene should be checked for input
+            if self.visibility[-1] >= 1.0:      #only detect when the scene is fully visible
+                self.detect(self.scenes[-1])    #checks to see if any object on the back buffer has been clicked
+                
         #clears the clickable images at the end of each frame
         self.imageObjects = []
 
