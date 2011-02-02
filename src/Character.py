@@ -74,16 +74,16 @@ class Character(Actor):
 
         #there are 10 pieces of equipment one can wear
         #left hand weapon, right hand weapon, helm, armor, legs, feet, gloves, and 3 accessories
-        self.equipment = [equipSection.__getattr__("left hand"),
-                          equipSection.__getattr__("right hand"),
-                          equipSection.__getattr__("helmet"),
-                          equipSection.__getattr__("armor"), 
-                          equipSection.__getattr__("legs"), 
-                          equipSection.__getattr__("feet"),
-                          equipSection.__getattr__("gloves"),
-                          equipSection.__getattr__("accessory1"),
-                          equipSection.__getattr__("accessory2"),
-                          equipSection.__getattr__("accessory3")]
+        self.equipment = [Weapon(equipSection.__getattr__("left hand")),
+                          Weapon(equipSection.__getattr__("right hand")),
+                          Armor(equipSection.__getattr__("helmet")),
+                          Armor(equipSection.__getattr__("armor")), 
+                          Armor(equipSection.__getattr__("legs")), 
+                          Armor(equipSection.__getattr__("feet")),
+                          Armor(equipSection.__getattr__("gloves")),
+                          Armor(equipSection.__getattr__("accessory1")),
+                          Armor(equipSection.__getattr__("accessory2")),
+                          Armor(equipSection.__getattr__("accessory3"))]
         
         self.hand = 0       #0 = right handed, 1 = left handed
                             #dominant hand determines which weapons gets 
@@ -125,18 +125,21 @@ class Character(Actor):
     
     #figures out the which proficency to use for the dominant hand weapon
     def loadProficiency(self):
-        weapon = Weapon(self.equipment[self.hand])
-        if (weapon.type == "sword"):
-            self.proficiency = self.proficiencies[0]
-        elif (weapon.type == "dagger"):
-            self.proficiency = self.proficiencies[1]
-        elif (weapon.type == "spear"):
-            self.proficiency = self.proficiencies[2]
-        elif (weapon.type == "staff"):
-            self.proficiency = self.proficiencies[3]
-        elif (weapon.type == "gun"):
-            self.proficiency = self.proficiencies[4]
-        else:
+        weapon = self.equipment[self.hand]
+        try:
+            if (weapon.type == "sword"):
+                self.proficiency = self.proficiencies[0]
+            elif (weapon.type == "dagger"):
+                self.proficiency = self.proficiencies[1]
+            elif (weapon.type == "spear"):
+                self.proficiency = self.proficiencies[2]
+            elif (weapon.type == "staff"):
+                self.proficiency = self.proficiencies[3]
+            elif (weapon.type == "gun"):
+                self.proficiency = self.proficiencies[4]
+            else:
+                self.proficiency = self.proficiencies[5]
+        except:
             self.proficiency = self.proficiencies[5]
     
     def setEquipment(self, equipment):
