@@ -450,7 +450,7 @@ class BattleSystem(Scene):
             self.displayDelay += 5
             
             if self.displayDelay >= 100:
-                actor.target.currentHP -= actor.damage
+                actor.target.currentHP += actor.damage
                 if actor.target.currentHP <= 0:
                     if isinstance(actor.target, Character):
                         self.incapParty += 1
