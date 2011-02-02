@@ -103,7 +103,5 @@ class Adventurer(Job):
         #skill tree
         self.skills = [SwordMastery(self)]
         
-        self.sprites = self.loadSprites()
-        
         self.state = 'standing'
                 
