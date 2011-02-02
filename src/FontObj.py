@@ -189,6 +189,6 @@ class FontObj:
             
             
         if self.shadow:
-            render(position = (self.position[0] + 1, self.position[1] - 2), color = (0,0,0,1))
+            render(position = (self.position[0] + 1, self.position[1] - 2), color = (0,0,0,self.color[3]))
         render()    
 
