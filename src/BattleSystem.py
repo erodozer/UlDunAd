@@ -96,7 +96,7 @@ class BattleHUDCharacter:
 #this is the hud that displays the enemy's basic information (hp, lvl)
 class BattleHUDEnemy:
     def __init__(self, enemy):
-        self.character = character
+        self.enemy = enemy
 
         scenepath = os.path.join("scenes", "battlesystem")
         
@@ -112,10 +112,8 @@ class BattleHUDEnemy:
         
         self.setPosition(0, 70)
     
-        self.scale = scale
-        
     def update(self):
-        self.hpBar[1].setRect((0, 0, self.character.currentHP/self.character.hp, 1))
+        self.hpBar[1].setRect((0, 0, self.enemy.currentHP/self.enemy.hp, 1))
        
     def setPosition(self, x, y):
         self.x = x
@@ -123,20 +121,21 @@ class BattleHUDEnemy:
         
         for bar in self.hpBar:
             bar.setAlignment("left")
-            bar.setPosition(200 + x, y - 5)
+            bar.setPosition(x + 10, y - 5)
 
     def draw(self):
 
-        self.font.setText(self.character.name)
+        for bar in self.hpBar:
+            bar.draw()
+
+        self.font.setText(self.enemy.name)
         self.font.setPosition(self.x + 5, self.y)
         self.font.draw()
 
-        self.font.setText(str(self.character.currentHP) + "/" + str(self.character.hp))        
+        self.font.setText(str(self.enemy.currentHP) + "/" + str(self.enemy.hp))        
         self.font.setPosition(self.x + 200, self.y - 5)
         self.font.draw()
         
-        for bar in self.hpBar:
-            bar.draw()
 
 class BattleMenu(MenuObj):
     def __init__(self, scene, character):
@@ -537,6 +536,7 @@ class BattleSystem(Scene):
             if self.active < len(self.party):
                 if self.targeting:
                     self.targetMenu.render(visibility)
+                    self.eHuds[self.targetMenu.index].draw()
                 else:
                     self.commandWheel.render(visibility)
         else:
