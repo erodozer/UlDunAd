@@ -17,6 +17,7 @@ w, h = 0, 0                     #width and height of the window
 from Camera import Camera
 from ImgObj import ImgObj
 from WinObj import WinObj
+from BarObj import BarObj
 from Texture import Texture
 from FontObj import FontObj
 from Audio import *

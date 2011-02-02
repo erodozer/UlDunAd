@@ -71,11 +71,11 @@ class TestScene(Scene):
         
         #tests drawing of images, sliding, and spinning
         self.test       = [ImgObj(Texture("test.png")), 0, 0]
+        self.bar        = BarObj(Texture("bar.png"), 128)
+        self.bar.setPosition(self.engine.w*.3, self.engine.h*.1)
         
         #animation testing
-        from Jobs import Adventurer
-        self.job = Adventurer()
-        self.sprite = self.job.sprites[self.job.state]
+        self.sprite = ImgObj(Texture(os.path.join("actors", "sprites", "male", "standing.png")), frameX = 4)
         self.sprite.setPosition(self.engine.w * .8, self.engine.h * .8)
         #self.sprite.setScale(1.0, 1.0)
         self.spriteSize = 0
@@ -157,6 +157,8 @@ class TestScene(Scene):
         if self.counter == 0:
             self.font.setText(self.engine.currentFPS)
         self.font.draw()
+        
+        self.bar.draw()
                 
 #this is the main viewport/engine
 #it handles the mouse input, the opengl window
