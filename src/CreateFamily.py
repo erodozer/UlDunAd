@@ -23,9 +23,17 @@ class CreateFamily(Scene):
         self.engine = engine
 
         scenepath = os.path.join("scenes", "creation")
+        
         self.background = ImgObj(Texture(os.path.join(scenepath, "background.png")))
+        self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
+        self.background.setPosition(self.engine.w/2,self.engine.h/2)
+        
         self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), self.engine.w/4, 0)
+        
         self.button = ImgObj(Texture("ok.png"), boundable = True, frameX = 2)
+        self.button.setScale(75,75,inPixels = True)
+        self.button.setPosition(w*.25, h*.5)
+        
         self.font   = FontObj("default.ttf")
 
         self.menu       = MenuObj(self, commands = ["Easy", "Normal", "Hard"], 
@@ -101,7 +109,8 @@ class CreateFamily(Scene):
                     frame = 2
                 else:
                     frame = 1
-                self.engine.drawImage(self.button, position = (w*.25, h*.5), scale = (75,75), frameX = frame)
+                self.button.setFrame(x = frame)
+                self.button.draw()
             
                 
     def renderDifficulty(self):

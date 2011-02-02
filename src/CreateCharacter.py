@@ -43,8 +43,8 @@ class StatDistMenu(MenuObj):
                         for n in range(len(self.commands))]
         
         for i, button in enumerate(self.buttons):
+            button.setScale(self.window.scale[0]-10, 48, inPixels = True)    
             pos = (position[0], (position[1] + self.window.scale[1]/2 - 50 + (-(button.height + 5) * i)))
-            button.setScale(self.window.scale[0]-10, 64)    
             button.setPosition(pos[0], pos[1])
 
         
@@ -54,7 +54,7 @@ class StatDistMenu(MenuObj):
                             
         for i, buttons in enumerate(self.statButtons):
             for n, button in enumerate(buttons):
-                pos = (position[0] + button.width/2 - (30 + (100*n)), 
+                pos = (position[0] + self.buttons[0].width/2 - (30 + (100*n)), 
                        self.buttons[i].position[1])
                 button.setPosition(pos[0], pos[1])
                 button.setFrame(x = n+1)
@@ -177,7 +177,7 @@ class CreationMenu(MenuObj):
             
         self.name = self.scene.name
         if len(self.scene.sprites) > 0:
-            sprite = self.scene.selectedSprite
+            sprite = self.scene.sprites[self.scene.selectedSprite]
         else:
             sprite = "None"
         self.values = [self.name, self.scene.job.name, sprite]
@@ -195,7 +195,7 @@ class CreationMenu(MenuObj):
                         for n in range(len(self.commands))]
                          
         for i, button in enumerate(self.buttons):
-            button.setScale(self.window.scale[0]-10, 64)
+            button.setScale(self.window.scale[0]-10, 64, inPixels = True)
             
             if i == len(self.buttons) - 1:
                 pos = [position[0], position[1] - self.window.scale[1]/2 + 50]
@@ -209,7 +209,7 @@ class CreationMenu(MenuObj):
 
     def refresh(self):
         if len(self.scene.sprites) > 0:
-            sprite = self.scene.selectedSprite
+            sprite = self.scene.sprites[self.scene.selectedSprite]
         else:
             sprite = "None"
         self.values = [string.join(self.name, ''), self.scene.job.name, sprite]
@@ -218,20 +218,20 @@ class CreationMenu(MenuObj):
     #enter/return performs the scene's set action for that button
     def keyPressed(self, key):
             
-        if key == Input.DButton:
+        if key == Input.DnButton:
             if self.index + 1 < len(self.commands):
                 self.index += 1
             else:
                 self.index = 0
                 
-        elif key == Input.UButton:
+        elif key == Input.UpButton:
             if self.index > 0:
                 self.index -= 1
             else:
                 self.index = len(self.commands) - 1
                 
             
-        if key == Input.LButton:
+        if key == Input.LtButton:
             if self.index == 1:
                 if self.scene.jobSelect > 0:
                     self.scene.jobSelect -= 1
@@ -240,12 +240,9 @@ class CreationMenu(MenuObj):
                 self.refresh()
             elif self.index == 2:
                 if len(self.scene.sprites) > 0:
-                    if self.scene.selectedSprite > 0:
-                        self.scene.selectedSprite -= 1
-                    else:
-                        self.scene.selectedSprite = len(self.scene.sprites) - 1
+                    self.scene.selectedSprite = max(0, self.scene.selectedSprite - 1)
                 
-        elif key == Input.RButton:
+        elif key == Input.RtButton:
             if self.index == 1:
                 if self.scene.jobSelect > len(self.scene.jobs) - 1:
                     self.scene.jobSelect += 1
@@ -253,11 +250,7 @@ class CreationMenu(MenuObj):
                     self.scene.jobSelect = 0
                 self.refresh()
             elif self.index == 2:
-                if len(self.scene.sprites) > 0:
-                    if self.scene.selectedSprite < len(self.scene.sprites):
-                        self.scene.selectedSprite += 1
-                    else:
-                        self.scene.selectedSprite = 0
+                self.scene.selectedSprite = min(len(self.scene.sprites)-1, self.scene.selectedSprite + 1)
                 
                     
         elif key == Input.AButton:
@@ -315,7 +308,8 @@ class CreateCharacter(Scene):
     
         scenepath = os.path.join("scenes", "creation")
         self.background = ImgObj(Texture(os.path.join(scenepath, "background.png")))
-        
+        self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
+        self.background.setPosition(self.engine.w/2,self.engine.h/2)
         
         self.nameWindow = WinObj(Texture(os.path.join(scenepath, "window.png")),w*.5,h*.15)
         self.nameButton = ImgObj(Texture("ok.png"), boundable = True, frameX = 2)
@@ -329,7 +323,8 @@ class CreateCharacter(Scene):
                                                     #the job object
                                                     
         self.selectedSprite = 0                     #the sprite selected for the character
-        self.sprites = []#[n for n in os.path.listdir(os.path.join("..", "data", "actors", "sprites")) if n.split(".")[1] == (".png")]
+        self.sprites = self.engine.listPath(os.path.join("actors", "sprites"), flag="folder")
+        self.sprite = ImgObj(Texture(os.path.join("actors", "sprites", self.sprites[self.selectedSprite], "profile.png")))
         
         #stat point distribution
         self.stats = ["Hit Points", "Strength", "Defense", "Agility", "Evasion", "Force", "Resistance"]
@@ -348,6 +343,7 @@ class CreateCharacter(Scene):
     def run(self):
         self.job = eval(self.jobs[self.jobSelect]+"()")
         self.exists = os.path.exists(os.path.join("..", "data", "actors", "families", self.engine.family.name, string.join(self.name,'')))
+        self.sprite = ImgObj(Texture(os.path.join("actors", "sprites", self.sprites[self.selectedSprite], "profile.png")))
         
     def keyPressed(self, key, char):
         if self.step == -1:
@@ -395,24 +391,27 @@ class CreateCharacter(Scene):
                     frame = 2
                 else:
                     frame = 1
-                self.engine.drawImage(self.nameButton, position = (w*.9, h*.9), scale = (75,75), frameX = frame)
+                self.nameButton.setPosition(w*.9, h*.9)
+                self.nameButton.setScale(75,75, inPixels = True)
+                self.nameButton.setFrame(x = frame)
+                self.nameButton.draw()
             
     def create(self):
         name = string.join(self.name, '')
         character = Character(None, None)
-        character.create(self.engine.family.name, name, self.job.name, self.distAreas, self.distPoints)
+        character.create(self.engine.family.name, name, self.job.name, 
+                         self.distAreas, self.distPoints, sprite = self.sprites[self.selectedSprite])
         self.engine.family.refresh()
         self.engine.viewport.changeScene("Maplist")
         
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
 
-        self.engine.drawImage(self.background, scale = (w,h))
-        
+        self.background.draw()
         
         if not self.step == 1:
-            #if len(self.sprites) > 0:
-            #    self.engine.drawImage(self.sprites[self.selectedSprite], position = (w*.75, h*.5))
+            if len(self.sprites) > 0:
+                self.engine.drawImage(self.sprite, position = (w*.75, h*.5))
             self.menu.render()
             
         if self.step == 0:
@@ -421,9 +420,5 @@ class CreateCharacter(Scene):
             self.statDistMenu.render()
         else:
             self.menu.refresh()
-        
-        if self.error:
-            self.engine.showError("You must enter a name")
-
 
         
