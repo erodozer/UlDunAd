@@ -110,13 +110,15 @@ class MenuSystem(Scene):
             #close the menu scene
             if key == Input.BButton:
                 self.engine.viewport.changeScene("Maplist")
-            
-        
-                                        
+
 
     def select(self, index):
         if index == 0 and self.dimension == 0:
             self.dimension = 1
+            
+        if self.dimension == 1:
+            if index == 2:
+                self.engine.viewport.changeScene("EquipmentScene")
         
     def run(self):
         pass
