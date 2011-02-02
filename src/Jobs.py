@@ -59,14 +59,6 @@ class Job:
         self.gunsProf   = 0
         self.fistProf   = 0
 
-    #searches path for files with filetype or folder
-    def loadSprites(self):
-        sprites = {'standing':0}
-        spritePath = os.path.join("actors", "jobs", self.name)
-        sprites['standing'] = ImgObj(Texture(os.path.join(spritePath, "standing.png")), frameX = 4)
-
-        return sprites
-        
     def drawStatGraph(self):
         glBegin(GL_LINE_STRIP)
         glColor3f(1.0, 0.0, 0.0); glVertex2f(-self.stats[0],   0)

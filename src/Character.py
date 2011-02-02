@@ -34,6 +34,7 @@ class Character(Actor):
         playerini = Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini"))
         
         self.name = name
+        self.family = family
         
         #divides the character ini into resonable chunks
         baseSection  = playerini.character      #contains basic information about the character
@@ -41,6 +42,7 @@ class Character(Actor):
         equipSection = playerini.equipment      #contains all the equipment being worn
         profSection  = playerini.proficiency    #contains information about the character's weapon proficency
         
+        self.spriteset = baseSection.__getattr__("spriteset")
         self.job  = eval(baseSection.__getattr__("job")+"()")
 
         self.level      = baseSection.__getattr__("level", int)
@@ -108,10 +110,19 @@ class Character(Actor):
         #this marks for the end of the battle if the character leveled up
         self.leveledUp = False
         
-        self.sprites = self.job.sprites #for now, more work will be done later
+        self.sprites = self.loadSprites #for now, more work will be done later
         
         Actor.__init__(self, name)
+    
+    #searches path for files with filetype or folder
+    def loadSprites(self):
+        sprites = {}
+        spritePath = os.path.join("actors", "sprites", self.spriteset)
+        sprites['standing'] = ImgObj(Texture(os.path.join(spritePath, "standing.png")), frameX = 4)
+        sprites['profile'] = ImgObj(Texture(os.path.join(spritePath, "profile.png")))
 
+        return sprites
+    
     #figures out the which proficency to use for the dominant hand weapon
     def loadProficiency(self):
         weapon = Weapon(self.equipment[self.hand])
