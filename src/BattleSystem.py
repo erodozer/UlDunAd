@@ -376,17 +376,6 @@ class BattleSystem(Scene):
         for hud in self.huds:
             hud.update()
             
-        for character in self.party:
-            if character.currentHP <= 0:
-                character.currentHP = 0
-                character.incap = True
-            else:
-                character.incap = False
-        
-        for enemy in self.formation:
-            if enemy.currentHP <= 0:
-                self.formation.remove(enemy)
-                
         if len(self.formation):
             self.victory = True
         elif self.incapParty == len(self.party):
@@ -448,10 +437,13 @@ class BattleSystem(Scene):
             
             if self.displayDelay >= 100:
                 if not actor.damage == "Miss":
-                    actor.target.currentHP += actor.damage
+                    actor.target.currentHP -= actor.damage
                 if actor.target.currentHP <= 0:
                     if isinstance(actor.target, Character):
                         self.incapParty += 1
+                    if isinstance(actor.target, Enemy):
+                        self.formation.remove(actor.target)
+                    actor.target.incap = True
                     #makes sure to remove the target from the order so they 
                     #don't attack if they die before their turn
                     for i, target in enumerate(self.order):
@@ -459,6 +451,7 @@ class BattleSystem(Scene):
                             self.order.pop(i)
                             if i < self.turn:
                                 self.turn -= 1
+                            break
                 self.next()
         else:
             self.next()
