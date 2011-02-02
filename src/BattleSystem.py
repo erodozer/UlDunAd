@@ -76,7 +76,6 @@ class BattleHUDCharacter:
         
         glPushMatrix()
         glScalef(self.scale, self.scale, 1)
-        
         self.hudImg.draw()
 
         self.font.setText(self.character.name)
@@ -85,7 +84,8 @@ class BattleHUDCharacter:
 
         self.font.setText(str(self.character.currentHP) + "/" + str(self.character.hp))        
         self.font.setPosition(self.x + 200, self.y - 5)
-
+        self.font.draw()
+        
         for bar in self.hpBar:
             bar.draw()
 
@@ -93,6 +93,50 @@ class BattleHUDCharacter:
             bar.draw()
         glPopMatrix()
         
+#this is the hud that displays the enemy's basic information (hp, lvl)
+class BattleHUDEnemy:
+    def __init__(self, enemy):
+        self.character = character
+
+        scenepath = os.path.join("scenes", "battlesystem")
+        
+        #font used in the hud for displaying HP by number and name of the character
+        self.font   = FontObj("default.ttf")
+        self.font.setAlignment("left")
+
+        #these are for drawing the HP and FP bars
+        #each bar consists of 3 textures
+        self.hpBar = [ImgObj(Texture(os.path.join(scenepath, "bottom_bar.png"))),
+                      ImgObj(Texture(os.path.join(scenepath, "hp_bar.png"))), 
+                      ImgObj(Texture(os.path.join(scenepath, "top_bar.png")))]
+        
+        self.setPosition(0, 70)
+    
+        self.scale = scale
+        
+    def update(self):
+        self.hpBar[1].setRect((0, 0, self.character.currentHP/self.character.hp, 1))
+       
+    def setPosition(self, x, y):
+        self.x = x
+        self.y = y
+        
+        for bar in self.hpBar:
+            bar.setAlignment("left")
+            bar.setPosition(200 + x, y - 5)
+
+    def draw(self):
+
+        self.font.setText(self.character.name)
+        self.font.setPosition(self.x + 5, self.y)
+        self.font.draw()
+
+        self.font.setText(str(self.character.currentHP) + "/" + str(self.character.hp))        
+        self.font.setPosition(self.x + 200, self.y - 5)
+        self.font.draw()
+        
+        for bar in self.hpBar:
+            bar.draw()
 
 class BattleMenu(MenuObj):
     def __init__(self, scene, character):
@@ -247,6 +291,18 @@ class BattleSystem(Scene):
         self.engine = engine
         w, h = self.engine.w, self.engine.h
 
+        musicpath = os.path.join("music", "battle")
+        songs = self.engine.listPath(os.path.join("audio", musicpath), "ogg")
+        songs.append(self.engine.listPath(os.path.join("audio", musicpath), "mp3"))
+        if len(songs) > 0:
+            song = random.choice(songs)[0]
+            print song
+            self.music = BGMObj(os.path.join(musicpath, song))
+        
+        self.background = self.engine.formation.terrain
+        self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
+        self.background.setPosition(self.engine.w/2, self.engine.h/2)
+        
         fontStyle = self.engine.data.defaultFont
         self.text = FontObj(fontStyle, size = 32.0)
 
@@ -256,20 +312,18 @@ class BattleSystem(Scene):
         self.incapParty = 0     #keeps track of how many in the party are incapacitated
                                 #when all members are then the battle is over
         
-        self.background = self.engine.formation.terrain
-        self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
-        self.background.setPosition(self.engine.w/2, self.engine.h/2)
-        
         #self.start = ImgObj(Texture("start.png"))
         #self.start.setPosition(self.engine.w / 2, self.engine.h / 2)
 
-        self.huds = [BattleHUDCharacter(character) for character in self.party]
+        self.huds = [BattleHUDCharacter(character) for character in self.party] #player huds
+        self.eHuds = [BattleHUDEnemy(enemy) for enemy in self.formation]        #enemy hud
         self.commandWheel = BattleMenu(self, self.party[0])
         self.inMenu = False
 
         self.active = 0         #which character is currently selecting commands
         self.battling = False   #are commands being selected or is fighting occuring?
 
+        #turn order lists
         self.turn = 0           #whose turn is it
         self.turns = {}
         for character in self.party:
@@ -282,6 +336,7 @@ class BattleSystem(Scene):
             
         self.order = []
 
+        #target selection
         self.targetMenu = None
         self.targeting = False
         
@@ -357,13 +412,11 @@ class BattleSystem(Scene):
                 enemy.getCommand(self.generateEnemyTargets(enemy))  #gets enemy's command and target
         
         self.order = sorted(self.turns.items(), key=itemgetter(1))
-        print self.order
     
         self.battling = True
         
     #executes all of the commands
     def execute(self):
-        print self.displayDelay
         
         actor = self.order[self.turn][0]
         
@@ -379,19 +432,25 @@ class BattleSystem(Scene):
                 
             pos = actor.target.getSprite().position    
             #draws the damage on screen
-            bounce = lambda t:(-.0023*t**2 + .00134*t + pos[1])+50
-            y = bounce(self.displayDelay-150)
-            if self.displayDelay > 150:
+            bounce = lambda t:(-.017*t**2 + .0134*t + pos[1])+50
+            y = bounce(self.displayDelay-25)
+            if self.displayDelay > 50:
                 color = (1,1,1, (250 - self.displayDelay)/250.0)
             else:
                 color = (1,1,1,1)
             self.engine.drawText(self.text, actor.damage, position = (pos[0], y), color = color)
             self.displayDelay += 5
             
-            if self.displayDelay >= 300:
+            if self.displayDelay >= 100:
                 actor.target.currentHP -= actor.damage
-                if isinstance(actor.target, Character) and actor.target.currentHP <= 0:
-                    self.incapParty += 1
+                if actor.target.currentHP <= 0:
+                    if isinstance(actor.target, Character):
+                        self.incapParty += 1
+                    #makes sure to remove the target from the order so they 
+                    #don't attack if they die before their turn
+                    for i in self.order:
+                        if i[0] == actor.target:
+                            self.order.remove(i[0])
                 self.next()
         else:
             self.next()
@@ -447,25 +506,32 @@ class BattleSystem(Scene):
     def render(self, visibility):
         self.background.draw()
         
-        #commenting out due to lack of image
-        for i, hud in enumerate(self.huds):
-            if len(self.party)>1 and self.active < len(self.party):
-                if self.party[self.active]:
-                    hud.scale = 1.0
-                    hud.setPosition(0, self.engine.h - 60)
-                else:
-                    hud.scale = .5
-                    hud.setPosition(0, self.engine.h - 30*i - 60)
-            else:
-                hud.scale = .5
-                hud.setPosition(0, self.engine.h - 30*i)
-            hud.draw()
-        
         for i, member in enumerate(self.party):
             member.getSprite().setPosition(self.engine.w*.8 - 20*i, self.engine.h*.4 + 80*i)
             self.engine.drawAnimation(member.getSprite(), loop = True, reverse = False, delay = 20)
+        
             
         self.engine.formation.draw()
+        
+        
+        huds = [h for h in self.huds]
+
+        if self.battling:
+            for i, hud in enumerate(huds):
+                hud.scale = .5
+                hud.setPosition(0, (self.engine.h-32*i-48)*(1/hud.scale))
+                hud.draw()
+        else:
+            if self.active < len(self.party):
+                hud = huds.pop(self.active)
+                hud.scale = 1.0
+                hud.setPosition(0, self.engine.h - 40)
+                hud.draw()
+                
+            for i, hud in enumerate(huds):
+                hud.scale = .5
+                hud.setPosition(0, (self.engine.h-32*(i+1)-64)*(1/hud.scale))
+                hud.draw()
         
         if not self.battling:
             if self.active < len(self.party):
