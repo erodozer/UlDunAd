@@ -110,7 +110,7 @@ class Character(Actor):
         #this marks for the end of the battle if the character leveled up
         self.leveledUp = False
         
-        self.sprites = self.loadSprites #for now, more work will be done later
+        self.sprites = self.loadSprites() #for now, more work will be done later
         
         Actor.__init__(self, name)
     
@@ -206,7 +206,7 @@ class Character(Actor):
         return sprite
         
     #saves a new ini for the character to be used
-    def create(self, family, name, job, stats, points = 0, equipment = None, proficiency = None):
+    def create(self, family, name, job, stats, points = 0, equipment = None, proficiency = None, sprite = "male"):
         Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini")).save()
         ini = Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini"))
         
@@ -222,6 +222,7 @@ class Character(Actor):
         if equipment == None:
             equipment = [None for i in range(10)]
             
+        base.__setattr__("spriteset", sprite)
         base.__setattr__("job", job)      
         base.__setattr__("level", 1)
         base.__setattr__("exp",   0)
