@@ -348,6 +348,7 @@ class BattleSystem(Scene):
         #target selection
         self.targetMenu = None
         self.targeting = False
+        self.pointer = ImgObj(Texture(os.path.join(battlepath, "pointer.png")), frameX = 2)
         
         self.displayDelay = 0   #little delay ticker for displaying damage dealt upon a target
 
@@ -517,9 +518,9 @@ class BattleSystem(Scene):
         self.background.draw()
         
         for i, member in enumerate(self.party):
-            member.getSprite().setPosition(self.engine.w*.8 - 20*i, self.engine.h*.4 + 80*i)
-            self.engine.drawAnimation(member.getSprite(), loop = True, reverse = False, delay = 20)
-        
+            sprite = member.getSprite()
+            sprite.setPosition(self.engine.w*.8 - 20*i, self.engine.h*.4 + 80*i)
+            self.engine.drawAnimation(sprite, loop = True, reverse = False, delay = 20)
             
         self.engine.formation.draw()
         
@@ -549,11 +550,22 @@ class BattleSystem(Scene):
         
         if not self.battling:
             if self.active < len(self.party):
+                sprite = self.party[self.active].getSprite()
+                self.pointer.setScale(32,32,inPixels = True)
+                self.pointer.setPosition(sprite.position[0], sprite.position[1] + sprite.height/2 + 20)
+                self.pointer.setFrame(x = 1)
+                self.pointer.draw()
+                
                 if self.targeting:
                     self.targetMenu.render(visibility)
                     self.eHuds[self.targetMenu.index].draw()
+                    target = self.formation[self.targetMenu.index].getSprite()
+                    self.pointer.setPosition(target.position[0], target.position[1] + target.height/2 + 20)
+                    self.pointer.setFrame(x = 2)
+                    self.pointer.draw()
                 else:
                     self.commandWheel.render(visibility)
+
         else:
             actor = self.activeActor
             
