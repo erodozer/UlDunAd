@@ -308,6 +308,9 @@ class BattleSystem(Scene):
         self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
         self.background.setPosition(self.engine.w/2, self.engine.h/2)
         
+        battlepath = os.path.join("scenes", "battlesystem")
+        self.activeHighlight = ImgObj(Texture(os.path.join(battlepath, "active_highlight.png")))
+        
         fontStyle = self.engine.data.defaultFont
         self.text = FontObj(fontStyle, size = 32.0)
 
@@ -326,6 +329,7 @@ class BattleSystem(Scene):
         self.inMenu = False
 
         self.active = 0         #which character is currently selecting commands
+        self.activeActor = None #which character/enemy is currently performing an action
         self.battling = False   #are commands being selected or is fighting occuring?
 
         #turn order lists
@@ -347,8 +351,9 @@ class BattleSystem(Scene):
         
         self.displayDelay = 0   #little delay ticker for displaying damage dealt upon a target
 
-        self.victory = False    #win battle
-        self.flee = False       #lose battle or retreat
+        #battle lost
+        self.lose = False       
+        self.loseMenu = MenuObj(self, ["Retry", "Give Up"], position = (self.engine.w/2, self.engine.h/2))
         
     def keyPressed(self, key, char):
         if self.battling:
@@ -358,6 +363,8 @@ class BattleSystem(Scene):
             self.targetMenu.keyPressed(key)
             if key == Input.BButton:
                 self.targeting = False
+        elif self.lose:
+            self.loseMenu.keyPressed(key)
         else:
             if key == Input.BButton:
                 if self.commandWheel.step == 0:
@@ -369,18 +376,28 @@ class BattleSystem(Scene):
             self.commandWheel.keyPressed(key)
     
     def select(self, index):
-        self.party[self.active].target = self.formation[index]
-        self.next()
+        if self.lose:
+            if index == 0:
+                self.engine.changeScene("BattleSystem")
+            else:
+                self.flee()
+        elif self.targeting:
+            self.party[self.active].target = self.formation[index]
+            self.next()
                
     def run(self):
         for hud in self.huds:
             hud.update()
             
-        if len(self.formation):
-            self.victory = True
+        #win battle
+        if len(self.formation) == 0:
+            self.victory()
+        #lose battle
         elif self.incapParty == len(self.party):
-            self.flee = True
+            self.lose = True
         
+        if self.battling:
+            self.execute()
         
     #organizes all the turns for order of execution
     def battleStart(self):
@@ -407,12 +424,12 @@ class BattleSystem(Scene):
         
         self.order = sorted(self.turns.items(), key=itemgetter(1))
     
+        self.activeActor = self.order[self.turn][0]
         self.battling = True
         
     #executes all of the commands
     def execute(self):
-        
-        actor = self.order[self.turn][0]
+        actor = self.activeActor
         
         if self.displayDelay == 0:
             actor.turnStart()
@@ -423,16 +440,7 @@ class BattleSystem(Scene):
             if actor.target.incap:
                 actor.target = random.choice(self.generatePartyTargets(actor))
                 actor.calculateDamage()
-                
-            pos = actor.target.getSprite().position    
-            #draws the damage on screen
-            bounce = lambda t:(-.017*t**2 + .0134*t + pos[1])+50
-            y = bounce(self.displayDelay-25)
-            if self.displayDelay > 50:
-                color = (1,1,1, (250 - self.displayDelay)/250.0)
-            else:
-                color = (1,1,1,1)
-            self.engine.drawText(self.text, actor.damage, position = (pos[0], y), color = color)
+            
             self.displayDelay += 5
             
             if self.displayDelay >= 100:
@@ -495,6 +503,7 @@ class BattleSystem(Scene):
                 self.turn = 0
                 self.active = -1
                 self.next()
+            self.activeActor = self.order[self.turn][0]
         else:
             self.active += 1
             if self.active < len(self.party):
@@ -514,7 +523,11 @@ class BattleSystem(Scene):
             
         self.engine.formation.draw()
         
-        
+        #if the battle is lost nothing else needs to be drawn or processed
+        if self.lose:
+            self.loseMenu.render(visibility)
+            return
+            
         huds = [h for h in self.huds]
 
         if self.battling:
@@ -542,8 +555,18 @@ class BattleSystem(Scene):
                 else:
                     self.commandWheel.render(visibility)
         else:
-            self.execute()
-            
+            actor = self.activeActor
+            if actor.target != None and self.displayDelay < 100:
+                pos = actor.target.getSprite().position    
+                #draws the damage on screen
+                bounce = lambda t:(-.017*t**2 + .0134*t + pos[1])+50
+                y = bounce(self.displayDelay-25)
+                if self.displayDelay > 50:
+                    color = (1,1,1, (250 - self.displayDelay)/250.0)
+                else:
+                    color = (1,1,1,1)
+                self.engine.drawText(self.text, actor.damage, position = (pos[0], y), color = color)
+                    
     def victory(self):
         self.engine.changeScene("VictoryScene")
         
