@@ -556,6 +556,13 @@ class BattleSystem(Scene):
                     self.commandWheel.render(visibility)
         else:
             actor = self.activeActor
+            
+            #eyecandy highlight for who is currently attacking
+            pos = (actor.getSprite().position[0], actor.getSprite().position[1] - actor.getSprite().height/2)
+            self.activeHighlight.setPosition(pos[0], pos[1])
+            self.activeHighlight.setScale(actor.getSprite().width, 16, True)
+            self.activeHighlight.draw()
+            
             if actor.target != None and self.displayDelay < 100:
                 pos = actor.target.getSprite().position    
                 #draws the damage on screen
@@ -568,9 +575,9 @@ class BattleSystem(Scene):
                 self.engine.drawText(self.text, actor.damage, position = (pos[0], y), color = color)
                     
     def victory(self):
-        self.engine.changeScene("VictoryScene")
+        self.engine.viewport.changeScene("VictoryScene")
         
     def flee(self):
-        self.engine.changeScene("Maplist")
+        self.engine.viewport.changeScene("Maplist")
         
         
