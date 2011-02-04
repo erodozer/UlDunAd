@@ -59,7 +59,10 @@ class MenuObj:
             button = self.buttons[0]
             self.window = WinObj(Texture(window))
             #vertical position is based on center button
-            self.window.setPosition(position[0], self.buttons[len(self.buttons)/2].position[1])
+            y = self.buttons[len(self.buttons)/2].position[1]
+            if len(self.buttons) % 2 == 0:
+                y = (y + self.buttons[len(self.buttons)/2 - 1].position[1])/2
+            self.window.setPosition(position[0], y)
         
         self.index = 0                  #which button is selected
         
