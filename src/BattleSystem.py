@@ -313,6 +313,7 @@ class BattleSystem(Scene):
         
         fontStyle = self.engine.data.defaultFont
         self.text = FontObj(fontStyle, size = 32.0)
+        self.bigText = FontObj(fontStyle, size = 64.0)
 
         self.party = self.engine.family.party
         self.formation = self.engine.formation.enemies
@@ -351,7 +352,9 @@ class BattleSystem(Scene):
         self.pointer = ImgObj(Texture(os.path.join(battlepath, "pointer.png")), frameX = 2)
         
         self.displayDelay = 0   #little delay ticker for displaying damage dealt upon a target
-
+        self.introDelay = 300   #little intro rendering
+        self.fade = ImgObj(Texture(surface = pygame.Surface((self.engine.w, self.engine.h))))
+    
         #battle lost
         self.lose = False       
         self.loseMenu = MenuObj(self, ["Retry", "Give Up"], position = (self.engine.w/2, self.engine.h/2))
@@ -514,21 +517,7 @@ class BattleSystem(Scene):
                 self.battleStart()
             self.targeting = False
     
-    def render(self, visibility):
-        self.background.draw()
-        
-        for i, member in enumerate(self.party):
-            sprite = member.getSprite()
-            sprite.setPosition(self.engine.w*.8 - 20*i, self.engine.h*.4 + 80*i)
-            self.engine.drawAnimation(sprite, loop = True, reverse = False, delay = 20)
-            
-        self.engine.formation.draw()
-        
-        #if the battle is lost nothing else needs to be drawn or processed
-        if self.lose:
-            self.loseMenu.render(visibility)
-            return
-            
+    def renderHUDS(self, visibility):
         huds = [h for h in self.huds]
 
         if self.battling:
@@ -547,9 +536,9 @@ class BattleSystem(Scene):
                 hud.scale = .5
                 hud.setPosition(0, (self.engine.h-32*(i+1)-64)*(1/hud.scale))
                 hud.draw()
-        
-        if not self.battling:
-            if self.active < len(self.party):
+                
+    def renderInterface(self, visibility):
+        if self.active < len(self.party):
                 sprite = self.party[self.active].getSprite()
                 self.pointer.setScale(32,32,inPixels = True)
                 self.pointer.setPosition(sprite.position[0], sprite.position[1] + sprite.height/2 + 20)
@@ -565,27 +554,69 @@ class BattleSystem(Scene):
                     self.pointer.draw()
                 else:
                     self.commandWheel.render(visibility)
-
-        else:
-            actor = self.activeActor
-            
-            #eyecandy highlight for who is currently attacking
-            pos = (actor.getSprite().position[0], actor.getSprite().position[1] - actor.getSprite().height/2)
-            self.activeHighlight.setPosition(pos[0], pos[1])
-            self.activeHighlight.setScale(actor.getSprite().width, 16, True)
-            self.activeHighlight.draw()
-            
-            if actor.target != None and self.displayDelay < 100:
-                pos = actor.target.getSprite().position    
-                #draws the damage on screen
-                bounce = lambda t:(-.017*t**2 + .0134*t + pos[1])+50
-                y = bounce(self.displayDelay-25)
-                if self.displayDelay > 50:
-                    color = (1,1,1, (250 - self.displayDelay)/250.0)
-                else:
-                    color = (1,1,1,1)
-                self.engine.drawText(self.text, actor.damage, position = (pos[0], y), color = color)
                     
+    def renderBattle(self, visibility):
+        actor = self.activeActor
+            
+        #eyecandy highlight for who is currently attacking
+        pos = (actor.getSprite().position[0], actor.getSprite().position[1] - actor.getSprite().height/2)
+        self.activeHighlight.setPosition(pos[0], pos[1])
+        self.activeHighlight.setScale(actor.getSprite().width, 16, True)
+        self.activeHighlight.draw()
+            
+        if actor.target != None and self.displayDelay < 100:
+            pos = actor.target.getSprite().position    
+            #draws the damage on screen
+            bounce = lambda t:(-.017*t**2 + .0134*t + pos[1])+50
+            y = bounce(self.displayDelay-25)
+            if self.displayDelay > 50:
+                color = (1,1,1, (250 - self.displayDelay)/250.0)
+            else:
+                color = (1,1,1,1)
+            self.engine.drawText(self.text, actor.damage, position = (pos[0], y), color = color)
+        
+    def render(self, visibility):
+        self.background.draw()
+        
+        for i, member in enumerate(self.party):
+            sprite = member.getSprite()
+            sprite.setPosition(self.engine.w*.8 - 20*i, self.engine.h*.4 + 80*i)
+            self.engine.drawAnimation(sprite, loop = True, reverse = False, delay = 20)
+            
+        self.engine.formation.draw()
+        
+        #if the battle is lost nothing else needs to be drawn or processed
+        if self.lose:
+            self.loseMenu.render(visibility)
+            return
+            
+        if self.introDelay <= 0:
+            self.renderHUDS(visibility)
+            if not self.battling:
+                self.renderInterface(visibility)
+            else:
+                self.renderBattle(visibility)
+        else:
+            if self.introDelay > 200:
+                pos = self.party[len(self.party)/2].getSprite().position
+            elif self.introDelay > 100:
+                pos = self.formation[len(self.formation)/2].getSprite().position
+            if self.introDelay > 100:
+                self.engine.viewport.camera.focus(pos[0], pos[1], 400)
+            else:
+                self.engine.viewport.camera.resetFocus()
+            
+            if self.introDelay > 175 and self.introDelay < 225:    
+                self.fade.setColor((1,1,1,1.0-abs(self.introDelay-150)/25.0))
+                self.fade.draw()
+            elif self.introDelay > 0 and self.introDelay < 100:
+                alpha = 1.0
+                if self.introDelay < 20:
+                    alpha = self.introDelay/20.0
+                self.engine.drawText(self.bigText, self.engine.formation.name, (self.engine.w/2, self.engine.h/2 + 30),
+                                     color = (1,1,1,alpha)) 
+            self.introDelay -= 2
+            
     def victory(self):
         self.engine.viewport.changeScene("VictoryScene")
         
