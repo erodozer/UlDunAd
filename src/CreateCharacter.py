@@ -323,8 +323,8 @@ class CreateCharacter(Scene):
                                                     #the job object
                                                     
         self.selectedSprite = 0                     #the sprite selected for the character
-        self.sprites = self.engine.listPath(os.path.join("actors", "sprites"), flag="folder")
-        self.sprite = ImgObj(Texture(os.path.join("actors", "sprites", self.sprites[self.selectedSprite], "profile.png")))
+        self.sprites = self.engine.listPath(os.path.join("actors", "jobs", self.job.name), flag="folder")
+        self.sprite = ImgObj(Texture(os.path.join("actors", "jobs", self.job.name, self.sprites[self.selectedSprite], "profile.png")))
         
         #stat point distribution
         self.stats = ["Hit Points", "Strength", "Defense", "Agility", "Evasion", "Force", "Resistance"]
@@ -343,7 +343,8 @@ class CreateCharacter(Scene):
     def run(self):
         self.job = eval(self.jobs[self.jobSelect]+"()")
         self.exists = os.path.exists(os.path.join("..", "data", "actors", "families", self.engine.family.name, string.join(self.name,'')))
-        self.sprite = ImgObj(Texture(os.path.join("actors", "sprites", self.sprites[self.selectedSprite], "profile.png")))
+        self.sprites = self.engine.listPath(os.path.join("actors", "jobs", self.job.name), flag="folder")
+        self.sprite = ImgObj(Texture(os.path.join("actors", "jobs", self.job.name, self.sprites[self.selectedSprite], "profile.png")))
         
     def keyPressed(self, key, char):
         if self.step == -1:
