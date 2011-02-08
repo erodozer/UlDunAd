@@ -166,7 +166,7 @@ class BattleMenu(MenuObj):
         self.index = 0          #index selected in the window
         self.step = 0           #menu showing
         
-        self.basicCommands = ["Attack", "Spell/Technique", "Tactical", "Item"] #basic command menu
+        self.basicCommands = ["Attack", "Tactical", "Spell/Technique", "Item"] #basic command menu
         self.attackCommands = ["Normal", "Strong", "Accurate"] #attack menu
         self.tactCommands = ["Boost", "Defend", "Flee"]     #tactical menu
         self.itemCommands = self.engine.family.inventory    #item menu
@@ -352,7 +352,7 @@ class BattleSystem(Scene):
         self.pointer = ImgObj(Texture(os.path.join(battlepath, "pointer.png")), frameX = 2)
         
         self.displayDelay = 0   #little delay ticker for displaying damage dealt upon a target
-        self.introDelay = 300   #little intro rendering
+        self.introDelay = 500   #little intro rendering
         self.fade = ImgObj(Texture(surface = pygame.Surface((self.engine.w, self.engine.h))))
     
         #battle lost
@@ -597,19 +597,38 @@ class BattleSystem(Scene):
             else:
                 self.renderBattle(visibility)
         else:
-            if self.introDelay > 200:
+            if self.introDelay > 450:
+                zoom = 100*(1.0+3*(500.0-self.introDelay)/50.0)
+            elif self.introDelay > 150:
+                zoom = 400
+            elif self.introDelay > 100:
+                zoom = 100*(4.0-3.0*(150.0-self.introDelay)/50.0)
+            else:
+                zoom = 100
+                
+            if self.introDelay > 350:
                 pos = self.party[len(self.party)/2].getSprite().position
+                if self.introDelay > 450:
+                    pos = (self.engine.w/2 + (pos[0]-self.engine.w/2)*((500.0-self.introDelay)/50.0),
+                           self.engine.h/2 + (pos[1]-self.engine.h/2)*((500.0-self.introDelay)/50.0))
+                    
+            elif self.introDelay > 250 and self.introDelay < 350:
+                aPos = self.party[len(self.party)/2].getSprite().position
+                bPos = self.formation[len(self.formation)/2].getSprite().position 
+                pos = (aPos[0]-(aPos[0]-bPos[0])*(1.0-abs(self.introDelay-250.0)/100.0),
+                       aPos[1]-(aPos[1]-bPos[1])*(1.0-abs(self.introDelay-250.0)/100.0))
             elif self.introDelay > 100:
                 pos = self.formation[len(self.formation)/2].getSprite().position
+                if self.introDelay < 150:
+                    pos = (self.engine.w/2 - (self.engine.w/2-pos[0])*(abs(self.introDelay-100.0)/50.0),
+                           self.engine.h/2 - (self.engine.h/2-pos[1])*(abs(self.introDelay-100.0)/50.0))
+            
             if self.introDelay > 100:
-                self.engine.viewport.camera.focus(pos[0], pos[1], 400)
+                self.engine.viewport.camera.focus(pos[0], pos[1], zoom)
             else:
                 self.engine.viewport.camera.resetFocus()
             
-            if self.introDelay > 175 and self.introDelay < 225:    
-                self.fade.setColor((1,1,1,1.0-abs(self.introDelay-150)/25.0))
-                self.fade.draw()
-            elif self.introDelay > 0 and self.introDelay < 100:
+            if self.introDelay > 0 and self.introDelay < 100:
                 alpha = 1.0
                 if self.introDelay < 20:
                     alpha = self.introDelay/20.0
