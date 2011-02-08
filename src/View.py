@@ -80,35 +80,44 @@ class TestScene(Scene):
         #self.sprite.setScale(1.0, 1.0)
         self.spriteSize = 0
         
+        #tests camera focus
+        self.zoomedIn = False
+        
     def buttonPressed(self, image):
         if image == self.image2:
             print 1
             
     def keyPressed(self, key, char):
-        if key == K_SPACE:
+        if key == Input.BButton:
             if self.size < 4:
                 self.size += 1
             else:
                 self.size = 0
             print self.size
-        elif key == K_z:
+        elif key == Input.DButton:
             if self.test[1] < 2:
                 self.test[1] += 1
             else:
                 self.test[1] = 0
             print self.test[1]
-        elif key == K_UP:
+        elif key == Input.UpButton:
             self.test[2] += 45
             print self.test[0].angle
-        elif key == K_DOWN:
+        elif key == Input.DnButton:
             self.test[2] -= 45
             print self.test[0].angle
-        elif key == K_x:
+        elif key == Input.CButton:
             if self.spriteSize == 0:
                 self.spriteSize = 1
             else:
                 self.spriteSize = 0
-     
+        elif key == Input.AButton:
+            self.zoomedIn = not self.zoomedIn
+            if self.zoomedIn:
+                self.engine.viewport.camera.focus(self.sprite.position[0], self.sprite.position[1], 200)
+            else:
+                self.engine.viewport.camera.resetFocus()
+            
     def run(self):
         self.counter += 1
         if self.counter % self.updateRate == 0:
@@ -233,9 +242,8 @@ class Viewport:
         glEnable(GL_FOG)
         glEnable(GL_LIGHTING)
 
-        glScalef(self.resolution[0]/800.0,self.resolution[1]/600.0, 1.0)
         scene.render(visibility)
-
+        
     def run(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 

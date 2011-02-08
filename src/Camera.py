@@ -42,18 +42,30 @@ class Camera:
         glClearDepth(1.0)
         glEnable(GL_DEPTH_TEST)
         glDepthFunc(GL_LEQUAL)
-#        glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+        #glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+
+        self.resetFocus()
+        
+    def focus(self, x, y, zoom):
+        self.focusX = x*(self.width/800.0)
+        self.focusY = y*(self.height/600.0)
+        self.focusZ = zoom/100.0
+        
+    def resetFocus(self):
+        self.focus(self.width/2, self.height/2, 100)
 
     #creates an orthographic projection
     def setOrthoProjection(self):
         glMatrixMode(GL_PROJECTION)
         glPushMatrix()
         glLoadIdentity()                        
-        glOrtho(0, self.width, 0, self.height, -10, 10)
+        glScalef(self.focusZ, self.focusZ, 1.0)
+        glOrtho(self.focusX, self.width+self.focusX, self.focusY, self.height+self.focusY, -1.0, 1.0)
         glMatrixMode(GL_MODELVIEW)
         glPushMatrix()
         glLoadIdentity()
-
+        glTranslatef(self.width/2, self.height/2,0.0)
+        
     #resets the projection to have perspective
     def resetProjection(self):
         glMatrixMode( GL_PROJECTION )
