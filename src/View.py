@@ -255,11 +255,7 @@ class Viewport:
             for i, scene in enumerate(self.scenes):
                 topmost = bool(i == len(self.scenes)-1)#is the scene the topmost scene
                 if not topmost:
-                    visibility = self.visibility[i] = max(0.0, self.visibility[i] - t)
-                    if visibility <= 0.0:
-                        self.scenes.pop(i)
-                        self.visibility.pop(i)
-                        continue
+                    visibility = self.visibility[i] = self.visibility[i] - t
                 else:
                     visibility = self.visibility[i] = min(1.0, self.visibility[i] + t)
                     
@@ -274,16 +270,20 @@ class Viewport:
                     self.render(scene, visibility)      #renders anything to the scene that is 2D
                 finally:
                     self.camera.resetProjection()       #resets the projection to have perspective
-
-        
+                
             if len(self.scenes) > 1:
-                self.fade.setColor((1,1,1,self.visibility[-2] - self.visibility[-1]))
+                alpha = self.visibility[-2] - self.visibility[-1]
+                self.fade.setColor((0.0,0.0,0.0,alpha))
                 self.fade.draw()
                 
             pygame.display.flip()               #switches back buffer to the front
-            
+
+            if self.visibility[0] < 0.0:
+                self.scenes.pop(0)
+                self.visibility.pop(0)
+                
             #only the topmost scene should be checked for input
-            if self.visibility[-1] >= 1.0:      #only detect when the scene is fully visible
+            if self.visibility[-1] >= 0.7:      #only detect when the scene is fully visible
                 self.detect(self.scenes[-1])    #checks to see if any object on the back buffer has been clicked
                 
         #clears the clickable images at the end of each frame
