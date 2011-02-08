@@ -69,6 +69,13 @@ class Job:
         glColor3f(0.0, 1.0, 0.0); glVertex2f(-self.stats[5]/2, -self.stats[5]/2)
         glEnd()
 
+    #searches path for files with filetype or folder
+    def loadSprites(self):
+        spritePath = os.path.join("..", "data", "actors", "jobs", name, "sprites")
+        sprites = os.listdir(spritePath)
+
+        return sprites
+        
 class Adventurer(Job):
     def __init__(self):
         

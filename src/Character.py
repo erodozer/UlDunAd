@@ -117,7 +117,7 @@ class Character(Actor):
     #searches path for files with filetype or folder
     def loadSprites(self):
         sprites = {}
-        spritePath = os.path.join("actors", "sprites", self.spriteset)
+        spritePath = os.path.join("actors", "jobs", self.job.name, self.spriteset)
         sprites['standing'] = ImgObj(Texture(os.path.join(spritePath, "standing.png")), frameX = 4)
         sprites['profile'] = ImgObj(Texture(os.path.join(spritePath, "profile.png")))
 
