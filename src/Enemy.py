@@ -138,9 +138,12 @@ class Formation:
         path = os.path.join("data", "actors", "formations")
         formationini = Configuration(os.path.join("..", path, name + ".ini")).formation
 
-        #family's last name, all members of the family will have this last name
-        self.name = name
-
+        #formation's name can come from it's ini or just the filename
+        try:
+            self.name = formationini.__getattr__("name")
+        except AttributeError:
+            self.name = name
+            
         #all the members in your party
         self.enemies = [Enemy(n) for n in formationini.enemies.split("|")]
         
