@@ -17,22 +17,26 @@ class Texture:
     def __init__(self, path = "", surface = pygame.Surface((1,1)), flip = True, fallback = None):
     
         self.id = glGenTextures(1)
-        path = os.path.join("..", "data", path)
-        #using pygame to load the image because it already is opengl friendly
-        if not os.path.isfile(path):
-            #fallback texture support
-            #value passed for fallback must be a valid texture, not a path
-            if isinstance(fallback, Texture):
-                print "Image was not found, using fallback image instead"
-                self.textureSurface = fallback.textureSurface
+        
+        if path != "":
+            path = os.path.join("..", "data", path)
+            #using pygame to load the image because it already is opengl friendly
+            if not os.path.isfile(path):
+                #fallback texture support
+                #value passed for fallback must be a valid texture, not a path
+                if isinstance(fallback, Texture):
+                    print "Image was not found, using fallback image instead"
+                    self.textureSurface = fallback.textureSurface
+                else:
+                    print "Image was not found, creating pygame surface in its place"
+                    self.textureSurface = surface
             else:
-                print "Image was not found, creating pygame surface in its place"
-                self.textureSurface = surface
-        elif path != "":
-            self.textureSurface = pygame.image.load(path)
+                self.textureSurface = pygame.image.load(path)
+        
         else:
             self.textureSurface = surface
-            
+        
+        
         self.changeTexture(self.textureSurface, flip)
 
     #changes the texture without creating a new id to save on memory
