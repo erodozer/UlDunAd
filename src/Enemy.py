@@ -68,6 +68,24 @@ class Enemy(Actor):
         except AttributeError:
             self.skills = []
             
+        self.gold = baseSection.__getattr__("gold", int)
+        
+        self.drop = baseSection.__getattr__("item")
+        self.dropChance = baseSection.__getattr__("dropChance", int)
+        
+        path = os.path.join("..", "data", "items", self.drop)
+        if os.path.exists(path):
+            ini = Configuration(os.path.join("..", "data", "items", self.drop, "item.ini"))
+            #detecting what type of item it is
+            if ini.parser.has_section("weapon"):
+                self.drop = Weapon(item)
+            elif ini.parser.has_section("armor"):
+                self.drop = Armor(item)
+            else:
+                self.drop = Item(item)
+        else:
+            self.drop = None
+        
         Actor.__init__(self, name)
      
     def getCommand(self, targets):
