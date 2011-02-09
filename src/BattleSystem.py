@@ -14,6 +14,7 @@ from operator import itemgetter
 
 from View   import *
 from Actor  import *
+from Character import *
 from Enemy import Enemy
 
 import string
@@ -224,6 +225,9 @@ class BattleMenu(MenuObj):
                 else:                   #normal attack
                     self.character.power = 0
                 self.character.attacking = True
+                #if the cost is more than the character can spend then prevent the action
+                if self.character.getFPCost() > self.character.fp:
+                    return
                 self.scene.selectTarget()
 
             elif self.step == 2:
@@ -284,6 +288,33 @@ class BattleMenu(MenuObj):
             self.text.scaleHeight(24.0)
             self.text.draw()
         
+        
+class VictoryPanel:
+    def __init__(self, scene, time):
+        self.scene = scene
+        self.engine = scene.engine
+        
+        battlepath = os.path.join("scenes", "battlesystem")
+        
+        self.background = ImgObj(Texture(os.path.join(battlepath, "victorypanel.png")))
+        self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
+        self.background.setPosition(self.engine.w/2, self.engine.h/2)
+        
+        self.font = FontObj("default.ttf", size = 16.0)
+        
+        self.time = time    #time elapsed in battle
+        
+        self.formation = self.engine.formation
+        self.party = self.engine.family.party 
+        
+        self.difficulty = self.formation.getDifficulty(self.party)
+        for enemy in self.formation.
+        
+    def keyPressed(self, key):
+        if key == Input.AButton:
+            self.finish()
+            
+    def finish(self):
         
         
         
@@ -361,6 +392,12 @@ class BattleSystem(Scene):
         self.lose = False       
         self.loseMenu = MenuObj(self, ["Retry", "Give Up"], position = (self.engine.w/2, self.engine.h/2))
         
+        #battle timer for keeping track of how long it has taken to win
+        self.clock = pygame.Clock()
+        
+        #victory!
+        self.victoryPanel = None
+        
     def keyPressed(self, key, char):
         if self.battling:
             return
@@ -371,6 +408,8 @@ class BattleSystem(Scene):
                 self.targeting = False
         elif self.lose:
             self.loseMenu.keyPressed(key)
+        elif self.victoryPanel:
+            self.victoryPanel.keyPressed(key)
         else:
             if key == Input.BButton:
                 if self.commandWheel.step == 0:
@@ -396,8 +435,9 @@ class BattleSystem(Scene):
             hud.update()
             
         #win battle
-        if len(self.formation) == 0:
+        if len(self.formation) == 0 and not self.victoryPanel:
             self.victory()
+            
         #lose battle
         elif self.incapParty == len(self.party):
             self.lose = True
@@ -605,6 +645,11 @@ class BattleSystem(Scene):
             self.loseMenu.render(visibility)
             return
             
+        #if the battle is won nothing else needs to be drawn
+        if self.victoryPanel:
+            self.victoryPanel.render()
+            return
+            
         if self.introDelay <= 0:
             self.renderHUDS(visibility)
             if not self.battling:
@@ -658,7 +703,7 @@ class BattleSystem(Scene):
             self.introDelay -= 2
             
     def victory(self):
-        self.engine.viewport.changeScene("VictoryScene")
+        self.victoryPanel = VictoryPanel(self, self.clock.tick())
         
     def flee(self):
         self.engine.viewport.changeScene("Maplist")
