@@ -22,7 +22,7 @@ class Character(Actor):
     #I calculated the curve myself in order to provide a fast, yet balanced
     #equation for leveling up.  There shouldn't be too much grind, but there
     #should be enough that you don't get bored by being over powered too easily
-    exp = [int(8.938*x**2.835) for x in range(_LevelMax)]
+    exp = lambda x: int(8.938*x**2.835)
     
     def __init__(self, family, name):
         
@@ -152,7 +152,7 @@ class Character(Actor):
             self.loadProficiency()
         
     def levelUp(self):
-        if self.exp == Character.exp[self.level-1]:
+        if self.exp == Character.exp(self.level-1):
             self.level += 1
             self.exp = 0
             self.points += 5
