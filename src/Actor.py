@@ -66,8 +66,9 @@ class Actor:
             self.calculateDamage()
             self.fp -= self.getFPCost()
            
+    #calculates and returns the cost of doing an action
     def getFPCost(self):
-        if self.attack:
+        if self.attacking:
             #strong attack takes more fp
             if self.power == 1:
                 return 45.0
