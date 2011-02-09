@@ -49,7 +49,9 @@ class Actor:
 
         #the enemy or ally being targeted
         self.target = None
-
+        
+        self.damage = 0
+        
     def initForBattle(self):
         self.currentHP = self.hp
         self.fp = min(self.maxFP/3 + random.randint(0, self.maxFP), self.maxFP)
@@ -62,6 +64,10 @@ class Actor:
             self.defn *= 2.5
         elif self.cast or self.attacking:
             self.calculateDamage()
+            if self.attacking:
+                self.fp -= 35.0
+            elif self.cast:
+                self.fp -= self.command.cost
            
     #calculates the amount of damage towards a target
     def calculateDamage(self):
