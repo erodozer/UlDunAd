@@ -24,6 +24,8 @@ class CreateFamily(Scene):
 
         scenepath = os.path.join("scenes", "creation")
         
+        BGMObj("creation.mp3")
+        
         self.background = ImgObj(Texture(os.path.join(scenepath, "background.png")))
         self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
         self.background.setPosition(self.engine.w/2,self.engine.h/2)
