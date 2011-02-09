@@ -296,13 +296,13 @@ class BattleSystem(Scene):
         self.engine = engine
         w, h = self.engine.w, self.engine.h
 
-        musicpath = os.path.join("music", "battle")
-        songs = self.engine.listPath(os.path.join("audio", musicpath), "ogg")
-        songs.append(self.engine.listPath(os.path.join("audio", musicpath), "mp3"))
+        musicpath = os.path.join("audio", "music", "battle")
+        songs = self.engine.listPath(musicpath, "ogg")
+        songs.append(self.engine.listPath(musicpath, "mp3"))
         if len(songs) > 0:
             song = random.choice(songs)[0]
             print song
-            self.music = BGMObj(os.path.join(musicpath, song))
+            BGMObj(os.path.join("battle", song))
         
         self.background = self.engine.formation.terrain
         self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
@@ -310,6 +310,8 @@ class BattleSystem(Scene):
         
         battlepath = os.path.join("scenes", "battlesystem")
         self.activeHighlight = ImgObj(Texture(os.path.join(battlepath, "active_highlight.png")))
+        
+        self.diffStar = ImgObj(Texture(os.path.join(battlepath, "star.png")))
         
         fontStyle = self.engine.data.defaultFont
         self.text = FontObj(fontStyle, size = 32.0)
@@ -581,9 +583,22 @@ class BattleSystem(Scene):
         for i, member in enumerate(self.party):
             sprite = member.getSprite()
             sprite.setPosition(self.engine.w*.8 - 20*i, self.engine.h*.4 + 80*i)
+            if self.introDelay < 450 and self.introDelay > 400:
+                alpha = (450.0-self.introDelay)/50.0
+            elif self.introDelay >= 450:
+                alpha = 0.0
+            else:
+                alpha = 1.0
+            sprite.setColor((1,1,1, alpha))
             self.engine.drawAnimation(sprite, loop = True, reverse = False, delay = 20)
-            
-        self.engine.formation.draw()
+        
+        if self.introDelay < 250 and self.introDelay > 200:
+            alpha = (250.0-self.introDelay)/50.0
+        elif self.introDelay >= 250:
+            alpha = 0.0
+        else:
+            alpha = 1.0
+        self.engine.formation.draw(alpha)
         
         #if the battle is lost nothing else needs to be drawn or processed
         if self.lose:
@@ -634,6 +649,12 @@ class BattleSystem(Scene):
                     alpha = self.introDelay/20.0
                 self.engine.drawText(self.bigText, self.engine.formation.name, (self.engine.w/2, self.engine.h/2 + 30),
                                      color = (1,1,1,alpha)) 
+                difficulty = self.engine.formation.getDifficulty(self.party)
+                if difficulty > 0:
+                    for i in range(difficulty):
+                        pos = (self.engine.w/2 - (self.diffStar.width/2 + 10)*(difficulty-1) + (self.diffStar.width + 10) * i,
+                               self.engine.h/2 - 30)
+                        self.engine.drawImage(self.diffStar, position = pos)
             self.introDelay -= 2
             
     def victory(self):
