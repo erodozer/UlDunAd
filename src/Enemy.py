@@ -158,6 +158,36 @@ class Formation:
 
         self.terrain = ImgObj(Texture(os.path.join("terrain", formationini.__getattr__("terrain") + ".png")))
    
-    def draw(self):
+    def getDifficulty(self, party):
+        statsE = [0.0 for i in range(8)]
+        statsP = [0.0 for i in range(8)]
+        diff   = [0.0 for i in range(8)]
         for enemy in self.enemies:
-            enemy.getSprite().draw()
+            statsE[0] += enemy.level
+            statsE[1] += enemy.hp
+            statsE[2] += enemy.str
+            statsE[3] += enemy.defn
+            statsE[4] += enemy.spd
+            statsE[5] += enemy.evd
+            statsE[6] += enemy.mag
+            statsE[7] += enemy.res
+        for member in party:
+            statsP[0] += member.level
+            statsP[1] += member.hp
+            statsP[2] += member.str
+            statsP[3] += member.defn
+            statsP[4] += member.spd
+            statsP[5] += member.evd
+            statsP[6] += member.mag
+            statsP[7] += member.res
+        
+        for i in range(len(diff)):
+            diff[i] = max(0.0, ((statsE[i]/len(self.enemies)) - (statsP[i]/len(party)))/255.0)
+        difficulty = sum(diff) + 1
+        return difficulty
+        
+    def draw(self, visibility):
+        for enemy in self.enemies:
+            sprite = enemy.getSprite()
+            sprite.setColor((1,1,1,visibility))
+            sprite.draw()
