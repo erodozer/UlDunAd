@@ -22,7 +22,7 @@ class Character(Actor):
     #I calculated the curve myself in order to provide a fast, yet balanced
     #equation for leveling up.  There shouldn't be too much grind, but there
     #should be enough that you don't get bored by being over powered too easily
-    exp = lambda x: int(8.938*x**2.835)
+    _expCalc = staticmethod(lambda x: int(8.938*x**2.835))
     
     def __init__(self, family, name):
         
@@ -45,7 +45,7 @@ class Character(Actor):
         self.spriteset = baseSection.__getattr__("spriteset")
         self.job  = eval(baseSection.__getattr__("job")+"()")
 
-        self.level      = baseSection.__getattr__("level", int)
+        self.level      = min(baseSection.__getattr__("level", int), Character._LevelMax)
         self.exp        = baseSection.__getattr__("exp",   int)
 
         #the amount of points added to each field
@@ -100,8 +100,14 @@ class Character(Actor):
         self.gunsProf   = min(profSection.__getattr__("guns",   int), 1100)
         self.fistProf   = min(profSection.__getattr__("fist",   int), 1100)
         
-        self.proficiencies = [self.swordProf, self.daggerProf, self.spearProf, 
+        self.baseProficiencies = [self.swordProf, self.daggerProf, self.spearProf, 
                               self.staffProf, self.gunsProf, self.fistProf]
+        self.proficiencies = [self.swordProf + self.job.swordProf, 
+                              self.daggerProf + self.job.daggerProf, 
+                              self.spearProf + self.job.spearProf, 
+                              self.staffProf + self.job.staffProf, 
+                              self.gunsProf + self.job.gunsProf, 
+                              self.fistProf + self.job.fistProf]
                               
         self.loadProficiency()
         
@@ -128,19 +134,19 @@ class Character(Actor):
         weapon = self.equipment[self.hand]
         try:
             if (weapon.type == "sword"):
-                self.proficiency = self.proficiencies[0] + self.job.swordProf
+                self.proficiency = self.proficiencies[0]
             elif (weapon.type == "dagger"):
-                self.proficiency = self.proficiencies[1] + self.job.daggerProf
+                self.proficiency = self.proficiencies[1]
             elif (weapon.type == "spear"):
-                self.proficiency = self.proficiencies[2] + self.job.spearProf
+                self.proficiency = self.proficiencies[2]
             elif (weapon.type == "staff"):
-                self.proficiency = self.proficiencies[3] + self.job.staffProf
+                self.proficiency = self.proficiencies[3]
             elif (weapon.type == "gun"):
-                self.proficiency = self.proficiencies[4] + self.job.gunProf
+                self.proficiency = self.proficiencies[4]
             else:
-                self.proficiency = self.proficiencies[5] + self.job.fistProf
+                self.proficiency = self.proficiencies[5]
         except:
-            self.proficiency = self.proficiencies[5] + self.job.fistProf
+            self.proficiency = self.proficiencies[5]
         self.proficiency = min(self.proficiency, 1100)
     
     def setEquipment(self, equipment):
@@ -153,7 +159,7 @@ class Character(Actor):
             self.loadProficiency()
         
     def levelUp(self):
-        if self.exp == Character.exp(self.level-1):
+        if self.exp == _expCalc(self.level-1):
             self.level += 1
             self.exp = 0
             self.points += 5
@@ -213,7 +219,7 @@ class Character(Actor):
         equipment = [e.name for e in self.equipment]
         
         self.create(self.family.name, self.name, self.job.name, self.distPoints, equipment, 
-                    self.proficiencies, self.spriteset, self.level, self.exp)
+                    self.baseProficiencies, self.spriteset, self.level, self.exp)
                     
     #saves a new ini for the character to be used
     def create(self, family, name, job, stats, points = 0, equipment = None, proficiency = None, sprite = "male", level = 1, exp = 0):

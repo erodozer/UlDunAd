@@ -24,7 +24,7 @@ class Enemy(Actor):
     _LevelMax = 20      #this is the current level cap, I will adjust this with the number of content available
     #exp is calculated by enemy level and their stats
     #in the victory scene it is scaled to the player party's average level
-    exp = lambda x: 100     #good calculation still needs to be found
+    _expCalc = staticmethod(lambda x: 100)     #good calculation still needs to be found
     
     def __init__(self, name):
         
@@ -37,14 +37,15 @@ class Enemy(Actor):
         enemyini = Configuration(os.path.join("..", "data", path, "enemy.ini"))
         
         self.name = name
-        self.exp = Enemy.exp()
         
         #divides the enemy ini into resonable chunks
         baseSection  = enemyini.enemy          #contains basic information about the enemy
         distSection  = enemyini.distribution   #contains stat distribution information
 
         self.level      = baseSection.__getattr__("level", int)
-
+        self.exp        = Enemy._expCalc(self.level)
+        print self.exp
+        
         #the amount of points added to each field
         # these are set upon the creation of the character
         # and upon leven up when the bonus stat points
@@ -70,7 +71,7 @@ class Enemy(Actor):
             
         self.gold = baseSection.__getattr__("gold", int)
         
-        self.drop = baseSection.__getattr__("item")
+        self.drop = baseSection.__getattr__("drop")
         self.dropChance = baseSection.__getattr__("dropChance", int)
         
         path = os.path.join("..", "data", "items", self.drop)
@@ -208,9 +209,4 @@ class Formation:
             diff[i] = max(0.0, ((statsE[i]/len(self.enemies)) - (statsP[i]/len(party)))/255.0)
         difficulty = sum(diff) + 1
         return difficulty
-        
-    def draw(self, visibility):
-        for enemy in self.enemies:
-            sprite = enemy.getSprite()
-            sprite.setColor((1,1,1,visibility))
-            sprite.draw()
+
