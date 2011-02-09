@@ -15,10 +15,11 @@ import Input
 #creates a little button menu
 class MenuObj:
     def __init__(self, scene, commands, position = (0, 0), fontStyle = None,
-                 buttonStyle = None, window = None, horizontal = False):
+                 buttonStyle = None, window = None, horizontal = False, sound = "chime.wav"):
     
         self.scene    = scene
         self.engine   = scene.engine    
+        self.chime    = SoundObj(sound)
         
         self.commands = commands        #the commands to choose from (are drawn on the buttons)
         self.direction = horizontal     #are the buttons in order vertically or horizontally
@@ -71,6 +72,7 @@ class MenuObj:
     def keyPressed(self, key):
         if key == Input.AButton:
             self.scene.select(self.index)
+            self.chime.play()
             
         if key == self.moveKeys[0]:
             if self.index + 1 < len(self.commands):
@@ -96,6 +98,7 @@ class MenuObj:
                 self.index = i
             else:
                 self.scene.select(self.index)
+                self.chime.play()
                 
     #renders the menu
     def render(self, visibility = 1.0):
