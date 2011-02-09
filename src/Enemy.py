@@ -24,7 +24,7 @@ class Enemy(Actor):
     _LevelMax = 20      #this is the current level cap, I will adjust this with the number of content available
     #exp is calculated by enemy level and their stats
     #in the victory scene it is scaled to the player party's average level
-    exp = [100]     #good calculation still needs to be found
+    exp = lambda x: 100     #good calculation still needs to be found
     
     def __init__(self, name):
         
@@ -37,6 +37,7 @@ class Enemy(Actor):
         enemyini = Configuration(os.path.join("..", "data", path, "enemy.ini"))
         
         self.name = name
+        self.exp = Enemy.exp()
         
         #divides the enemy ini into resonable chunks
         baseSection  = enemyini.enemy          #contains basic information about the enemy
@@ -77,6 +78,10 @@ class Enemy(Actor):
             command = random.randint(0,1)   #randomly picks attack, tactical
         '''
         command = random.randint(0,1)   #randomly picks attack or tactical
+        #if the enemy does not have enough fp to attack then it must resort to tactical commands
+        if self.fp < 35.0 and command == 0:
+           command = 1
+            
         if command == 0:    #attack and targeting
             self.attacking = True
             self.target = random.choice(targets)
