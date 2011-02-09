@@ -237,6 +237,7 @@ class BattleMenu(MenuObj):
                     self.character.defend = True
                 elif self.index == 2:   #flee
                     self.scene.flee()
+                self.scene.next()
             elif self.step == 3:
                 self.character.command = self.itemCommands[self.index]
                 self.scene.generateTargets(self.character)
@@ -300,24 +301,92 @@ class VictoryPanel:
         self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
         self.background.setPosition(self.engine.w/2, self.engine.h/2)
         
+        self.diffStar = ImgObj(Texture(os.path.join(battlepath, "star.png")))
+        
         self.font = FontObj("default.ttf", size = 16.0)
         
         self.time = time    #time elapsed in battle
         
         self.formation = self.engine.formation
+        self.family = self.engine.family
         self.party = self.engine.family.party 
         
         self.difficulty = self.formation.getDifficulty(self.party)
-        for enemy in self.formation.
+        #dropped items
+        self.items = []
+        
+        self.exp = 0
+        self.gold = 0
+        self.bonusExp = 0
+        self.bonusGold = 0
+        
+        for enemy in self.formation.enemies:
+            self.exp += enemy.exp
+            self.gold += enemy.gold
+            if enemy.drop:
+                if random.randint(0, 100/enemy.dropChance - 1) == 0:
+                    self.items.append(enemy.drop)
+        
+        #figure out bonus amounts
+        self.bonusExp = self.exp * self.difficulty
+        self.bonusExp /= self.time/(2500.0*((self.difficulty-1)*3))
+        
+        self.exp /= len(self.party)
+        self.bonusExp /= len(self.party)
+        
+        self.bonusGold = self.gold * self.difficulty
+        self.bonusGold /= self.time/(2500.0*((self.difficulty-1)*3))
+        
+        self.alpha = 0.0
         
     def keyPressed(self, key):
         if key == Input.AButton:
             self.finish()
-            
+    
+    #saves all the character data and returns to the previous scene
     def finish(self):
+        self.family.gold += (self.gold + self.bonusGold)
         
+        for item in self.items:
+            self.family.inventory.append(item)
+        self.family.update()
+            
+        for member in self.party:
+            member.exp += (self.exp + self.bonusExp)
+            member.update()
+            
+        #return to maplist for now since towns and dungeons are not yet implemented
+        self.engine.viewport.changeScene("Maplist")
         
+    def render(self):
+        self.background.setColor((1,1,1,self.alpha))
+        self.background.draw()
         
+        self.font.setAlignment("right")
+        
+        self.font.setColor((1,1,1,self.alpha))
+        
+        #difficulty
+        self.font.setText("%i" % self.difficulty)
+        self.font.setPosition(self.engine.w/2, 425)
+        self.font.draw()
+        
+        #time
+        self.font.setText("%i seconds" % (self.time/60))
+        self.font.setPosition(self.engine.w/2, 350)
+        self.font.draw()
+        
+        #gold
+        self.font.setText("%i + %i = %i" % (self.gold, self.bonusGold, (self.gold+self.bonusGold)))
+        self.font.setPosition(self.engine.w/2, 275)
+        self.font.draw()
+        
+        #exp
+        self.font.setText("%i + %i = %i" % (self.exp, self.bonusExp, (self.exp+self.bonusExp)))
+        self.font.setPosition(self.engine.w/2, 200)
+        self.font.draw()
+        
+        self.alpha = min(1.0, self.alpha+.1)
     
 #unlike most other scenes in this game, the battle scene 
 #is completely controlled by the keyboard instead of mouse
@@ -325,6 +394,8 @@ class BattleSystem(Scene):
     def __init__(self, engine):
 
         self.engine = engine
+        self.camera = self.engine.viewport.camera   #for simplicity's sake
+        
         w, h = self.engine.w, self.engine.h
 
         musicpath = os.path.join("audio", "music", "battle")
@@ -348,8 +419,8 @@ class BattleSystem(Scene):
         self.text = FontObj(fontStyle, size = 32.0)
         self.bigText = FontObj(fontStyle, size = 64.0)
 
-        self.party = self.engine.family.party
-        self.formation = self.engine.formation.enemies
+        self.party = [m for m in self.engine.family.party]
+        self.formation = [e for e in self.engine.formation.enemies]
 
         self.incapParty = 0     #keeps track of how many in the party are incapacitated
                                 #when all members are then the battle is over
@@ -393,7 +464,7 @@ class BattleSystem(Scene):
         self.loseMenu = MenuObj(self, ["Retry", "Give Up"], position = (self.engine.w/2, self.engine.h/2))
         
         #battle timer for keeping track of how long it has taken to win
-        self.clock = pygame.Clock()
+        self.clock = pygame.time.Clock()
         
         #victory!
         self.victoryPanel = None
@@ -476,6 +547,8 @@ class BattleSystem(Scene):
     #executes all of the commands
     def execute(self):
         actor = self.activeActor
+        if actor.incap:
+            self.next()
         
         if self.displayDelay == 0:
             actor.turnStart()
@@ -484,7 +557,7 @@ class BattleSystem(Scene):
             #if the actor's target was knocked out during this phase then a new target
             # is automatically selected and damage is recalculated
             if actor.target.incap:
-                actor.target = random.choice(self.generatePartyTargets(actor))
+                actor.target = random.choice(self.generateEnemyTargets(actor))
                 actor.calculateDamage()
             
             self.displayDelay += 5
@@ -559,6 +632,7 @@ class BattleSystem(Scene):
                 self.battleStart()
             self.targeting = False
     
+    #renders the character huds
     def renderHUDS(self, visibility):
         huds = [h for h in self.huds]
 
@@ -578,7 +652,8 @@ class BattleSystem(Scene):
                 hud.scale = .5
                 hud.setPosition(0, (self.engine.h-32*(i+1)-64)*(1/hud.scale))
                 hud.draw()
-                
+           
+    #draws the pointer arrows and the command menus
     def renderInterface(self, visibility):
         if self.active < len(self.party):
                 sprite = self.party[self.active].getSprite()
@@ -617,6 +692,53 @@ class BattleSystem(Scene):
                 color = (1,1,1,1)
             self.engine.drawText(self.text, actor.damage, position = (pos[0], y), color = color)
         
+    #fix!!!
+    def renderIntro(self, visibility):
+        if self.introDelay > 450:
+            zoom = 100*(1.0+3*(500.0-self.introDelay)/50.0)
+        elif self.introDelay > 150:
+            zoom = 400
+        elif self.introDelay > 100:
+            zoom = 100*(4.0-3.0*(150.0-self.introDelay)/50.0)
+        else:
+            zoom = 100
+                
+        if self.introDelay > 350:
+            pos = self.party[len(self.party)/2].getSprite().position
+            if self.introDelay > 450:
+                pos = (self.engine.w/2 + (pos[0]-self.engine.w/2)*((500.0-self.introDelay)/50.0),
+                        self.engine.h/2 + (pos[1]-self.engine.h/2)*((500.0-self.introDelay)/50.0))
+                    
+        elif self.introDelay > 250 and self.introDelay < 350:
+            aPos = self.party[len(self.party)/2].getSprite().position
+            bPos = self.formation[len(self.formation)/2].getSprite().position 
+            pos = (aPos[0]-(aPos[0]-bPos[0])*(1.0-abs(self.introDelay-250.0)/100.0),
+                    aPos[1]-(aPos[1]-bPos[1])*(1.0-abs(self.introDelay-250.0)/100.0))
+        elif self.introDelay > 100:
+            pos = self.formation[len(self.formation)/2].getSprite().position
+            if self.introDelay < 150:
+                pos = (self.engine.w/2 - (self.engine.w/2-pos[0])*(abs(self.introDelay-100.0)/50.0),
+                        self.engine.h/2 - (self.engine.h/2-pos[1])*(abs(self.introDelay-100.0)/50.0))
+            
+        if self.introDelay > 100:
+            self.camera.focus(pos[0], pos[1], zoom)
+        else:
+            self.camera.resetFocus()
+            
+        if self.introDelay > 0 and self.introDelay < 100:
+            alpha = 1.0
+            if self.introDelay < 20:
+                alpha = self.introDelay/20.0
+            self.engine.drawText(self.bigText, self.engine.formation.name, (self.engine.w/2, self.engine.h/2 + 30),
+                                    color = (1,1,1,alpha)) 
+            difficulty = self.engine.formation.getDifficulty(self.party)
+            if difficulty > 0:
+                for i in range(difficulty):
+                    pos = (self.engine.w/2 - (self.diffStar.width/2 + 10)*(difficulty-1) + (self.diffStar.width + 10) * i,
+                            self.engine.h/2 - 30)
+                    self.engine.drawImage(self.diffStar, position = pos)
+        self.introDelay -= 2
+        
     def render(self, visibility):
         self.background.draw()
         
@@ -638,8 +760,11 @@ class BattleSystem(Scene):
             alpha = 0.0
         else:
             alpha = 1.0
-        self.engine.formation.draw(alpha)
-        
+        for enemy in self.formation:
+            sprite = enemy.getSprite()
+            sprite.setColor((1,1,1,alpha))
+            sprite.draw()
+            
         #if the battle is lost nothing else needs to be drawn or processed
         if self.lose:
             self.loseMenu.render(visibility)
@@ -657,50 +782,7 @@ class BattleSystem(Scene):
             else:
                 self.renderBattle(visibility)
         else:
-            if self.introDelay > 450:
-                zoom = 100*(1.0+3*(500.0-self.introDelay)/50.0)
-            elif self.introDelay > 150:
-                zoom = 400
-            elif self.introDelay > 100:
-                zoom = 100*(4.0-3.0*(150.0-self.introDelay)/50.0)
-            else:
-                zoom = 100
-                
-            if self.introDelay > 350:
-                pos = self.party[len(self.party)/2].getSprite().position
-                if self.introDelay > 450:
-                    pos = (self.engine.w/2 + (pos[0]-self.engine.w/2)*((500.0-self.introDelay)/50.0),
-                           self.engine.h/2 + (pos[1]-self.engine.h/2)*((500.0-self.introDelay)/50.0))
-                    
-            elif self.introDelay > 250 and self.introDelay < 350:
-                aPos = self.party[len(self.party)/2].getSprite().position
-                bPos = self.formation[len(self.formation)/2].getSprite().position 
-                pos = (aPos[0]-(aPos[0]-bPos[0])*(1.0-abs(self.introDelay-250.0)/100.0),
-                       aPos[1]-(aPos[1]-bPos[1])*(1.0-abs(self.introDelay-250.0)/100.0))
-            elif self.introDelay > 100:
-                pos = self.formation[len(self.formation)/2].getSprite().position
-                if self.introDelay < 150:
-                    pos = (self.engine.w/2 - (self.engine.w/2-pos[0])*(abs(self.introDelay-100.0)/50.0),
-                           self.engine.h/2 - (self.engine.h/2-pos[1])*(abs(self.introDelay-100.0)/50.0))
-            
-            if self.introDelay > 100:
-                self.engine.viewport.camera.focus(pos[0], pos[1], zoom)
-            else:
-                self.engine.viewport.camera.resetFocus()
-            
-            if self.introDelay > 0 and self.introDelay < 100:
-                alpha = 1.0
-                if self.introDelay < 20:
-                    alpha = self.introDelay/20.0
-                self.engine.drawText(self.bigText, self.engine.formation.name, (self.engine.w/2, self.engine.h/2 + 30),
-                                     color = (1,1,1,alpha)) 
-                difficulty = self.engine.formation.getDifficulty(self.party)
-                if difficulty > 0:
-                    for i in range(difficulty):
-                        pos = (self.engine.w/2 - (self.diffStar.width/2 + 10)*(difficulty-1) + (self.diffStar.width + 10) * i,
-                               self.engine.h/2 - 30)
-                        self.engine.drawImage(self.diffStar, position = pos)
-            self.introDelay -= 2
+            self.renderIntro(visibility)
             
     def victory(self):
         self.victoryPanel = VictoryPanel(self, self.clock.tick())
