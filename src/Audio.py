@@ -21,18 +21,18 @@ enabled = True
 # do not use this to play music
 # use BGMObj for that
 class SoundObj:
-    def __init__(self, path, loop = -1):
+    def __init__(self, path, loop = 0):
         
-        filePath = os.path.join("..", "data", path)
+        filePath = os.path.join("..", "data", "audio", "sound", path)
 
         #sound object must be wav or it will not work!
-        if os.path.splittext(filePath)[1].lower() != ".wav":
+        if os.path.splitext(filePath)[1].lower() != ".wav":
             return
 
         #new sound object
         self.audio = pygame.mixer.Sound(filePath)
         self.volume = 10                	    #volume of the object
-        self.loop = loop               		    #how many times it will loop (default = forever)
+        self.loop = loop               		    #how many times it will loop (default = once)
         self.play()                             #by default it will start playing as soon as it is initialized
 
     #changes the volume of the audio
@@ -57,7 +57,7 @@ class SoundObj:
 class BGMObj:
     def __init__(self, AudioFile, volume = 10, queue = False):
         #the music file
-        audiopath = os.path.join("..", "data", "audio", AudioFile)
+        audiopath = os.path.join("..", "data", "audio", "music", AudioFile)
 
         self.volume = 10            #volume of the song (0-10 scale)
         self.loop = -1              #how many times it will loop (default = forever)
@@ -70,6 +70,7 @@ class BGMObj:
             if queue == True:
                 pygame.mixer.music.queue(audiopath)
             else:
+                pygame.mixer.music.fadeout(100)
                 pygame.mixer.music.load(audiopath)
                 pygame.mixer.music.play(self.loop)
         else:
