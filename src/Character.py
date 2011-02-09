@@ -93,12 +93,12 @@ class Character(Actor):
         #for equipment.  Every 100 points raises the level of the proficency.  
         #max proficency is 1100 points or SS rank
         
-        self.swordProf  = min(self.job.swordProf  + profSection.__getattr__("sword",  int), 1100)
-        self.daggerProf = min(self.job.daggerProf + profSection.__getattr__("dagger", int), 1100)
-        self.spearProf  = min(self.job.spearProf  + profSection.__getattr__("spear",  int), 1100)
-        self.staffProf  = min(self.job.staffProf  + profSection.__getattr__("staff",  int), 1100)
-        self.gunsProf   = min(self.job.gunsProf   + profSection.__getattr__("guns",   int), 1100)
-        self.fistProf   = min(self.job.fistProf   + profSection.__getattr__("fist",   int), 1100)
+        self.swordProf  = min(profSection.__getattr__("sword",  int), 1100)
+        self.daggerProf = min(profSection.__getattr__("dagger", int), 1100)
+        self.spearProf  = min(profSection.__getattr__("spear",  int), 1100)
+        self.staffProf  = min(profSection.__getattr__("staff",  int), 1100)
+        self.gunsProf   = min(profSection.__getattr__("guns",   int), 1100)
+        self.fistProf   = min(profSection.__getattr__("fist",   int), 1100)
         
         self.proficiencies = [self.swordProf, self.daggerProf, self.spearProf, 
                               self.staffProf, self.gunsProf, self.fistProf]
@@ -128,19 +128,20 @@ class Character(Actor):
         weapon = self.equipment[self.hand]
         try:
             if (weapon.type == "sword"):
-                self.proficiency = self.proficiencies[0]
+                self.proficiency = self.proficiencies[0] + self.job.swordProf
             elif (weapon.type == "dagger"):
-                self.proficiency = self.proficiencies[1]
+                self.proficiency = self.proficiencies[1] + self.job.daggerProf
             elif (weapon.type == "spear"):
-                self.proficiency = self.proficiencies[2]
+                self.proficiency = self.proficiencies[2] + self.job.spearProf
             elif (weapon.type == "staff"):
-                self.proficiency = self.proficiencies[3]
+                self.proficiency = self.proficiencies[3] + self.job.staffProf
             elif (weapon.type == "gun"):
-                self.proficiency = self.proficiencies[4]
+                self.proficiency = self.proficiencies[4] + self.job.gunProf
             else:
-                self.proficiency = self.proficiencies[5]
+                self.proficiency = self.proficiencies[5] + self.job.fistProf
         except:
-            self.proficiency = self.proficiencies[5]
+            self.proficiency = self.proficiencies[5] + self.job.fistProf
+        self.proficiency = min(self.proficiency, 1100)
     
     def setEquipment(self, equipment):
         reloadProficiency = False
@@ -208,8 +209,14 @@ class Character(Actor):
         sprite = self.sprites['standing']
         return sprite
         
+    def update(self):
+        equipment = [e.name for e in self.equipment]
+        
+        self.create(self.family.name, self.name, self.job.name, self.distPoints, equipment, 
+                    self.proficiencies, self.spriteset, self.level, self.exp)
+                    
     #saves a new ini for the character to be used
-    def create(self, family, name, job, stats, points = 0, equipment = None, proficiency = None, sprite = "male"):
+    def create(self, family, name, job, stats, points = 0, equipment = None, proficiency = None, sprite = "male", level = 1, exp = 0):
         Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini")).save()
         ini = Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini"))
         
@@ -227,8 +234,8 @@ class Character(Actor):
             
         base.__setattr__("spriteset", sprite)
         base.__setattr__("job", job)      
-        base.__setattr__("level", 1)
-        base.__setattr__("exp",   0)
+        base.__setattr__("level", level)
+        base.__setattr__("exp",   exp)
         base.__setattr__("points", points)
         
         dist.__setattr__("hpDist",  stats[0])
@@ -301,7 +308,7 @@ class Family:
         for item in items:
             path = os.path.join("..", "data", "items", item)
             if os.path.exists(path):
-                ini = Configuration(os.path.join("..", "data", "items", name, "item.ini"))
+                ini = Configuration(os.path.join("..", "data", "items", item, "item.ini"))
                 #detecting what type of item it is
                 if ini.parser.has_section("weapon"):
                     items.append(Weapon(item))
@@ -317,31 +324,23 @@ class Family:
         self.difficulty = familyini.__getattr__("difficulty", int)  
        
     #creates a new family .ini 
-    def create(self, name, difficulty):
+    def create(self, name, difficulty, gold = 0, inventory = []):
         path = os.path.join("..", "data", "actors", "families", name)
         os.mkdir(path)
         Configuration(os.path.join(path, "family.ini")).save()
         familyini = Configuration(os.path.join(path, "family.ini"))
         familyini.family.__setattr__("difficulty", difficulty)
         
-        familyini.family.__setattr__("gold", 0)
-        familyini.family.__setattr__("inventory", "")
+        familyini.family.__setattr__("gold", gold)
+        familyini.family.__setattr__("inventory", string.join(inventory, ","))
         
         familyini.family.__setattr__("members", "")
 
         familyini.save()
 
     #this updates the family's .ini file
-    def updateFile(self):
-        path = os.path.join("..", "data", "actors", "families", self.name)
-        Configuration(path).save()
-        familyini = Configuration(os.path.join(path,"family.ini")).family
-
-        familyini.__setattr__("difficulty", self.difficulty)
-        familyini.__setattr__("gold",       self.gold)
-        familyini.__setattr__("inventory",  string.join(self.inventory, ","))
-
-        familyini.save()
+    def update(self):
+        self.create(self.name, self.difficulty, self.gold, self.inventory)
         
     def refresh(self):
         self.__init__(self.name)
@@ -351,7 +350,6 @@ class Family:
 class Party:
     def __init__(self, members):
         self.members = members
-        
         
         self.shepardPresent = False
         self.treasureHunterPresent = False
