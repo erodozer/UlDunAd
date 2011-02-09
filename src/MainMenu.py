@@ -12,8 +12,6 @@ Licensed under the GNU General Public License V3
 from sysobj import *
 from View import *
 
-from Actor import Family
-
 from MenuObj import MenuObj
 
 class MainMenu(Scene):

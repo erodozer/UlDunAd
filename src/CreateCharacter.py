@@ -11,7 +11,7 @@ Licensed under the GNU General Public License V3
 
 from sysobj import *
 from View   import *
-from Actor  import *
+from Character  import *
 
 import string
 import Input

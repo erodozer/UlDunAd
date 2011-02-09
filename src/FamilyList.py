@@ -1,6 +1,6 @@
 from sysobj import *
 from View   import *
-from Actor  import *
+from Character  import *
 from MenuObj import MenuObj
 
 import Input
