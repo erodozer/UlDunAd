@@ -64,7 +64,6 @@ class Actor:
             self.defn *= 2.5
         elif self.cast or self.attacking:
             self.calculateDamage()
-            self.fp -= self.getFPCost()
            
     #calculates and returns the cost of doing an action
     def getFPCost(self):
@@ -91,8 +90,15 @@ class Actor:
             self.defn *= 2
         elif self.defend:
             self.defn /= 2.5
+        elif self.attacking or self.cast:
+            self.fp -= self.getFPCost()
 
         self.fp = min(self.fp, self.maxFP)
 
         self.boost = False
         self.defend = False
+        self.attacking = False
+        self.target = None
+        self.cast = False
+        self.command = None
+        self.power = 0
