@@ -235,7 +235,11 @@ class Viewport:
                     if image.getCollision(press):
                         scene.buttonClicked(image)
                         break
-    
+                        
+        #resets the input after every detection cycle
+        Input.resetClick()
+        Input.resetKeyPresses()
+        
     #renders a scene fully textured
     def render(self, scene, visibility):
         glEnable(GL_TEXTURE_2D)
