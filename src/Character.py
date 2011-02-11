@@ -59,7 +59,10 @@ class Character(Actor):
         self.evdDist = distSection.__getattr__("evdDist", int)
         self.magDist = distSection.__getattr__("magDist", int)
         self.resDist = distSection.__getattr__("resDist", int)
-
+        
+        self.statDist = [self.hpDist, self.strDist, self.defDist, self.spdDist,
+                         self.evdDist, self.magDist, self.resDist]
+                         
         #these are the points the character has that are open for
         #distribution amongst his stats
         self.points = baseSection.__getattr__("points", int)
@@ -159,7 +162,7 @@ class Character(Actor):
             self.loadProficiency()
         
     def levelUp(self):
-        if self.exp == _expCalc(self.level-1):
+        if self.exp == Character._expCalc(self.level):
             self.level += 1
             self.exp = 0
             self.points += 5
@@ -216,9 +219,14 @@ class Character(Actor):
         return sprite
         
     def update(self):
-        equipment = [e.name for e in self.equipment]
+        equipment = []
+        for e in self.equipment:
+            try:
+                equipment.append(e.name)
+            except:
+                equipment.append(None)
         
-        self.create(self.family.name, self.name, self.job.name, self.distPoints, equipment, 
+        self.create(self.family, self.name, self.job.name, self.statDist, self.points, equipment, 
                     self.baseProficiencies, self.spriteset, self.level, self.exp)
                     
     #saves a new ini for the character to be used
@@ -332,13 +340,14 @@ class Family:
     #creates a new family .ini 
     def create(self, name, difficulty, gold = 0, inventory = []):
         path = os.path.join("..", "data", "actors", "families", name)
-        os.mkdir(path)
+        if not os.path.exists(path):
+            os.mkdir(path)
         Configuration(os.path.join(path, "family.ini")).save()
         familyini = Configuration(os.path.join(path, "family.ini"))
         familyini.family.__setattr__("difficulty", difficulty)
         
-        familyini.family.__setattr__("gold", gold)
-        familyini.family.__setattr__("inventory", string.join(inventory, ","))
+        familyini.family.__setattr__("gold", int(gold))
+        familyini.family.__setattr__("inventory", ",".join(inventory))
         
         familyini.family.__setattr__("members", "")
 
