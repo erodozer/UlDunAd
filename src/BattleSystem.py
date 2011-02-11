@@ -345,14 +345,14 @@ class VictoryPanel:
     
     #saves all the character data and returns to the previous scene
     def finish(self):
-        self.family.gold += (self.gold + self.bonusGold)
+        self.family.gold += int(self.gold + self.bonusGold)
         
         for item in self.items:
             self.family.inventory.append(item)
         self.family.update()
             
         for member in self.party:
-            member.exp += (self.exp + self.bonusExp)
+            member.exp += int(self.exp + self.bonusExp)
             member.update()
             
         #return to maplist for now since towns and dungeons are not yet implemented
