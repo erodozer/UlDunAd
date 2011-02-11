@@ -11,7 +11,8 @@ Licensed under the GNU General Public License V3
 
 from sysobj import *
 from View   import *
-from Actor  import *
+import Character
+from Character  import *
 
 import string
 import Input
@@ -60,6 +61,54 @@ class Menu(MenuObj):
             
             self.text.draw()
     
+class PlayerStats:
+    def __init__(self, scene, character, position):
+        self.scene = scene
+        self.engine = scene.engine
+        
+        self.character = character
+        
+        self.back = WinObj(Texture("window.png"), self.engine.w/3, self.engine.h/4)
+        self.back.setPosition(position[0], position[1])
+        
+        self.font = FontObj("default.ttf", size = 16.0)
+        
+        self.position = position
+        
+    def render(self):
+        self.back.draw()
+        
+        character = self.character
+        
+        width = self.back.scale[0]
+        height = self.back.scale[1]
+        
+        #name
+        self.font.setAlignment("left")
+        self.font.setText(character.name)
+        self.font.setPosition(self.position[0] - width/2 + 10,
+                              self.position[1] + height/2 - 20)
+        self.font.draw()
+        
+        #level
+        self.font.setAlignment("right")
+        self.font.setText("Level: %i" % (character.level))
+        self.font.setPosition(self.position[0] + width/2 - 10,
+                              self.position[1] + height/2 - 20)
+        self.font.draw()
+        
+        #hp
+        self.font.setText("HP: %i/%i" % (character.currentHP, character.hp))
+        self.font.setPosition(self.position[0] + width/2 - 10,
+                              self.position[1] - height/2 + 72)
+        self.font.draw()
+        
+        #exp
+        self.font.setText("EXP: %i/%i" % (character.exp, Character._expCalc(character.level)))
+        self.font.setPosition(self.position[0] + width/2 - 10,
+                              self.position[1] - height/2 + 32)
+        self.font.draw()
+        
 class MenuSystem(Scene):
     def __init__(self, engine):
         self.engine = engine
@@ -73,11 +122,12 @@ class MenuSystem(Scene):
         #self.startIndex = 0
         #self.endIndex = min(4, len(self.members))
         
-        self.choices = ["Character",
+        self.choices = ["Inventory",
+                        "Character",
                         "Settings", 
                         "Quit Game", 
                         "Exit Menu"]
-        self.charChoices = ["Inventory", "Spells", "Equipment", "Status"]
+        self.charChoices = ["Spells", "Equipment", "Status"]
         #helps captions for each menu choice
         #explains the purpose of each menu before selecting
         self.help = ["Show what items you currently possess", 
@@ -86,10 +136,14 @@ class MenuSystem(Scene):
                      "Not sure about your character's stats?  Want to know how to improve what with which item?",
                      "Don't like the current feel of gameplay?  Change it up a bit to your preference",
                      "I guess you've had enough for today I suppose", "Return to your game"]
-        self.menu   = Menu(self, self.choices, position = (0, 24.0))
-        self.charMenu = Menu(self, self.charChoices, position = (0,72.0))
+        self.menu   = Menu(self, self.choices, position = (0, self.engine.h - 24.0))
+        self.charMenu = Menu(self, self.charChoices, position = (0,self.engine.h-72.0))
+        self.quitPrompt = MenuObj(self, ["No", "Yes"], position = (self.engine.w/2, self.engine.h/2))
         
         self.menuButton = ImgObj(Texture(os.path.join(scenepath, "button.png")), frameY = 2)
+
+        self.playerWin = [PlayerStats(self, char, (self.engine.w/6 + (self.engine.w/3 * i), self.engine.h/4))
+                          for i, char in enumerate(self.family.party)]
 
         self.dimension = 0  #this defines which sub-level of the menu you are on
         #self.statusbox = self.engine.loadImage(os.path.join("Data", "statusbox.png"))
@@ -104,6 +158,11 @@ class MenuSystem(Scene):
             #close the character submenu
             if key == Input.BButton:
                 self.dimension = 0
+        if self.dimension == 2:
+            self.quitPrompt.keyPressed(key)
+            
+            if key == Input.BButton:
+                self.dimension = 0
         else:
             self.menu.keyPressed(key)
         
@@ -111,15 +170,31 @@ class MenuSystem(Scene):
             if key == Input.BButton:
                 self.engine.viewport.changeScene("Maplist")
 
-
     def select(self, index):
-        if index == 0 and self.dimension == 0:
-            self.dimension = 1
+        if self.dimension == 0:
+            if index == 1:      #character
+                self.dimension = 1
+            elif index == 2:    #settings
+                self.engine.viewport.changeScene("SettingsScene")
+            elif index == 3:    #quit game
+                self.dimension = 2
+            elif index == 4:    #exit menu
+                self.engine.viewport.changeScene("Maplist")
             
-        if self.dimension == 1:
-            if index == 2:
+        elif self.dimension == 1:
+            if index == 0:      #spells/techniques
+                self.engine.viewport.changeScene("SpellScene")
+            elif index == 1:    #equipment
                 self.engine.viewport.changeScene("EquipmentScene")
-        
+            elif index == 2:    #status
+                self.engine.viewport.changeScene("Status")
+                
+        elif self.dimension == 2:
+            if index == 0:   #no
+                self.dimension = 0
+            elif index == 1: #yes
+                self.engine.finished = True
+                
     def run(self):
         pass
 
@@ -130,12 +205,19 @@ class MenuSystem(Scene):
         
         if self.dimension == 1:
             self.charMenu.render()
-            self.engine.drawText(self.font, self.charChoices[self.charMenu.index], (w*.5, h*.65))
-        else:
-            self.engine.drawText(self.font, self.choices[self.menu.index], (w*.5, h*.65))
         
         self.menu.render()
         
+        for win in self.playerWin:
+            win.render()
+            
+        self.engine.drawText(self.font, "%i Available Characters" % (len(self.family.members)), (w*.5, 24.0)) 
+        
+        if self.dimension == 2:
+            self.font.setText("Are you sure you wish to quit the game?")
+            self.font.setPosition(self.engine.w/2, self.engine.h/2 + 40)
+            self.font.draw()
+            self.quitPrompt.render()
         
         
 
