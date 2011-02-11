@@ -72,7 +72,7 @@ class MenuObj:
     def keyPressed(self, key):
         if key == Input.AButton:
             self.scene.select(self.index)
-            self.chime.play()
+            self.playChime()
             
         if key == self.moveKeys[0]:
             if self.index + 1 < len(self.commands):
@@ -87,7 +87,14 @@ class MenuObj:
                 self.index = len(self.commands) - 1
                 
         return None
-        
+       
+    #plays a chime sound effect 
+    def playChime(self):
+        try:
+            self.chime.play()
+        except:
+            pass
+            
     #button is selected by being clicked
     #if the button is clicked again it performs the scene's action
     #  for that button being clicked
