@@ -48,6 +48,7 @@ class Maplist(Scene):
         self.step = 0           #step 0 = naming, step 1 = choose difficulty
         
         self.exists = False
+        self.selectedMap = None
 
     def buttonClicked(self, image):
         if image == self.menuButton:
@@ -76,16 +77,18 @@ class Maplist(Scene):
         elif index == len(self.menu.commands)-1:
             if len(self.maps) > 10:
                 self.startIndex = min(self.startIndex+10, len(self.maps)-11)
-            
-                
+        else:
+            if self.selectedMap == self.maps[self.startIndex + index-1]:
+                self.engine.town = self.selectedMap
+                self.engine.viewport.changeScene("Town")
+            else:
+                self.selectedMap = self.maps[self.startIndex + index - 1]
+               
         #if Up or Down is selected, the end index will be corrected as well
         if index == 0 or index == len(self.menu.commands)-1:
             #endIndex will always be 10 ahead of startIndex
             self.endIndex = min(self.startIndex + 10, len(self.maps))
             self.updateCommands()
-            
-        if index > 0 and index < len(self.menu.commands)-1:
-            self.selectedMap = self.maps[self.startIndex + index]
       
     #updates the list of maps
     def updateCommands(self):
