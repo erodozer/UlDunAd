@@ -18,6 +18,7 @@ import Input
 
 from MenuObj import MenuObj
 
+import Jobs
 from Jobs import *
 
 class StatDistMenu(MenuObj):
@@ -316,7 +317,7 @@ class CreateCharacter(Scene):
         
         #the jobs to choose from
         jobpath = os.path.join("..", "data", "actors", "jobs")
-        self.jobs = ["Adventurer"]
+        self.jobs = Jobs.jobs
                                                     
         self.jobSelect = 0                          #number of the job selected
         self.job = eval(self.jobs[self.jobSelect]+"()")   
