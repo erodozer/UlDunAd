@@ -35,5 +35,19 @@ class Fire(Skill):
         
         self.active = True
         
+#increases one's evasion
+class Hiding(Skill):
+    def __init__(self, job, lvl = 0):
+        
+        self.job = job
+        
+        self.name = "Hiding"
+        self.level = lvl
+        
+        #adds .5 level to the sword proficiency of the job for every level it goes up
+        self.job.evd += 3.0*self.level
+        
+        self.active = False #the skill is passive
+        
         
         

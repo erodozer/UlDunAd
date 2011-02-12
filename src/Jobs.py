@@ -22,6 +22,8 @@ from Skill import *
 from ImgObj import *
 from Texture import *
 
+jobs = ["Adventurer", "Scout"]     #list of available jobs
+
 class Job:
     def __init__(self):
         
@@ -52,12 +54,18 @@ class Job:
         self.skills = []
 
         #jobs have their own weapon proficiency buffs to being with
+        #
+        #Recommended total prof points to be distributed when designing
+        # a job is 750 points
+        
         self.swordProf  = 0
         self.daggerProf = 0
         self.spearProf  = 0
         self.staffProf  = 0
         self.gunsProf   = 0
         self.fistProf   = 0
+        
+        self.state = 'standing'
 
     def drawStatGraph(self):
         glBegin(GL_LINE_STRIP)
@@ -109,6 +117,38 @@ class Adventurer(Job):
         
         #skill tree
         self.skills = [SwordMastery(self)]
-        
+
         self.state = 'standing'
+
+class Scout(Job):
+    def __init__(self):
+        
+        self.name = "Scout"
+
+        self.description = "" 
+        
+        self.hp   = 115
+        self.str  = 9
+        self.defn = 7
+        self.spd  = 12
+        self.evd  = 13
+        self.mag  = 5
+        self.res  = 4
+        
+        self.stats = [self.hp, self.str, self.defn, self.spd, self.evd, self.mag, self.res]
+        
+        #jobs have their own weapon proficiency buffs to being with
+        self.swordProf  = 50
+        self.daggerProf = 300
+        self.spearProf  = 0
+        self.staffProf  = 0
+        self.gunsProf   = 150
+        self.fistProf   = 250
+        
+        self.proficiencies = [self.swordProf, self.daggerProf, self.spearProf, 
+                              self.staffProf, self.gunsProf, self.fistProf]
+        
+        #skill tree
+        self.skills = [Hiding(self)]
                 
+        self.state = 'standing'
