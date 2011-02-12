@@ -671,7 +671,8 @@ class BattleSystem(Scene):
                     self.pointer.draw()
                 else:
                     self.commandWheel.render(visibility)
-                    
+      
+    #renders the active highlight and damage
     def renderBattle(self, visibility):
         actor = self.activeActor
             
@@ -691,8 +692,8 @@ class BattleSystem(Scene):
             else:
                 color = (1,1,1,1)
             self.engine.drawText(self.text, actor.damage, position = (pos[0], y), color = color)
-        
-    #fix!!!
+      
+    #renders the spiffy intro animation
     def renderIntro(self, visibility):
         if self.introDelay > 450:
             zoom = 100*(1.0+3*(500.0-self.introDelay)/50.0)
@@ -787,7 +788,8 @@ class BattleSystem(Scene):
     def victory(self):
         self.victoryPanel = VictoryPanel(self, self.clock.tick())
         
-    def flee(self):
-        self.engine.viewport.changeScene("Maplist")
-        
-        
+    def end(self):
+        if self.engine.town:
+            self.engine.viewport.changeScene("Town")
+        else:
+            self.engine.viewport.changeScene("Maplist")
