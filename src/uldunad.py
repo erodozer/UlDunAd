@@ -97,7 +97,7 @@ class Main:
         self.viewport.addScene(startingScene)
 
         self.family = None      #your selected family and party
-        
+        self.town = None        #current town/location
         
     def run(self):
         global finished
