@@ -162,11 +162,12 @@ class Character(Actor):
             self.loadProficiency()
         
     def levelUp(self):
-        if self.exp == Character._expCalc(self.level):
+        if self.exp >= Character._expCalc(self.level):
             self.level += 1
             self.exp = 0
             self.points += 5
-            self.leveledUp = True     
+            return True
+        return False
             
     #not working, I wish it did, it's supposed to be a pentagon with each vertex further from the
     #center depending on how high the stat is
@@ -312,7 +313,7 @@ class Family:
 
         #the party used in battle is the first 3 members you have ordered
         if len(self.members) >= 3:
-            self.party = self.members[0:2]
+            self.party = self.members[0:3]
         else:
             self.party = self.members[0:len(self.members)]
 

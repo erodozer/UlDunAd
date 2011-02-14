@@ -198,9 +198,12 @@ class BattleMenu(MenuObj):
             else:
                 if self.step == 0:
                     commands = self.attackCommands
+                elif self.step == 5:
+                    commands = self.scene.targetMenu
                 else:
                     commands = self.basicCommands
-                if self.index + 1< len(self.basicCommands):
+                
+                if self.index + 1< len(commands):
                     self.index += 1
             
                 
@@ -229,6 +232,7 @@ class BattleMenu(MenuObj):
                 if self.character.getFPCost() > self.character.fp:
                     return
                 self.scene.selectTarget()
+                self.step = 5
 
             elif self.step == 2:
                 if self.index == 0:     #boost
@@ -240,13 +244,15 @@ class BattleMenu(MenuObj):
                 self.scene.next()
             elif self.step == 3:
                 self.character.command = self.itemCommands[self.index]
-                self.scene.generateTargets(self.character)
-                self.scene.targeting = True
+                self.scene.selectTarget()
+                self.step = 5
             elif self.step == 4:
                 self.character.command = self.techCommands[self.index]
-                self.scene.generateTargets(self.character)
-                self.scene.targeting = True
-        
+                self.scene.selectTarget()
+                self.step = 5
+            elif self.step == 5:
+                self.scene.select(self.index)
+                
         if key == Input.BButton:
             self.step = 0
             self.index = 0
@@ -283,6 +289,8 @@ class BattleMenu(MenuObj):
                 commands = self.attackCommands
             elif self.step == 2:
                 commands = self.tactCommands
+            elif self.step == 5:
+                commands = self.scene.targetMenu
                 
             self.text.setText(commands[self.index])
             self.text.setPosition(self.back.position[0],self.back.position[1])
@@ -339,12 +347,17 @@ class VictoryPanel:
         
         self.alpha = 0.0
         
+        self.levelUp = [False for i in self.party]
+        
     def keyPressed(self, key):
         if key == Input.AButton:
             self.finish()
     
     #saves all the character data and returns to the previous scene
     def finish(self):
+        if any(self.levelUp):
+            self.scene.end()
+            
         self.family.gold += int(self.gold + self.bonusGold)
         
         for item in self.items:
@@ -352,11 +365,14 @@ class VictoryPanel:
         self.family.update()
             
         for member in self.party:
-            member.exp += int(self.exp + self.bonusExp)
+            member.exp += int((self.exp + self.bonusExp)/len(self.party))
             member.update()
             
-        #return to maplist for now since towns and dungeons are not yet implemented
-        self.engine.viewport.changeScene("Maplist")
+        for i, member in enumerate(self.party):
+            self.levelUp[i] = member.levelUp()
+
+        if not any(self.levelUp):
+            self.scene.end()
         
     def render(self):
         self.background.setColor((1,1,1,self.alpha))
@@ -382,11 +398,19 @@ class VictoryPanel:
         self.font.draw()
         
         #exp
-        self.font.setText("%i + %i = %i" % (self.exp, self.bonusExp, (self.exp+self.bonusExp)))
+        self.font.setText("(%i + %i) / %i = %i" % (self.exp, self.bonusExp, len(self.party), (self.exp+self.bonusExp)/len(self.party)))
         self.font.setPosition(self.engine.w/2, 200)
         self.font.draw()
         
+        for i, lU in enumerate(self.levelUp):
+            if lU:
+                self.font.setText("%s Leveled Up!" % (self.party[i].name))
+                self.font.setPosition(self.engine.w*.9 - 20*(i+1), 175 - 30*(i+1))
+                self.font.draw()
+        
         self.alpha = min(1.0, self.alpha+.1)
+        
+        
     
 #unlike most other scenes in this game, the battle scene 
 #is completely controlled by the keyboard instead of mouse
@@ -473,11 +497,7 @@ class BattleSystem(Scene):
         if self.battling:
             return
             
-        if self.targeting:
-            self.targetMenu.keyPressed(key)
-            if key == Input.BButton:
-                self.targeting = False
-        elif self.lose:
+        if self.lose:
             self.loseMenu.keyPressed(key)
         elif self.victoryPanel:
             self.victoryPanel.keyPressed(key)
@@ -488,6 +508,8 @@ class BattleSystem(Scene):
                     if self.active < 0:
                         self.active = 0
                     self.commandWheel = BattleMenu(self, self.party[self.active])
+                if self.targeting:
+                    self.targeting = False
                     
             self.commandWheel.keyPressed(key)
     
@@ -557,7 +579,11 @@ class BattleSystem(Scene):
             #if the actor's target was knocked out during this phase then a new target
             # is automatically selected and damage is recalculated
             if actor.target.incap:
-                actor.target = random.choice(self.generateEnemyTargets(actor))
+                targets = self.generateEnemyTargets(actor)
+                if len(targets) < 1:
+                    self.next()
+                    return
+                actor.target = random.choice(targets)
                 actor.calculateDamage()
             
             self.displayDelay += 5
@@ -604,8 +630,7 @@ class BattleSystem(Scene):
             targets= [member.name for member in self.party]
 
         position = (self.engine.w - 150, self.engine.h/2 + 30*len(targets)/2)
-        targetMenu = MenuObj(self, targets, position, window = os.path.join("scenes", "battlesystem", "window.png"))
-        return targetMenu
+        return targets
     
     def selectTarget(self):
         self.targetMenu = self.generateTargets(self.party[self.active])
@@ -663,14 +688,12 @@ class BattleSystem(Scene):
                 self.pointer.draw()
                 
                 if self.targeting:
-                    self.targetMenu.render(visibility)
-                    self.eHuds[self.targetMenu.index].draw()
-                    target = self.formation[self.targetMenu.index].getSprite()
+                    self.eHuds[self.commandWheel.index].draw()
+                    target = self.formation[self.commandWheel.index].getSprite()
                     self.pointer.setPosition(target.position[0], target.position[1] + target.height/2 + 20)
                     self.pointer.setFrame(x = 2)
                     self.pointer.draw()
-                else:
-                    self.commandWheel.render(visibility)
+                self.commandWheel.render(visibility)
       
     #renders the active highlight and damage
     def renderBattle(self, visibility):
@@ -745,7 +768,7 @@ class BattleSystem(Scene):
         
         for i, member in enumerate(self.party):
             sprite = member.getSprite()
-            sprite.setPosition(self.engine.w*.8 - 20*i, self.engine.h*.4 + 80*i)
+            sprite.setPosition(self.engine.w*.8 - 20*i, self.engine.h*.4 + 65*i)
             if self.introDelay < 450 and self.introDelay > 400:
                 alpha = (450.0-self.introDelay)/50.0
             elif self.introDelay >= 450:
