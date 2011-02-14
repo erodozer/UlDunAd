@@ -34,7 +34,7 @@ class CreateFamily(Scene):
         
         self.button = ImgObj(Texture("ok.png"), boundable = True, frameX = 2)
         self.button.setScale(75,75,inPixels = True)
-        self.button.setPosition(w*.25, h*.5)
+        self.button.setPosition(self.engine.w*.25, self.engine.h*.5)
         
         self.font   = FontObj("default.ttf")
 
