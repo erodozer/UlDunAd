@@ -163,8 +163,8 @@ class Character(Actor):
         
     def levelUp(self):
         if self.exp >= Character._expCalc(self.level):
+            self.exp = self.exp - Character._expCalc(self.level)
             self.level += 1
-            self.exp = 0
             self.points += 5
             return True
         return False
