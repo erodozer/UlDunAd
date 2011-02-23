@@ -68,7 +68,8 @@ class PlayerStats:
         
         self.character = character
         
-        self.back = WinObj(Texture("window.png"), self.engine.w/3, self.engine.h/4)
+        scenepath = os.path.join("scenes", "menusystem")
+        self.back = WinObj(Texture(os.path.join(scenepath, "window.png")), self.engine.w/3, self.engine.h/4)
         self.back.setPosition(position[0], position[1])
         
         self.font = FontObj("default.ttf", size = 16.0)
@@ -116,6 +117,8 @@ class MenuSystem(Scene):
         
         scenepath = os.path.join("scenes", "menusystem")
         self.background = ImgObj(Texture(os.path.join(scenepath, "background.png")))
+        self.background.setScale(self.engine.w,self.engine.h)
+        self.background.setPosition(self.engine.w/2, self.engine.h/2)
         self.font   = FontObj("default.ttf")
 
         #self.members = self.family.members
@@ -158,7 +161,7 @@ class MenuSystem(Scene):
             #close the character submenu
             if key == Input.BButton:
                 self.dimension = 0
-        if self.dimension == 2:
+        elif self.dimension == 2:
             self.quitPrompt.keyPressed(key)
             
             if key == Input.BButton:
@@ -201,7 +204,7 @@ class MenuSystem(Scene):
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
 
-        self.engine.drawImage(self.background, scale = (w,h))
+        self.background.draw()
         
         if self.dimension == 1:
             self.charMenu.render()
