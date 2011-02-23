@@ -17,8 +17,14 @@ from MenuObj import MenuObj
 class MainMenu(Scene):
     def __init__(self, engine):
         self.engine = engine
-        self.menu       = MenuObj(self, commands = ["New Game", "Continue", "Exit"], 
-                                  position = (150, 75), horizontal = True)
+        commands = ["New Game", "Exit"]
+        self.continueEnabled = bool(len(self.engine.listPath(path = os.path.join("actors", "families"), 
+                                   value = "family.ini", flag = "folderDeepSearch")) > 0)
+        if self.continueEnabled:
+            commands.insert(1, "Continue")
+            
+        self.menu       = MenuObj(self, commands, 
+                                  position = (150, 200))
         self.background = ImgObj(Texture("mainbg.png"))
         self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
         self.background.setPosition(self.engine.w/2, self.engine.h/2)
@@ -37,7 +43,7 @@ class MainMenu(Scene):
     def select(self, index):
         if index == 0:
             self.engine.viewport.changeScene("CreateFamily")
-        elif index == 1:
+        elif index == 1 and self.continueEnabled:
             #forcing for testing purposes
             #self.engine.family = Family("default")
             #self.engine.viewport.changeScene("MapList")
