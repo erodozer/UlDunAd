@@ -19,9 +19,17 @@ import array
 
 from math import *
 
+LEFT = 0
+CENTER = 1
+RIGHT = 2
+
+UP = 0
+HORIZONTAL = 1
+DOWN = 2
+
 #a window created to be used as a background for images
 class BarObj:
-    def __init__(self, texture, length = 96, direction=False):
+    def __init__(self, texture, length = 96, direction = HORIZONTAL, alignment = CENTER):
         self.texture = texture
         self.texture.changeTexture(texture.textureSurface, False)
         
@@ -29,10 +37,8 @@ class BarObj:
         self.scale       = length                   #length of the bar
         self.position    = (0,0)                    #where in the window it should render
         
-        if direction:
-            self.angle   = 90                       #vertical
-        else:
-            self.angle   = 0                        #horizontal
+        self.direction = direction    
+        self.alignment = alignment
                 
         self.color       = [1.0,1.0,1.0,1.0]        #colour of the image RGBA (0 - 1.0)
         
@@ -104,25 +110,65 @@ class BarObj:
         self.scale = length
         self.createVerts()        
         
-    #rotates the image to the angle
-    def setAngle(self, angle):
-        self.angle = angle
-
-    #rotates the image
-    def rotate(self, angle):
-        self.angle += angle
-        
     #sets the colour of the image (RGBA 0.0 -> 1.0)
     def setColor(self, color):
         for i in range(len(self.color)):
             self.color[i] = color[i]
 
+    #sets where the image is anchored (left, center, or right)
+    def setAlignment(self, alignment):
+        alignment = eval(alignment.upper())
+        if alignment >= LEFT and alignment <= RIGHT:
+            self.alignment = alignment
+
+    #sets which direction the bar is filling (up, down, horizontal)
+    def setDirection(self, direction):
+        direction = eval(direction.upper())
+        if direction >= UP and direction <= DOWN:
+            self.direction = direction
+
     #finally draws the image to the screen
     def draw(self):
         glPushMatrix()
 
-        glTranslatef(self.position[0], self.position[1]-self.pixelSize[1]/2.0,-.1)
-        glRotatef(self.angle, 0, 0, 1)
+        
+        if self.direction == UP:
+            if self.alignment == RIGHT:
+                r = 90
+            else:
+                r = -90
+        elif self.direction == DOWN:
+            if self.alignment == RIGHT:
+                r = -90
+            else:
+                r = 90
+        else:
+            r = 0
+        
+        if self.direction == HORIZONTAL:
+            x = self.position[0]
+            if self.alignment == CENTER:
+                x -= self.scale/2.0
+            elif self.alignment == RIGHT:
+                x -= self.scale
+            y = self.position[1]-self.pixelSize[1]/2.0
+        else:
+            x = self.position[0]-self.pixelSize[1]/2.0
+            y = self.position[1]
+            if self.direction == UP:
+                if self.alignment == CENTER:
+                    y += self.scale/2.0
+                elif self.alignment == RIGHT:
+                    y -= self.scale
+            else:
+                if self.alignment == CENTER:
+                    y -= self.scale/2.0
+                elif self.alignment == RIGHT:
+                    y += self.scale
+            
+        glTranslatef(x, y,-.1)
+        glRotatef(r, 0, 0, 1)
+        
         glColor4f(*self.color)
         
         self.texture.bind()
