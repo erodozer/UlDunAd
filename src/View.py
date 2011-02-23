@@ -72,10 +72,10 @@ class TestScene(Scene):
         #tests drawing of images, sliding, and spinning
         self.test       = [ImgObj(Texture("test.png")), 0, 0]
         self.bar        = BarObj(Texture("bar.png"), 128)
-        self.bar.setPosition(self.engine.w*.3, self.engine.h*.1)
+        self.bar.setPosition(self.engine.w*.5, self.engine.h*.5)
         
         #animation testing
-        self.sprite = ImgObj(Texture(os.path.join("actors", "sprites", "male", "standing.png")), frameX = 4)
+        self.sprite = ImgObj(Texture("testsprite.png"), frameX = 4)
         self.sprite.setPosition(self.engine.w * .8, self.engine.h * .8)
         #self.sprite.setScale(1.0, 1.0)
         self.spriteSize = 0
@@ -100,12 +100,6 @@ class TestScene(Scene):
             else:
                 self.test[1] = 0
             print self.test[1]
-        elif key == Input.UpButton:
-            self.test[2] += 45
-            print self.test[0].angle
-        elif key == Input.DnButton:
-            self.test[2] -= 45
-            print self.test[0].angle
         elif key == Input.CButton:
             if self.spriteSize == 0:
                 self.spriteSize = 1
@@ -117,6 +111,29 @@ class TestScene(Scene):
                 self.engine.viewport.camera.focus(self.sprite.position[0], self.sprite.position[1], 200)
             else:
                 self.engine.viewport.camera.resetFocus()
+        elif key == K_LSHIFT:
+            self.test[2] += 45
+            print self.test[0].angle
+        elif key == K_RSHIFT:
+            self.test[2] -= 45
+            print self.test[0].angle
+        #messing around with the bar
+        elif key == K_SPACE:
+            if self.bar.scale == 256:
+                self.bar.setLength(96)
+            else:
+                self.bar.setLength(256)
+        elif key == Input.LtButton:
+            self.bar.setAlignment("left")
+        elif key == Input.RtButton:
+            self.bar.setAlignment("right")
+        elif key == Input.DnButton:
+            self.bar.setDirection("up")
+        elif key == Input.UpButton:
+            self.bar.setDirection("down")
+        elif key == K_RETURN:
+            self.bar.setDirection("horizontal")
+            self.bar.setAlignment("center")
             
     def run(self):
         self.counter += 1
@@ -228,14 +245,14 @@ class Viewport:
         for key, char in Input.getKeyPresses():
             scene.keyPressed(key, char)
 
-        if Input.clicks:
-            #print Input.clicks
-            for press in Input.clicks:
-                for image in self.inputObjects:
-                    if image.getCollision(press):
-                        scene.buttonClicked(image)
-                        break
-                        
+        for press in Input.clicks:
+            clickedImages = [image.getCollision(press) for image in self.inputObjects]
+            try:
+                x = clickedImages.index(True)
+                scene.buttonClicked(self.inputObjects[x])
+            except ValueError:
+                continue
+                
         #resets the input after every detection cycle
         Input.resetClick()
         Input.resetKeyPresses()
