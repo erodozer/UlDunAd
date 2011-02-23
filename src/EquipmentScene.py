@@ -12,7 +12,7 @@ Licensed under the GNU General Public License V3
 from sysobj import *
 from View import *
 
-from Actor import Family
+from Character import Family
 
 from MenuObj import MenuObj
 
@@ -169,6 +169,11 @@ class EquipmentScene(Scene):
         self.character = self.family.members[self.activeChar]
         self.activeCat = -1 #the active weapon category
         
+        scenepath = os.path.join("scenes", "menusystem", "equipment")
+        self.background = ImgObj(Texture(os.path.join(scenepath, "background.png")))
+        self.background.setScale(self.engine.w,self.engine.h)
+        self.background.setPosition(self.engine.w/2, self.engine.h/2)
+        
         self.EquipMenu = EquipmentButtons(self)
         self.ItemWindow = ItemWindow(self)
         self.ItemMenu = ItemMenu(self)
@@ -219,7 +224,7 @@ class EquipmentScene(Scene):
         pass
         
     def render(self, visibility):
-        #self.background.draw()     
+        self.background.draw()     
         
         self.EquipMenu.render(visibility)
         self.ItemWindow.draw()
