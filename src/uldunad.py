@@ -36,7 +36,7 @@ except ImportError:
     import optparse as argparse
 
 FPS = 60
-caption = 'UlDunAd - Ultimate Dungeon Adventure'
+caption = 'UlDunAd - Ultimate Dungeon Adventure [FPS: %i]'
 
 if not os.path.exists(os.path.join("uldunad.ini")):
     Configuration(os.path.join("uldunad.ini")).save()
@@ -73,7 +73,7 @@ class disableSound(argparse.Action):
         enableSound = False
         
 class Main:
-    def __init__(self, caption, flags):
+    def __init__(self, flags):
         self.finished = False   #is the app done
         
         pygame.mixer.pre_init(44100)
@@ -108,8 +108,12 @@ class Main:
 
         self.viewport.run()
         Input.reset()
-        self.currentFPS = self.clock.tick(FPS)
-   
+        self.clock.tick(FPS)
+        self.currentFPS = int(self.clock.get_fps())
+        
+        #fps counter is in the title bar
+        pygame.display.set_caption(caption % (self.currentFPS))
+        
     #allows you to load an image and change the default values for it
     def loadImage(self, path = "", position = None, scale = None, angle = None, color = None, rect = None, frameX = 1, frameY = 1, boundable = False):
         if isinstance(path, Texture):
@@ -265,6 +269,6 @@ parser.add_argument('-s', '--sound', nargs = '?', action = disableSound,
 args = parser.parse_args()
 
 #main loop to run the program
-game = Main(caption, video_flags)
+game = Main(video_flags)
 while not game.finished:
     game.run()
