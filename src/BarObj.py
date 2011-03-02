@@ -29,7 +29,7 @@ DOWN = 2
 
 #a window created to be used as a background for images
 class BarObj:
-    def __init__(self, texture, length = 96, direction = HORIZONTAL, alignment = CENTER):
+    def __init__(self, texture, length = 96, direction = HORIZONTAL, alignment = LEFT):
         self.texture = texture
         self.texture.changeTexture(texture.textureSurface, False)
         
