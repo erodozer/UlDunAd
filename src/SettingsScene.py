@@ -14,6 +14,8 @@ from View   import *
 import Character
 from Character  import *
 
+import pygame
+
 import string
 import Input
 
@@ -76,14 +78,16 @@ class InputMenu(MenuObj):
         
         self.commands  = [Input.UpButton, Input.DnButton, Input.LtButton, Input.RtButton,
                           Input.AButton, Input.BButton, Input.CButton, Input.DButton]
-        self.commandStrings = ['Up', 'Down', 'Left', 'Right', 'A', 'B', 'C', 'D']
+        self.commandStrings = ["Up", "Down", "Left", "Right", "A", "B", "C", "D"]
         
         scenepath = os.path.join("scenes", "menusystem", "settings")
         
         fontStyle = self.engine.data.defaultFont
         self.text     = FontObj(fontStyle)
         self.text.setAlignment("left")
-
+        self.inputMessage = FontObj(fontStyle, "Press a key", size = 48.0)
+        self.inputMessage.setPosition(self.engine.w/2, self.engine.h - 48.0)
+        
         self.moveKeys = [Input.DnButton, Input.UpButton]
         
         self.buttons  = [0 for i in self.commands]
@@ -133,18 +137,20 @@ class InputMenu(MenuObj):
         
         position = self.position[1]
         for i, button in enumerate(self.buttons):
-            self.text.setText("%s:   %s" % (self.commandStrings[i], self.commands[i]))
+            self.text.setText("%s:   %s" % (self.commandStrings[i], pygame.key.name(self.commands[i])))
             self.text.scaleHeight(24.0)
-            self.text.setPosition(self.position[0], position - (self.text.pixelSize[1]/2 + 26.0))
-            position -= self.text.pixelSize[1] + 26.0
+            self.text.setPosition(self.position[0], position - (self.text.pixelSize[1]/2 + 16.0))
+            position -= self.text.pixelSize[1] + 16.0
             
             if i == self.index:
-                self.button.setDimensions(self.engine.w/3, 48.0)
+                self.button.setDimensions(self.engine.w/3, 24.0)
                 self.button.setPosition(self.text.position[0], self.text.position[1])
                 self.button.draw()
             
             self.text.draw()
-
+        if self.active:
+            self.inputMessage.draw()
+            
 class SettingsScene(Scene):
     def __init__(self, engine):
         self.engine = engine
