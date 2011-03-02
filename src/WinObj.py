@@ -145,7 +145,7 @@ class WinObj:
         
     #sets the colour of the image (RGBA 0.0 -> 1.0)
     def setColor(self, color):
-        for i in range(len(self.color)):
+        for i in range(len(color)):
             self.color[i] = color[i]
 
     #finally draws the image to the screen
