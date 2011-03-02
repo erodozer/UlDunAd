@@ -299,7 +299,7 @@ class BattleMenu(MenuObj):
         
         
 class VictoryPanel:
-    def __init__(self, scene, time):
+    def __init__(self, scene, turns):
         self.scene = scene
         self.engine = scene.engine
         
@@ -313,7 +313,7 @@ class VictoryPanel:
         
         self.font = FontObj("default.ttf", size = 16.0)
         
-        self.time = time    #time elapsed in battle
+        self.turns = turns    #total number of player turns used in battle
         
         self.formation = self.engine.formation
         self.family = self.engine.family
@@ -337,13 +337,13 @@ class VictoryPanel:
         
         #figure out bonus amounts
         self.bonusExp = self.exp * self.difficulty
-        self.bonusExp /= self.time/(2500.0*((self.difficulty-1)*3))
+        self.bonusExp *= (len(self.formation.enemies)*((self.difficulty-1)*3))/self.turns
         
         self.exp /= len(self.party)
         self.bonusExp /= len(self.party)
         
         self.bonusGold = self.gold * self.difficulty
-        self.bonusGold /= self.time/(2500.0*((self.difficulty-1)*3))
+        self.bonusGold *= (len(self.formation.enemies)*((self.difficulty-1)*3))/self.turns
         
         self.alpha = 0.0
         
@@ -388,7 +388,7 @@ class VictoryPanel:
         self.font.draw()
         
         #time
-        self.font.setText("%i seconds" % (self.time/60))
+        self.font.setText("%i Turns" % (self.turns))
         self.font.setPosition(self.engine.w/2, 350)
         self.font.draw()
         
@@ -463,6 +463,7 @@ class BattleSystem(Scene):
 
         #turn order lists
         self.turn = 0           #whose turn is it
+        self.totalTurns = 0     #keeps track of how many player turns it has taken to defeat the enemy group
         self.turns = {}
         for character in self.party:
             character.initForBattle()
@@ -486,9 +487,6 @@ class BattleSystem(Scene):
         #battle lost
         self.lose = False       
         self.loseMenu = MenuObj(self, ["Retry", "Give Up"], position = (self.engine.w/2, self.engine.h/2))
-        
-        #battle timer for keeping track of how long it has taken to win
-        self.clock = pygame.time.Clock()
         
         #victory!
         self.victoryPanel = None
@@ -621,7 +619,7 @@ class BattleSystem(Scene):
                 targets.append(t)
         return targets
        
-    #generates the target list/menu for allies
+    #generates the target list for allies
     def generateTargets(self, actor):
 
         if actor.attacking or actor.cast:
@@ -632,6 +630,7 @@ class BattleSystem(Scene):
         position = (self.engine.w - 150, self.engine.h/2 + 30*len(targets)/2)
         return targets
     
+    #creates the menu for target selection and activates targeting
     def selectTarget(self):
         self.targetMenu = self.generateTargets(self.party[self.active])
         self.targeting = True
@@ -640,6 +639,9 @@ class BattleSystem(Scene):
     def next(self):
         if self.battling:
             self.order[self.turn][0].turnEnd()
+            #if a character in the user's party just acted, then increment the number of total turns
+            if isinstance(self.order[self.turn][0], Character):
+                self.totalTurns += 1
             self.displayDelay = 0
             self.turn += 1
             if self.turn >= len(self.order):
@@ -807,9 +809,10 @@ class BattleSystem(Scene):
                 self.renderBattle(visibility)
         else:
             self.renderIntro(visibility)
-            
+    
+    #show the victory screen
     def victory(self):
-        self.victoryPanel = VictoryPanel(self, self.clock.tick())
+        self.victoryPanel = VictoryPanel(self, self.totalTurns)
         
     def end(self):
         if self.engine.town:
