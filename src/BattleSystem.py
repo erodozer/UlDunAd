@@ -123,6 +123,9 @@ class BattleHUDEnemy:
         self.hpBar[1].setLength(self.hpBar[0].width*(float(self.enemy.currentHP)/float(self.enemy.hp)))
         
         self.setPosition(0, 15)
+       
+    def update(self):
+        self.hpBar[1].setLength(self.hpBar[0].width*(float(self.enemy.currentHP)/float(self.enemy.hp)))
         
     def setPosition(self, x, y):
         self.x = x
@@ -549,7 +552,6 @@ class BattleSystem(Scene):
         for enemy in self.formation:
             self.turns[enemy] = 0
 
-
         for character in self.party:
             if not (character.boost or character.defend):
                 self.turns[character] = random.randint(0, 50) + character.spd
@@ -690,6 +692,7 @@ class BattleSystem(Scene):
                 self.pointer.draw()
                 
                 if self.targeting:
+                    self.eHuds[self.commandWheel.index].update()
                     self.eHuds[self.commandWheel.index].draw()
                     target = self.formation[self.commandWheel.index].getSprite()
                     self.pointer.setPosition(target.position[0], target.position[1] + target.height/2 + 20)
