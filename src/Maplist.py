@@ -29,7 +29,7 @@ class Maplist(Scene):
         self.background.setPosition(self.engine.w/2, self.engine.h/2)
         
         self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), self.engine.w/4, 0)
-        self.menubutton = ImgObj(Texture(os.path.join(scenepath, "menubutton.png")), boundable = True)
+        self.menuButton = ImgObj(Texture(os.path.join(scenepath, "menubutton.png")), boundable = True)
         self.font   = FontObj("default.ttf")
 
         self.maps   = self.engine.listPath("places", value = "town.ini", flag = "folderDeepSearch")
@@ -112,7 +112,7 @@ class Maplist(Scene):
         w, h = self.engine.w, self.engine.h
 
         self.background.draw()
-        self.engine.drawImage(self.menubutton, position = (w*.9, h*.1))
+        self.engine.drawImage(self.menuButton, position = (w*.9, h*.1))
         self.menu.render()
         
         self.engine.drawText(self.font, "%s:%i" % (self.engine.family.name, len(self.engine.family.members)),
