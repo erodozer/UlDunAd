@@ -170,7 +170,7 @@ class BattleMenu(MenuObj):
         self.index = 0          #index selected in the window
         self.step = 0           #menu showing
         
-        self.basicCommands = ["Attack", "Tactical", "Spell/Technique", "Item"] #basic command menu
+        self.basicCommands = ["Attack", "Tactical", "Item", "Spell/Tech"] #basic command menu
         self.attackCommands = ["Normal", "Strong", "Accurate"] #attack menu
         self.tactCommands = ["Boost", "Defend", "Flee"]     #tactical menu
         self.itemCommands = self.engine.family.inventory    #item menu
@@ -221,8 +221,6 @@ class BattleMenu(MenuObj):
                     self.step = 3       #item menu
                 elif self.index == 3:
                     self.step = 4       #skill menu
-                self.index = 0
-                
             elif self.step == 1:
                 if self.index == 1:     #strong attack
                     self.character.power = 1
@@ -236,7 +234,6 @@ class BattleMenu(MenuObj):
                     return
                 self.scene.selectTarget()
                 self.step = 5
-
             elif self.step == 2:
                 if self.index == 0:     #boost
                     self.character.boost = True
@@ -255,6 +252,7 @@ class BattleMenu(MenuObj):
                 self.step = 5
             elif self.step == 5:
                 self.scene.select(self.index)
+            self.index = 0
                 
         if key == Input.BButton:
             self.step = 0
