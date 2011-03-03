@@ -496,6 +496,9 @@ class BattleSystem(Scene):
         if self.battling:
             return
             
+        if self.introDelay > 0:
+            return
+            
         if self.lose:
             self.loseMenu.keyPressed(key)
         elif self.victoryPanel:
