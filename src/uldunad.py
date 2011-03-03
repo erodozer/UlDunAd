@@ -44,9 +44,10 @@ if not os.path.exists(os.path.join("uldunad.ini")):
     runini.video.__setattr__("resolution", str(800) + "x" + str(600) + "x" + "W")
     runini.audio.__setattr__("volume", str(10))
     runini.save()
-    Input().create(runini)
+    Input.create(runini)
 else:
     runini = Configuration(os.path.join("uldunad.ini"))
+    Input.load(runini)
 
 w, h, fullscreen = runini.video.__getattr__("resolution").split("x")
 w, h = float(w), float(h)

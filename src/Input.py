@@ -31,6 +31,34 @@ RtButton = K_RIGHT
 UpButton = K_UP
 DnButton = K_DOWN
 
+def load(configini):
+    global AButton, BButton, CButton, DButton
+    global LtButton, RtButton, UpButton, DnButton
+    
+    inputSource = configini.input
+    AButton = eval(inputSource.__getattr__("AButton"))
+    BButton = eval(inputSource.__getattr__("BButton"))
+    CButton = eval(inputSource.__getattr__("CButton"))
+    DButton = eval(inputSource.__getattr__("DButton"))
+    UpButton = eval(inputSource.__getattr__("UpButton"))
+    DnButton = eval(inputSource.__getattr__("DnButton"))
+    LtButton = eval(inputSource.__getattr__("LtButton"))
+    RtButton = eval(inputSource.__getattr__("RtButton"))
+    
+def create(configini, keys = [K_v, K_c, K_x, K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT]):
+    inputSource = configini.input
+    inputSource.__setattr__("AButton", keys[0])
+    inputSource.__setattr__("BButton", keys[1])
+    inputSource.__setattr__("CButton", keys[2])
+    inputSource.__setattr__("DButton", keys[3])
+    inputSource.__setattr__("UpButton", keys[4])
+    inputSource.__setattr__("DnButton", keys[5])
+    inputSource.__setattr__("LtButton", keys[6])
+    inputSource.__setattr__("RtButton", keys[7])
+    configini.save()
+    
+    load(configini)
+        
 def processMouseMove(newpos):
     global mousepos
     displaySurface = pygame.display.get_surface()
