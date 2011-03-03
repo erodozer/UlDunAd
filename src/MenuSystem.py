@@ -67,14 +67,22 @@ class PlayerStats:
         self.engine = scene.engine
         
         self.character = character
+        self.position = position
         
         scenepath = os.path.join("scenes", "menusystem")
-        self.back = WinObj(Texture(os.path.join(scenepath, "window.png")), self.engine.w/3, self.engine.h/4)
-        self.back.setPosition(position[0], position[1])
+        self.back = WinObj(Texture(os.path.join(scenepath, "window.png")), self.engine.w, self.engine.h*.1)
+        self.back.setPosition(self.engine.w/2, self.position)
+        
         
         self.font = FontObj("default.ttf", size = 16.0)
+        self.bigFont = FontObj("default.ttf", size = 32.0)
         
-        self.position = position
+        length = 200
+        self.bars = [BarObj(Texture(os.path.join(scenepath, "bar_bottom.png")), length),
+                     BarObj(Texture(os.path.join(scenepath, "exp_bar.png")), length*(self.character.exp/Character._expCalc(character.level))),
+                     BarObj(Texture(os.path.join(scenepath, "bar_top.png")), length)]
+        for bar in self.bars:
+            bar.setPosition(self.engine.w - 10 - length, self.position-10)
         
     def render(self):
         self.back.draw()
@@ -83,32 +91,22 @@ class PlayerStats:
         
         width = self.back.scale[0]
         height = self.back.scale[1]
+        y = self.position
         
         #name
-        self.font.setAlignment("left")
-        self.font.setText(character.name)
-        self.font.setPosition(self.position[0] - width/2 + 10,
-                              self.position[1] + height/2 - 20)
-        self.font.draw()
+        self.engine.drawText(self.font, character.name, position = (10, y), alignment = "left")
         
         #level
-        self.font.setAlignment("right")
-        self.font.setText("Level: %i" % (character.level))
-        self.font.setPosition(self.position[0] + width/2 - 10,
-                              self.position[1] + height/2 - 20)
-        self.font.draw()
+        self.engine.drawText(self.font, "Level: %i" % (character.level), position = (self.engine.w/4, y), alignment = "left")
         
         #hp
-        self.font.setText("HP: %i/%i" % (character.currentHP, character.hp))
-        self.font.setPosition(self.position[0] + width/2 - 10,
-                              self.position[1] - height/2 + 72)
-        self.font.draw()
+        self.engine.drawText(self.font, "HP: %i" % character.hp, position = (self.engine.w/2, y), alignment = "left")
         
         #exp
-        self.font.setText("EXP: %i/%i" % (character.exp, Character._expCalc(character.level)))
-        self.font.setPosition(self.position[0] + width/2 - 10,
-                              self.position[1] - height/2 + 32)
-        self.font.draw()
+        for bar in self.bars:
+            bar.draw()
+        self.engine.drawText(self.font, "EXP: %i/%i" % (character.exp, Character._expCalc(character.level)),
+                             position = (self.engine.w - 10, y), alignment = "right")
         
 class MenuSystem(Scene):
     def __init__(self, engine):
@@ -145,7 +143,7 @@ class MenuSystem(Scene):
         
         self.menuButton = ImgObj(Texture(os.path.join(scenepath, "button.png")), frameY = 2)
 
-        self.playerWin = [PlayerStats(self, char, (self.engine.w/6 + (self.engine.w/3 * i), self.engine.h/4))
+        self.playerWin = [PlayerStats(self, char, self.engine.h/4 + (self.engine.h/10 * i))
                           for i, char in enumerate(self.family.party)]
 
         self.dimension = 0  #this defines which sub-level of the menu you are on
