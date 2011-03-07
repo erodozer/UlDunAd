@@ -33,6 +33,9 @@ class MainMenu(Scene):
         
         self.selected = 0
         
+        self.helpButtons = [[Input.AButton, "Selects a command"],
+                            [Input.DnButton, "Scrolls down"],
+                            [Input.UpButton, "Scrolls up"]]
         
     def buttonClicked(self, image):
         self.menu.buttonClicked(image)

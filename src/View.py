@@ -206,6 +206,60 @@ class Viewport:
         #creates an OpenGL Viewport
         glViewport(0, 0, resolution[0], resolution[1])
 
+        #images and text used for displaying the onscreen button help
+        self.inputButtons = [ImgObj(Texture("inputButtons.png"), frameY = 5),
+                             FontObj("default.ttf", size = 16)]
+        self.inputButtons[0].setScale(32,32, inPixels = True)
+        
+    #if the scene has a list of buttons and their commands then they can be 
+    #rendered to the screen if enabled in the uldunad.ini
+    def renderInputHelp(self, scene):
+        #only draw the help buttons if they exist
+        if not scene.helpButtons:
+            return 
+            
+        #drawing should start in the bottom right corner
+        x = self.resolution[0]
+        y = 32
+        self.inputButtons[1].setAlignment("left")
+        
+        for help in scene.helpButtons:
+            #draw the help test
+            self.inputButtons[1].setText(help[1])
+            x -= self.inputButtons[1].width+10
+            self.inputButtons[1].setPosition(x, y)
+            self.inputButtons[1].draw()
+            
+            #draw the corresponding button
+            x -= self.inputButtons[0].width/2 + 10
+            #directional buttons
+            if (help[0] == Input.UpButton or
+                help[0] == Input.DnButton or
+                help[0] == Input.LtButton or
+                help[0] == Input.RtButton):
+                self.inputButtons[0].setFrame(y=5)
+                if help[0] == Input.UpButton:
+                    self.inputButtons[0].setAngle(0)
+                elif help[0] == Input.RtButton:
+                    self.inputButtons[0].setAngle(90)
+                elif help[0] == Input.DnButton:
+                    self.inputButtons[0].setAngle(180)
+                else:
+                    self.inputButtons[0].setAngle(270)
+            #letter buttons
+            else:
+                if help[0] == Input.AButton:
+                    self.inputButtons[0].setFrame(y=1)
+                elif help[0] == Input.BButton:
+                    self.inputButtons[0].setFrame(y=2)
+                elif help[0] == Input.CButton:
+                    self.inputButtons[0].setFrame(y=3)
+                elif help[0] == Input.DButton:
+                    self.inputButtons[0].setFrame(y=4)
+            self.inputButtons[0].setPosition(x, y)
+            self.inputButtons[0].draw()    
+            x -= self.inputButtons[0].width/2 + 10
+            
     #changes the topmost scene (the one that is being rendered) with a new one
     def changeScene(self, scene):
         if scene not in self.scenes:
@@ -264,6 +318,7 @@ class Viewport:
         glEnable(GL_LIGHTING)
 
         scene.render(visibility)
+        self.renderInputHelp(scene)
         
     def run(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)

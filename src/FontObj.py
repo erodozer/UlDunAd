@@ -48,7 +48,10 @@ class FontObj:
 
         self.setText(text)                      #it is not necessary to enter a string upon initialization, 
                                                 #but it is upon time of rendering
-                                                
+        
+    def getDimensions(self):
+        self.width = self.pixelSize[0]*self.scale[0]
+        self.height = self.pixelSize[1]*self.scale[1]
 
     #sets up the vertex and texture array coordinates
     def createArrays(self):
@@ -59,7 +62,8 @@ class FontObj:
 
         self.createVerts()
         self.createTex()
-
+        self.getDimensions()
+        
     #set up vertex coordinates
     def createVerts(self):
         vtxArray = self.vtxArray
@@ -131,18 +135,21 @@ class FontObj:
                 self.scale = (width,height)
         else:
             self.scale = (float(width)/float(self.pixelSize[0]), float(height)/float(self.pixelSize[1]))
-
+        self.getDimensions()
+        
     def scaleWidth(self, width, keep_aspect_ratio = True):
         height = self.scale[1]
         if keep_aspect_ratio:
             height = self.scale[1] * (width/self.pixelSize[0])
         self.scale = (width/self.pixelSize[0], height)
-
+        self.getDimensions()
+        
     def scaleHeight(self, height, keep_aspect_ratio = True):
         width = self.scale[0]
         if keep_aspect_ratio:
             width = self.scale[0] * (height/self.pixelSize[1])
         self.scale = (width, height/self.pixelSize[1])
+        self.getDimensions()
         
     #rotates the image to the angle
     def setAngle(self, angle):
