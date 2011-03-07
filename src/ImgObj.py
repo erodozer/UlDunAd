@@ -27,6 +27,8 @@ RIGHT  = 2
 
 #an Image Object for rendering and collision detection (mouse)
 class ImgObj:
+    clickableObjs = []  #images that are clickable
+    
     def __init__(self, texture, boundable = False, frameX = 1, frameY = 1):
         self.texture = texture
 
@@ -49,6 +51,9 @@ class ImgObj:
                                                     # are taken into account
 
         self.isBoundable = boundable                #is the picture one that can be read for mouse detection
+        if self.isBoundable:                        #if it is then append to the list of clickable objects
+            ImgObj.clickableObjs.append(self)
+            
         self.bounds  = (0.0, 1.0, 0.0, 1.0)         #the bounds of the picture
         self.tBounds = []
 

@@ -90,7 +90,7 @@ class Main:
         self.clock = pygame.time.Clock()
         self.currentFPS = 60    #the currentFPS the engine is rendering at
     
-        self.w, self.h = resolution[0], resolution[1]
+        self.w, self.h, self.fullscreen = resolution[0], resolution[1], fullscreen
         sysobj.w, sysobj.h = resolution[0], resolution[1]
 
         self.data = Data()
@@ -159,8 +159,6 @@ class Main:
             image.setFrame(y = frameY)
         
         image.draw()
-        if image.isBoundable:
-            self.viewport.inputObjects.append(image)
 
     #animates an image with multiple frames
     # direction     image will animate along 0 = frameX, 1 = frameY, 2 = both

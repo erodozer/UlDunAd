@@ -196,7 +196,6 @@ class Viewport:
         self.camera = Camera(resolution)        #viewport's opengl camera
         self.scenes = []                        #scenes to render
         self.visibility = []                    #visibility of the scenes
-        self.inputObjects = []                  #list of images that can be clicked
         self.input = False                      #is the viewport in its mouse input cycle
         
         self.transitionTime = 16.0             #time it takes to transition between scenes (milliseconds)
@@ -215,8 +214,11 @@ class Viewport:
     #rendered to the screen if enabled in the uldunad.ini
     def renderInputHelp(self, scene):
         #only draw the help buttons if they exist
-        if not scene.helpButtons:
-            return 
+        try:
+            if not scene.helpButtons:   #if helpButtons is empty
+                return 
+        except AttributeError:          #if helpButtons doesn't even exist
+            return
             
         #drawing should start in the bottom right corner
         x = self.resolution[0]
@@ -264,6 +266,7 @@ class Viewport:
     def changeScene(self, scene):
         if scene not in self.scenes:
             Input.resetKeyPresses()
+            ImgObj.clickableObjs = []
             if scene == "TestScene":
                 scene = TestScene(self.engine)
             else:
@@ -282,6 +285,7 @@ class Viewport:
     #adds the passed scene
     def addScene(self, scene):
         Input.resetKeyPresses()
+        ImgObj.clickableObjs = []
         if scene == "TestScene":
             scene = TestScene(self.engine)
         else:
@@ -300,10 +304,10 @@ class Viewport:
             scene.keyPressed(key, char)
 
         for press in Input.clicks:
-            clickedImages = [image.getCollision(press) for image in self.inputObjects]
+            clickedImages = [image.getCollision(press) for image in ImgObj.clickableObjs]
             try:
                 x = clickedImages.index(True)
-                scene.buttonClicked(self.inputObjects[x])
+                scene.buttonClicked(ImgObj.clickableObjs[x])
             except ValueError:
                 continue
                 
@@ -361,7 +365,3 @@ class Viewport:
             #only the topmost scene should be checked for input
             if self.visibility[-1] >= 0.7:      #only detect when the scene is fully visible
                 self.detect(self.scenes[-1])    #checks to see if any object on the back buffer has been clicked
-                
-        #clears the clickable images at the end of each frame
-        self.imageObjects = []
-
