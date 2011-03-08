@@ -33,11 +33,8 @@ class ResolutionMenu(MenuObj):
         self.text     = FontObj(fontStyle)
         
         self.commands  = [[320,240], [640,480], [800,600], [1024,768]]
-        self.index = self.commands.index([self.engine.w, self.engine.h])
-        self.scene.resolution = self.commands[self.index]
+        self.index = self.commands.index([self.engine.changedW, self.engine.changedH])
         
-        self.fullscreen = False
-    
         self.res = WinObj(Texture(os.path.join(scenepath, "res.png")))
         self.res.transitionTime = 16.0
         self.res.setPosition(self.engine.w/2, self.engine.h/2)
@@ -49,7 +46,7 @@ class ResolutionMenu(MenuObj):
         self.moveKeys = [Input.LtButton, Input.RtButton]
         
         self.resolution = self.commands[self.index]
-        self.fullscreen = self.engine.fullscreen
+        self.fullscreen = self.engine.changedF
         
         self.scene.resolution = self.resolution
         self.scene.fullscreen = self.fullscreen
@@ -200,7 +197,7 @@ class SettingsScene(Scene):
         self.background.setPosition(self.engine.w/2, self.engine.h/2)
         
         fontStyle = self.engine.data.defaultFont
-        self.text     = FontObj(fontStyle)
+        self.text     = FontObj(fontStyle, size = 18)
         
         self.choices = ["Resolution",
                         "Volume",
@@ -261,6 +258,10 @@ class SettingsScene(Scene):
         runini.save()
         Input.create(runini, self.keys)
         
+        Input.load(runini)
+        self.engine.changedW, self.engine.changedH, self.engine.changedF = self.resolution[0], self.resolution[1], self.fullscreen
+        self.engine.volume = self.volume
+        
         self.engine.viewport.changeScene("MenuSystem")
         
     def render(self, visibility):
@@ -277,6 +278,6 @@ class SettingsScene(Scene):
         else:
             self.menu.render()
             
-        self.engine.drawText(self.text, "Changes to settings will be applied after the game is restarted.", 
+        self.engine.drawText(self.text, "Changes to resolution will be applied after the game is restarted.", 
                              position = (self.engine.w/2, 48.0))
         

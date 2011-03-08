@@ -98,6 +98,7 @@ class Main:
         self.currentFPS = 60    #the currentFPS the engine is rendering at
     
         self.w, self.h, self.fullscreen = resolution[0], resolution[1], fullscreen
+        self.changedW, self.changedH, self.changedF = self.w, self.h, self.fullscreen
         sysobj.w, sysobj.h = resolution[0], resolution[1]
         self.volume = volume
         
