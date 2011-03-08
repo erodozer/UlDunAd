@@ -32,11 +32,10 @@ class ResolutionMenu(MenuObj):
         fontStyle = self.engine.data.defaultFont
         self.text     = FontObj(fontStyle)
         
-        self.commands  = ["320x240", "640x480", "800x600", "1024x768"]
-        self.index = 1
+        self.commands  = [[320,240], [640,480], [800,600], [1024,768]]
+        self.index = self.commands.index([self.engine.w, self.engine.h])
         
-        self.resolution = [float(r) for r in self.commands[self.index].split("x")]
-        self.fullscreen= False
+        self.fullscreen = False
     
         self.res = WinObj(Texture(os.path.join(scenepath, "res.png")))
         self.res.transitionTime = 16.0
@@ -48,28 +47,35 @@ class ResolutionMenu(MenuObj):
         
         self.moveKeys = [Input.LtButton, Input.RtButton]
         
-    def update(self):
-        self.resolution = [float(r) for r in self.commands[self.index].split("x")]
-        
     def keyPressed(self, key):
         if key == self.moveKeys[0]:
             self.index = max(0, self.index-1)
         elif key == self.moveKeys[1]:
             self.index = min(self.index + 1, len(self.commands)-1)
     
+        if key == Input.AButton:
+            self.scene.resolution = self.commands[index]
+            
+        if key == Input.CButton:
+            self.fullscreen = not self.fullscreen
+            
     def render(self):
         
         self.resBack.draw()
-        w = self.resolution[0]/self.engine.w
-        h = self.resolution[1]/self.engine.h
+        w = self.resolution[self.index][0]/self.engine.w
+        h = self.resolution[self.index][1]/self.engine.h
         
         self.res.setDimensions(320.0 * w, 240.0 * h)
         self.res.draw()
         
-        self.text.setText(self.commands[self.index])
-        self.text.setPosition(self.engine.w/2, self.engine.h/2)
-        self.text.draw()
+        self.engine.drawText(self.text, "%ix%i" % (self.commands[self.index][0], self.commands[self.index][1]),
+                             position = (self.engine.w/2, self.engine.h/2))
         
+        if self.fullscreen:
+            text = "Fullscreen"
+        else:
+            text = "Windowed"
+        self.engine.drawText(self.text, text, position = (self.engine.w/2, self.engine.h*.15))
         
 class InputMenu(MenuObj):
     def __init__(self, scene):
@@ -160,7 +166,10 @@ class SettingsScene(Scene):
         self.background = ImgObj(Texture(os.path.join(scenepath, "background.png")))
         self.background.setScale(self.engine.w,self.engine.h)
         self.background.setPosition(self.engine.w/2, self.engine.h/2)
-
+        
+        fontStyle = self.engine.data.defaultFont
+        self.text     = FontObj(fontStyle)
+        
         self.choices = ["Resolution",
                         "Volume",
                         "Controls"]
@@ -173,8 +182,11 @@ class SettingsScene(Scene):
 
         self.dimension = 0  #this defines which sub-level of the menu you are on
 
+        self.resolution = (self.engine.w, self.engine.h, self.engine.fullscreen)
+        
     def buttonClicked(self, image):
-        pass
+        if self.dimension != 3 or self.dimension != 1:
+            self.menu.buttonClicked(image)
         
     def keyPressed(self, key, char): 
         if self.dimension == 1:
@@ -220,4 +232,7 @@ class SettingsScene(Scene):
             self.resMenu.render()
         else:
             self.menu.render()
+            
+        self.engine.drawText(self.text, "Changes to settings will be applied after the game is restarted.", 
+                             position = (self.engine.w/2, 48.0))
         
