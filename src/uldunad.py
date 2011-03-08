@@ -45,6 +45,7 @@ if not os.path.exists(os.path.join("uldunad.ini")):
     runini.audio.__setattr__("volume", str(10))
     runini.save()
     Input.create(runini)
+    Input.load(runini)
 else:
     runini = Configuration(os.path.join("uldunad.ini"))
     Input.load(runini)
@@ -52,9 +53,15 @@ else:
 w, h, fullscreen = runini.video.__getattr__("resolution").split("x")
 w, h = float(w), float(h)
 resolution = (int(w), int(h))
+volume = int(runini.audio.__getattr__("volume"))
+
+if fullscreen == "F":
+    fullscreen = True
+else:
+    fullscreen = False
 
 video_flags = DOUBLEBUF|OPENGL|HWPALETTE|HWSURFACE#|NOFRAME
-if fullscreen == "F":
+if fullscreen:
     video_flags |= FULLSCREEN
 
 
@@ -92,7 +99,8 @@ class Main:
     
         self.w, self.h, self.fullscreen = resolution[0], resolution[1], fullscreen
         sysobj.w, sysobj.h = resolution[0], resolution[1]
-
+        self.volume = volume
+        
         self.data = Data()
 
         self.viewport.addScene(startingScene)

@@ -34,6 +34,7 @@ class ResolutionMenu(MenuObj):
         
         self.commands  = [[320,240], [640,480], [800,600], [1024,768]]
         self.index = self.commands.index([self.engine.w, self.engine.h])
+        self.scene.resolution = self.commands[self.index]
         
         self.fullscreen = False
     
@@ -47,14 +48,19 @@ class ResolutionMenu(MenuObj):
         
         self.moveKeys = [Input.LtButton, Input.RtButton]
         
+        self.resolution = self.commands[self.index]
+        self.fullscreen = self.engine.fullscreen
+        
+        self.scene.resolution = self.resolution
+        self.scene.fullscreen = self.fullscreen
+    
     def keyPressed(self, key):
         if key == self.moveKeys[0]:
             self.index = max(0, self.index-1)
         elif key == self.moveKeys[1]:
             self.index = min(self.index + 1, len(self.commands)-1)
     
-        if key == Input.AButton:
-            self.scene.resolution = self.commands[index]
+        self.resolution = self.commands[self.index]
             
         if key == Input.CButton:
             self.fullscreen = not self.fullscreen
@@ -62,8 +68,8 @@ class ResolutionMenu(MenuObj):
     def render(self):
         
         self.resBack.draw()
-        w = self.resolution[self.index][0]/self.engine.w
-        h = self.resolution[self.index][1]/self.engine.h
+        w = self.commands[self.index][0]/self.engine.w
+        h = self.commands[self.index][1]/self.engine.h
         
         self.res.setDimensions(320.0 * w, 240.0 * h)
         self.res.draw()
@@ -76,50 +82,76 @@ class ResolutionMenu(MenuObj):
         else:
             text = "Windowed"
         self.engine.drawText(self.text, text, position = (self.engine.w/2, self.engine.h*.15))
+
+class VolumeMenu(MenuObj):
+    def __init__(self, scene):
+        
+        self.scene    = scene
+        self.engine   = scene.engine    
+        
+        scenepath = os.path.join("scenes", "menusystem", "settings")
+        
+        fontStyle = self.engine.data.defaultFont
+        self.text     = FontObj(fontStyle)
+        
+        self.volume = self.engine.volume
+        self.scene.volume = self.volume
+        
+        self.volimg = ImgObj(Texture(os.path.join(scenepath, "volume.png")), frameY = 10)
+        self.volimg.setPosition(self.engine.w/2, self.engine.h*.6)
+        
+        self.moveKeys = [Input.LtButton, Input.RtButton]
+        
+    def keyPressed(self, key):
+        if key == self.moveKeys[0]:
+            self.volume = max(0, self.volume-1)
+        elif key == self.moveKeys[1]:
+            self.volume = min(self.volume + 1, 10)
+    
+    def render(self):
+        
+        self.volimg.setFrame(y = self.volume)
+        self.volimg.draw()
+        
+        self.engine.drawText(self.text, "Volume: %i" % self.volume, 
+                             position = (self.engine.w/2, self.engine.h*.45))
+
         
 class InputMenu(MenuObj):
     def __init__(self, scene):
         self.scene    = scene
         self.engine   = scene.engine    
         
-        self.commands  = [Input.UpButton, Input.DnButton, Input.LtButton, Input.RtButton,
-                          Input.AButton, Input.BButton, Input.CButton, Input.DButton]
         self.commandStrings = ["Up", "Down", "Left", "Right", "A", "B", "C", "D"]
         
         scenepath = os.path.join("scenes", "menusystem", "settings")
         
         fontStyle = self.engine.data.defaultFont
         self.text     = FontObj(fontStyle)
-        self.text.setAlignment("left")
         self.inputMessage = FontObj(fontStyle, "Press a key", size = 48.0)
         self.inputMessage.setPosition(self.engine.w/2, self.engine.h - 48.0)
         
+
+        self.keys = [Input.UpButton, Input.DnButton, Input.LtButton, Input.RtButton,
+                     Input.AButton, Input.BButton, Input.CButton, Input.DButton]
+        self.scene.keys = [key for key in self.keys]
+
         self.moveKeys = [Input.DnButton, Input.UpButton]
         
-        self.buttons  = [0 for i in self.commands]
+        self.buttons  = [0 for i in self.keys]
         self.button = WinObj(Texture(os.path.join(scenepath, "button.png")))
         self.button.transitionTime = 0.0
                                  
-        self.position = (self.engine.w/2, self.engine.h*.8)
+        self.position = (self.engine.w/2, self.engine.h*.9)
             
         self.index = 0                  #which button is selected
         
         self.active = False
      
-    def update(self):
-        self.commands  = [Input.UpButton, Input.DnButton, Input.LtButton, Input.RtButton,
-                          Input.AButton, Input.BButton, Input.CButton, Input.DButton]
-        
+
     def keyPressed(self, key):
         if self.active:
-            if self.index == 0:   Input.UpButton = key
-            elif self.index == 1: Input.DnButton = key
-            elif self.index == 2: Input.LtButton = key
-            elif self.index == 3: Input.RtButton = key
-            elif self.index == 4: Input.AButton  = key
-            elif self.index == 5: Input.BButton  = key
-            elif self.index == 6: Input.CButton  = key
-            elif self.index == 7: Input.DButton  = key
+            self.keys[self.index] = key
             self.active = False
         else:
             
@@ -127,7 +159,7 @@ class InputMenu(MenuObj):
                 self.active = True
             
             if key == self.moveKeys[0]:
-                if self.index + 1 < len(self.commands):
+                if self.index + 1 < len(self.keys):
                     self.index += 1
                 else:
                     self.index = 0
@@ -136,21 +168,21 @@ class InputMenu(MenuObj):
                 if self.index > 0:
                     self.index -= 1
                 else:
-                    self.index = len(self.commands) - 1
+                    self.index = len(self.keys) - 1
               
     #renders the menu
     def render(self, visibility = 1.0):
         
         position = self.position[1]
         for i, button in enumerate(self.buttons):
-            self.text.setText("%s:   %s" % (self.commandStrings[i], pygame.key.name(self.commands[i])))
+            self.text.setText("%s: %s" % (self.commandStrings[i], pygame.key.name(self.keys[i])))
             self.text.scaleHeight(24.0)
             self.text.setPosition(self.position[0], position - (self.text.pixelSize[1]/2 + 16.0))
             position -= self.text.pixelSize[1] + 16.0
             
             if i == self.index:
                 self.button.setDimensions(self.engine.w/3, 24.0)
-                self.button.setPosition(self.text.position[0], self.text.position[1])
+                self.button.setPosition(self.position[0], self.text.position[1])
                 self.button.draw()
             
             self.text.draw()
@@ -176,49 +208,61 @@ class SettingsScene(Scene):
                         
         self.inputMenu = InputMenu(self)
         self.resMenu = ResolutionMenu(self)
+        self.volMenu = VolumeMenu(self)
         self.menu   = MenuObj(self, self.choices, position = (self.engine.w/2, self.engine.h/2))
         
         self.menuButton = ImgObj(Texture(os.path.join(scenepath, "button.png")), frameY = 2)
 
         self.dimension = 0  #this defines which sub-level of the menu you are on
 
-        self.resolution = (self.engine.w, self.engine.h, self.engine.fullscreen)
-        
     def buttonClicked(self, image):
         if self.dimension != 3 or self.dimension != 1:
             self.menu.buttonClicked(image)
         
     def keyPressed(self, key, char): 
-        if self.dimension == 1:
+        if self.dimension != 0:
             if key == Input.BButton:
+                if self.dimension == 3:
+                    self.keys = self.inputMenu.keys
+                elif self.dimension == 2:
+                    self.volume = self.volMenu.volume
+                elif self.dimension == 1:
+                    self.resolution = self.resMenu.resolution
+                    self.fullscreen = self.resMenu.fullscreen
                 self.dimension = 0
                 return
+            
+        if self.dimension == 1:
             self.resMenu.keyPressed(key)
+        elif self.dimension == 2:
+            self.volMenu.keyPressed(key)
         elif self.dimension == 3:
-            if key == Input.BButton and not self.inputMenu.active:
-                self.dimension = 0
-                return
             self.inputMenu.keyPressed(key)
         else:
             self.menu.keyPressed(key)
             #close the menu scene
             if key == Input.BButton:
-                self.engine.viewport.changeScene("MenuSystem")
+                self.end()
 
     def select(self, index):
         if self.dimension == 0:
-            if index == 2:
-                self.dimension = 3
-            if index == 0:
-                self.dimension = 1
-        
-    def run(self):
-        if self.dimension == 3:
-            self.inputMenu.update()
-        elif self.dimension == 1:
-            self.resMenu.update()
-        
+            self.dimension = index + 1
 
+    #closes the scene and saves options to the uldunad.ini
+    def end(self):
+        Configuration(os.path.join("uldunad.ini")).save()
+        runini = Configuration(os.path.join("uldunad.ini"))
+        if self.fullscreen:
+            f = "F"
+        else:
+            f = "W"
+        runini.video.__setattr__("resolution", str(self.resolution[0]) + "x" + str(self.resolution[1]) + "x" + f)
+        runini.audio.__setattr__("volume", str(self.volume))
+        runini.save()
+        Input.create(runini, self.keys)
+        
+        self.engine.viewport.changeScene("MenuSystem")
+        
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
 
@@ -227,7 +271,7 @@ class SettingsScene(Scene):
         if self.dimension == 3:
             self.inputMenu.render()
         elif self.dimension == 2:
-            pass
+            self.volMenu.render()
         elif self.dimension == 1:
             self.resMenu.render()
         else:
