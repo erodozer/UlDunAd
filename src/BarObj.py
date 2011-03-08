@@ -13,9 +13,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 
 import numpy as np
-from numpy import array, float32
-
-import array
+from numpy import array, float32, int8
 
 from math import *
 
@@ -59,9 +57,9 @@ class BarObj:
         
         #  0  1  2  3
         #  4  5  6  7
-        self.indexArray = [0,   1,  5,  4,
-                           1,   2,  6,  5,
-                           2,   3,  7,  6]
+        self.indexArray = np.array([0,   1,  5,  4,
+                                    1,   2,  6,  5,
+                                    2,   3,  7,  6], dtype = int8)
 
         self.createVerts()
         self.createTex()

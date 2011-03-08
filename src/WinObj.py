@@ -13,9 +13,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 
 import numpy as np
-from numpy import array, float32
-
-import array
+from numpy import array, float32, int8
 
 from math import *
 
@@ -52,7 +50,8 @@ class WinObj:
         #  4  5  6  7
         #  8  9 10 11
         # 12 13 14 15
-        self.indexArray = [0,   1,  5,  4,
+        self.indexArray = np.array(
+                          [0,   1,  5,  4,
                            1,   2,  6,  5,
                            2,   3,  7,  6,
                            4,   5,  9,  8,
@@ -60,7 +59,7 @@ class WinObj:
                            6,   7, 11, 10,
                            8,   9, 13, 12,
                            9,  10, 14, 13,
-                           10, 11, 15, 14]
+                           10, 11, 15, 14], dtype=int8)
 
         self.createVerts()
         self.createTex()
