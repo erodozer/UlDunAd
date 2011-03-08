@@ -25,13 +25,14 @@ from FontObj import FontObj
 
 #a window created to be used as a background for images
 class TitledWinObj:
-    def __init__(self, window, bar, font, caption, width = 64, height = 64, ):
+    def __init__(self, window, font, caption, width = 64, height = 64, bar = None):
         
         self.window = window
-        self.bar = bar
         self.font = font
         
-        self.bar.setAlignment("center")
+        self.bar = bar
+        if isinstance(bar, BarObj):
+            self.bar.setAlignment("center")
         
         #attributes
         self.scale       = [width, height]          #image bounds (width, height)
@@ -47,10 +48,13 @@ class TitledWinObj:
     def setPosition(self, x, y):
         self.position = (x, y)
         self.window.setPosition(x, y)
-        self.bar.setPosition(self.window.position[0], 
-                             self.window.position[1] + self.window.scale[1]/2 + 
-                                            self.bar.pixelSize[1]/2)
-        self.font.setPosition(self.bar.position[0], self.bar.position[1])
+        if isinstance(self.bar, BarObj):
+            self.bar.setPosition(self.window.position[0], 
+                                 self.window.position[1] + self.window.scale[1]/2 + 
+                                                self.bar.pixelSize[1]/2)
+            self.font.setPosition(self.bar.position[0], self.bar.position[1])
+        else:
+            self.font.setPosition(x, y + self.window.scale[1]/2 - self.font.height/2 - 5)
         
     def setCaption(self, caption):
         self.font.setText(caption)
@@ -59,16 +63,23 @@ class TitledWinObj:
     #changes the size of the image and scales the surface
     def setDimensions(self, width, height):
         self.window.setDimensions(width, height)
-        self.bar.setLength(self.window.scale[0])
-        self.bar.setPosition(self.window.position[0], 
-                             self.window.position[1] + self.window.scale[1]/2 + 
-                                        self.bar.pixelSize[1]/2)
+        if isinstance(self.bar, BarObj):
+            self.bar.setLength(self.window.scale[0])
+            self.bar.setPosition(self.window.position[0], 
+                                 self.window.position[1] + self.window.scale[1]/2 + 
+                                            self.bar.pixelSize[1]/2)
         if self.window.scale[0] == width and self.window.scale[1] == height:
-            self.font.scaleHeight(self.bar.pixelSize[1]-10.0)
-            self.font.setPosition(self.bar.position[0], self.bar.position[1])
+            if isinstance(self.bar, BarObj):
+                self.font.scaleHeight(self.bar.pixelSize[1]-10.0)
+                self.font.setPosition(self.bar.position[0], self.bar.position[1])
+            else:
+                self.font.scaleHeight(self.window.pixelSize[1]/3 - 10.0)
+                self.font.setPosition(self.window.position[0], 
+                                      self.window.position[1] + self.window.scale[1]/2 - self.font.height/2 - 5)
                 
     #finally draws the image to the screen
     def draw(self):
         self.window.draw()
-        self.bar.draw()
+        if isinstance(self.bar, BarObj):
+            self.bar.draw()
         self.font.draw()

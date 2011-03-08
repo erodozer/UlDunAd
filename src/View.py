@@ -70,12 +70,20 @@ class TestScene(Scene):
         #tests drawing of windows
         self.window     = WinObj(Texture(os.path.join(scenepath, "window.png")), 300, 128)
         self.size       = 0
+        #titled window with title bar
         self.titleWinEx = TitledWinObj(WinObj(Texture(os.path.join(scenepath, "window2.png"))),
+                                       FontObj("default.ttf"),
+                                       "Testing",
+                                       256, 256,
                                        BarObj(Texture(os.path.join(scenepath, "titlebar.png"))),
+                                       )
+        self.titleWinEx.setPosition(self.engine.w*.75, self.engine.h/2)
+        #without title bar
+        self.titleWinEx2 = TitledWinObj(WinObj(Texture(os.path.join(scenepath, "window2.png"))),
                                        FontObj("default.ttf"),
                                        "Testing",
                                        256, 256)
-        self.titleWinEx.setPosition(self.engine.w*.75, self.engine.h/2)
+        self.titleWinEx2.setPosition(self.engine.w*.25, self.engine.h/2)
         
         #tests drawing of images, sliding, and spinning
         self.background = ImgObj(Texture(os.path.join(scenepath, "background.png")))
@@ -205,6 +213,7 @@ class TestScene(Scene):
         self.bar.draw()
       
         self.titleWinEx.draw()
+        self.titleWinEx2.draw()
 
 #this is the main viewport/engine
 #it handles the mouse input, the opengl window
