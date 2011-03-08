@@ -62,20 +62,31 @@ class TestScene(Scene):
         self.font.setPosition(5, self.engine.h-20)
         self.font.setAlignment("left")
         
-        self.updateRate = 100           #updates the clock after this many milliseconds
+        scenepath = os.path.join("scenes", "test")
+        self.updateRate = 100           #updates the fps clock after this many milliseconds
         self.counter = 0                #update counter
         
+        
         #tests drawing of windows
-        self.window     = WinObj(Texture("window.png"), 300, 128)
+        self.window     = WinObj(Texture(os.path.join(scenepath, "window.png")), 300, 128)
         self.size       = 0
+        self.titleWinEx = TitledWinObj(WinObj(Texture(os.path.join(scenepath, "window2.png"))),
+                                       BarObj(Texture(os.path.join(scenepath, "titlebar.png"))),
+                                       FontObj("default.ttf"),
+                                       "Testing",
+                                       256, 256)
+        self.titleWinEx.setPosition(self.engine.w*.75, self.engine.h/2)
         
         #tests drawing of images, sliding, and spinning
-        self.test       = [ImgObj(Texture("test.png")), 0, 0]
-        self.bar        = BarObj(Texture("bar.png"), 128)
+        self.background = ImgObj(Texture(os.path.join(scenepath, "background.png")))
+        self.background.setPosition(self.engine.w/2, self.engine.h/2)
+        self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
+        self.test       = [ImgObj(Texture(os.path.join(scenepath, "test.png"))), 0, 0]
+        self.bar        = BarObj(Texture(os.path.join(scenepath, "bar.png")), 128)
         self.bar.setPosition(self.engine.w*.5, self.engine.h*.5)
         
         #animation testing
-        self.sprite = ImgObj(Texture("testsprite.png"), frameX = 4)
+        self.sprite = ImgObj(Texture(os.path.join(scenepath, "testsprite.png")), frameX = 4)
         self.sprite.setPosition(self.engine.w * .8, self.engine.h * .8)
         #self.sprite.setScale(1.0, 1.0)
         self.spriteSize = 0
@@ -83,6 +94,11 @@ class TestScene(Scene):
         #tests camera focus
         self.zoomedIn = False
         
+        self.helpButtons = [[Input.AButton, "Zoom in/out"],
+                            [Input.BButton, "Change window example scaling"],
+                            [Input.CButton, "Scale the sprite"],
+                            [Input.DButton, "Slides test image"]]
+                            
     def buttonPressed(self, image):
         if image == self.image2:
             print 1
@@ -143,6 +159,8 @@ class TestScene(Scene):
     def render(self, visibility):
         w, h = self.engine.w, self.engine.h
         
+        self.background.draw()
+        
         positions = [(w/2,h), 
                      (w,h/2), 
                      (w/2,0),
@@ -185,7 +203,9 @@ class TestScene(Scene):
         self.font.draw()
         
         self.bar.draw()
-                
+      
+        self.titleWinEx.draw()
+
 #this is the main viewport/engine
 #it handles the mouse input, the opengl window
 #and which scenes are being rendered.
