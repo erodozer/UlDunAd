@@ -279,6 +279,7 @@ class Viewport:
                     self.inputButtons[0].setAngle(270)
             #letter buttons
             else:
+                self.inputButtons[0].setAngle(0)
                 if help[0] == Input.AButton:
                     self.inputButtons[0].setFrame(y=1)
                 elif help[0] == Input.BButton:
