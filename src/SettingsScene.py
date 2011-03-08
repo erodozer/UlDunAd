@@ -31,6 +31,7 @@ class ResolutionMenu(MenuObj):
         
         fontStyle = self.engine.data.defaultFont
         self.text     = FontObj(fontStyle)
+        self.smallText = FontObj("default.ttf", size = 18)
         
         self.commands  = [[320,240], [640,480], [800,600], [1024,768]]
         self.index = self.commands.index([self.engine.changedW, self.engine.changedH])
@@ -51,6 +52,10 @@ class ResolutionMenu(MenuObj):
         self.scene.resolution = self.resolution
         self.scene.fullscreen = self.fullscreen
     
+        self.helpButtons = [[self.moveKeys[0], "Decrease resolution"],
+                          [self.moveKeys[1], "Increase resolution"],
+                          [Input.CButton, "Fullscreen toggle"]]
+                          
     def keyPressed(self, key):
         if key == self.moveKeys[0]:
             self.index = max(0, self.index-1)
@@ -65,8 +70,8 @@ class ResolutionMenu(MenuObj):
     def render(self):
         
         self.resBack.draw()
-        w = self.commands[self.index][0]/self.engine.w
-        h = self.commands[self.index][1]/self.engine.h
+        w = float(self.commands[self.index][0])/self.engine.w
+        h = float(self.commands[self.index][1])/self.engine.h
         
         self.res.setDimensions(320.0 * w, 240.0 * h)
         self.res.draw()
@@ -78,7 +83,10 @@ class ResolutionMenu(MenuObj):
             text = "Fullscreen"
         else:
             text = "Windowed"
-        self.engine.drawText(self.text, text, position = (self.engine.w/2, self.engine.h*.15))
+        self.engine.drawText(self.text, text, position = (self.engine.w/2, self.engine.h*.2))
+
+        self.engine.drawText(self.smallText, "Changes to resolution will be applied after the game is restarted.", 
+                             position = (self.engine.w/2, 64.0))
 
 class VolumeMenu(MenuObj):
     def __init__(self, scene):
@@ -99,6 +107,9 @@ class VolumeMenu(MenuObj):
         
         self.moveKeys = [Input.LtButton, Input.RtButton]
         
+        self.helpButtons = [[self.moveKeys[0], "Decrease Volume"],
+                          [self.moveKeys[1], "Increase Volume"]]
+                          
     def keyPressed(self, key):
         if key == self.moveKeys[0]:
             self.volume = max(0, self.volume-1)
@@ -145,6 +156,9 @@ class InputMenu(MenuObj):
         
         self.active = False
      
+        self.helpButtons = [[self.moveKeys[0], "Scroll Up"],
+                          [self.moveKeys[1], "Scroll Down"],
+                          [Input.AButton, "Select button to change"]]
 
     def keyPressed(self, key):
         if self.active:
@@ -212,8 +226,22 @@ class SettingsScene(Scene):
 
         self.dimension = 0  #this defines which sub-level of the menu you are on
 
+        self.helpButtons = []
+        
+    def run(self):
+        if self.dimension == 3:
+            self.helpButtons = self.inputMenu.helpButtons
+        elif self.dimension == 2:
+            self.helpButtons = self.volMenu.helpButtons
+        elif self.dimension == 1:
+            self.helpButtons = self.resMenu.helpButtons
+        else:
+            self.helpButtons = [[Input.AButton, "Select option"],
+                              [Input.UpButton, "Scroll up"],
+                              [Input.DnButton, "Scroll down"]]
+                              
     def buttonClicked(self, image):
-        if self.dimension != 3 or self.dimension != 1:
+        if self.dimension == 0:
             self.menu.buttonClicked(image)
         
     def keyPressed(self, key, char): 
@@ -277,7 +305,4 @@ class SettingsScene(Scene):
             self.resMenu.render()
         else:
             self.menu.render()
-            
-        self.engine.drawText(self.text, "Changes to resolution will be applied after the game is restarted.", 
-                             position = (self.engine.w/2, 48.0))
         
