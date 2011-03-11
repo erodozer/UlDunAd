@@ -357,7 +357,8 @@ class Family:
         self.difficulty = familyini.__getattr__("difficulty", int)  
        
     #creates a new family .ini 
-    def create(self, name, difficulty, gold = 0, inventory = [[]]):
+    #by default a family starts with 100 gold and five potions and 1 ether
+    def create(self, name, difficulty, gold = 100, inventory = [[Item("potion"), 5], [Item("ether"), 1]]):
         path = os.path.join("..", "data", "actors", "families", name)
         if not os.path.exists(path):
             os.mkdir(path)
