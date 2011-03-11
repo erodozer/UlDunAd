@@ -172,6 +172,10 @@ class BattleMenu(MenuObj):
         
         self.basicCommands = ["Attack", "Tactical", "Item", "Spell/Tech"] #basic command menu
         self.attackCommands = ["Normal", "Strong", "Accurate"] #attack menu
+        
+        if character.equipment[character.hand].attack:
+            self.attackCommands.append("Combo")
+            
         self.tactCommands = ["Boost", "Defend", "Flee"]     #tactical menu
         self.itemCommands = self.engine.family.inventory    #item menu
         self.techCommands = character.skills                #character's list of skills
@@ -491,10 +495,32 @@ class BattleSystem(Scene):
         
         #victory!
         self.victoryPanel = None
-        
+
+        self.comboIndex = 0
+        self.comboDone = True
+        self.comboTimer = 0
+           
+        #images used for displaying the input combo 
+        self.inputButtons = [ImgObj(Texture("inputButtons.png"), frameY = 5),
+                             FontObj("default.ttf", size = 16)]
+        self.inputButtons[0].setScale(96,96, inPixels = True)
+
     def keyPressed(self, key, char):
         if self.battling:
-            return
+            if isinstance(self.activeActor, Character):
+                aC = self.activeActor   #active character
+                if aC.performingCombo and self.comboTimer > 0:
+                    combo = aC.equipment[aC.hand].attack
+                    if key == combo[self.comboIndex]:
+                        self.comboIndex += 1
+                        if self.comboIndex >= len(combo):
+                            self.comboDone = True
+                            aC.comboComplete = True
+                    else:
+                        self.comboDone = True
+                        aC.comboComplete = False
+                        self.comboTimer = 0
+                    
             
         if self.introDelay > 0:
             return
@@ -538,7 +564,14 @@ class BattleSystem(Scene):
             self.lose = True
         
         if self.battling:
-            self.execute()
+            activeChar = self.party[self.active]
+            if activeChar.performingCombo and not self.comboTimer <= 0:
+                self.comboTimer -= 10
+                if self.comboTimer <= 0:
+                    activeChar.comboComplete = False
+                    
+            if self.comboTimer <= 0:
+                self.execute()
         
     #organizes all the turns for order of execution
     def battleStart(self):
@@ -653,6 +686,9 @@ class BattleSystem(Scene):
                 self.active = -1
                 self.next()
             self.activeActor = self.order[self.turn][0]
+            if isinstance(self.activeActor, Character):
+                if self.activeActor.performingCombo:
+                    self.comboTimer = self.activeActor.equipment[self.activeActor.hand].time
         else:
             self.active += 1
             if self.active < len(self.party):
@@ -686,21 +722,64 @@ class BattleSystem(Scene):
     #draws the pointer arrows and the command menus
     def renderInterface(self, visibility):
         if self.active < len(self.party):
-                sprite = self.party[self.active].getSprite()
-                self.pointer.setScale(32,32,inPixels = True)
-                self.pointer.setPosition(sprite.position[0], sprite.position[1] + sprite.height/2 + 20)
-                self.pointer.setFrame(x = 1)
-                self.pointer.draw()
+            sprite = self.party[self.active].getSprite()
+            self.pointer.setScale(32,32,inPixels = True)
+            self.pointer.setPosition(sprite.position[0], sprite.position[1] + sprite.height/2 + 20)
+            self.pointer.setFrame(x = 1)
+            self.pointer.draw()
                 
-                if self.targeting:
-                    self.eHuds[self.commandWheel.index].update()
-                    self.eHuds[self.commandWheel.index].draw()
-                    target = self.formation[self.commandWheel.index].getSprite()
-                    self.pointer.setPosition(target.position[0], target.position[1] + target.height/2 + 20)
-                    self.pointer.setFrame(x = 2)
-                    self.pointer.draw()
-                self.commandWheel.render(visibility)
-      
+            if self.targeting:
+                self.eHuds[self.commandWheel.index].update()
+                self.eHuds[self.commandWheel.index].draw()
+                target = self.formation[self.commandWheel.index].getSprite()
+                self.pointer.setPosition(target.position[0], target.position[1] + target.height/2 + 20)
+                self.pointer.setFrame(x = 2)
+                self.pointer.draw()
+            self.commandWheel.render(visibility)
+    
+    def getButtonImage(self, key):
+        #directional buttons
+        if (key == Input.UpButton or
+            key == Input.DnButton or
+            key == Input.LtButton or
+            key == Input.RtButton):
+            frame = 5
+            if key == Input.UpButton:
+                angle = 0
+            elif key == Input.RtButton:
+                angle = 90
+            elif key == Input.DnButton:
+                angle = 180
+            else:
+                angle = 270
+        #letter buttons
+        else:
+            angle = 0
+            if key == Input.AButton:
+                frame = 1
+            elif key == Input.BButton:
+                frame = 2
+            elif key == Input.CButton:
+                frame = 3
+            else:
+                frame = 4
+        return frame, angle
+
+    #renders the input window for entering weapon combos
+    def renderInputCombo(self, visibility):
+        
+        aC = self.activeActor
+        key = aC.equipment[aC.hand].attack[self.comboIndex]
+        frame, angle = self.getButtonImage(key)
+        
+        self.engine.drawImage(self.inputButtons[0], position = (self.engine.w/2, self.engine.h/2),
+                              angle = angle, color = (1,1,1,1), frameY = frame)
+        
+        key = aC.equipment[aC.hand].attack[self.comboIndex+1]
+        frame, angle = self.getButtonImage(key)
+        self.engine.drawImage(self.inputButtons[0], position = (self.engine.w/2 + self.inputButtons[0].width + 10.0, self.engine.h/2),
+                              angle = angle, color = (1,1,1,.5), frameY = frame)
+        
     #renders the active highlight and damage
     def renderBattle(self, visibility):
         actor = self.activeActor
