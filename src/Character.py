@@ -368,7 +368,7 @@ class Family:
         familyini.family.__setattr__("gold", int(gold))
         inv = []
         for i in inventory:
-            inv.append(":".join(i))
+            inv.append(":".join([i[0].name, "%i"%i[1]]))
         familyini.family.__setattr__("inventory", "|".join(inv))
 
         familyini.save()
