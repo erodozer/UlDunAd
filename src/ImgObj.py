@@ -290,7 +290,7 @@ class ImgObj:
         glTranslatef(x, self.position[1], -.1)
             
         glScalef(self.scale[0], self.scale[1], 1.0)
-        glRotatef(self.angle, 0, 0, 1)
+        glRotatef(-self.angle, 0, 0, 1)
         
         self.texture.bind()
 
