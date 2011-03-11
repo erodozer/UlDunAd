@@ -112,11 +112,6 @@ class BattleSystem(Scene):
         self.additionHUD = None
 
     def keyPressed(self, key, char):
-        if self.battling:
-            if self.additionHUD:
-                self.additionHUD.keyPressed(key)
-            return
-            
         if self.introDelay > 0:
             return
             
@@ -124,6 +119,11 @@ class BattleSystem(Scene):
             self.loseMenu.keyPressed(key)
         elif self.victoryPanel:
             self.victoryPanel.keyPressed(key)
+        elif self.battling:
+            if self.additionHUD:
+                self.additionHUD.keyPressed(key)
+            return
+            
         else:
             if key == Input.BButton:
                 if self.commandWheel.step == 0:
@@ -282,7 +282,7 @@ class BattleSystem(Scene):
                 self.totalTurns += 1
             self.displayDelay = 0
             self.turn += 1
-            if self.turn >= len(self.order):
+            if self.turn >= len(self.order) or len(self.formation) == 0:
                 self.battling = False
                 self.turn = 0
                 self.active = -1
