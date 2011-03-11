@@ -208,16 +208,19 @@ class Character(Actor):
 
     def calculateDamage(self):
         #first was calculate to see if the actor hits his target
-        if not self.performingCombo:
-            hit = (self.proficiency*2) - self.target.evd >= self.target.evd*1.5
-        else:
+        if self.performingCombo:
             hit = self.comboComplete
+        else:
+            hit = (self.proficiency*2) - self.target.evd >= self.target.evd*1.5
             
         if hit:
             if self.cast:
                 self.damage = (self.mag + self.command.damage) - (self.target.res * 1.368295)
             elif self.attacking:
-                self.damage = self.str - (self.target.defn * 1.368295)
+                if self.performingCombo:
+                    self.damage = (self.str*1.25 - (self.target.defn * 1.368295))*len(self.equipment[self.hand].attack)
+                else:
+                    self.damage = self.str - (self.target.defn * 1.368295)
             self.damage = max(0, int(self.damage))
         else:
             self.damage = "Miss"
