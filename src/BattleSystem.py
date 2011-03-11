@@ -33,12 +33,6 @@ class BattleHUDCharacter:
         self.x, self.y = position
         
         scenepath = os.path.join("scenes", "battlesystem")
-        
-        #hud back
-        #self.hudtex = Texture(os.path.join(scenepath, "battlehud.png"))
-        #self.hudImg = ImgObj(self.hudtex)
-        #self.hudImg.setAlignment("left")
-        #self.hudImg.setPosition(self.x, self.y)
 
         #font used in the hud for displaying HP by number and name of the character
         self.font   = FontObj("default.ttf")
@@ -145,8 +139,59 @@ class BattleHUDEnemy:
         self.font.setPosition(self.x + 5, self.y + 15)
         self.font.draw()
 
-        
+#this is the hud that displays the hp and name of the active actor and its target
+class BattleHUDEngage:
+    def __init__(self, actor):
+        self.actor = actor
 
+        scenepath = os.path.join("scenes", "battlesystem")
+        
+        #font used in the hud for displaying HP by number and name of the character
+        self.font   = FontObj("default.ttf")
+        self.font.setAlignment("left")
+
+        #these are for drawing the HP and FP bars
+        #each bar consists of 3 textures
+        self.hpBar = [ImgObj(Texture(os.path.join(scenepath, "bottom_bar.png"))),
+                      BarObj(Texture(os.path.join(scenepath, "hp_bar.png"))), 
+                      ImgObj(Texture(os.path.join(scenepath, "top_bar.png")))]
+        self.hpBar[0].setAlignment("left")
+        self.hpBar[2].setAlignment("left")
+        
+        self.setPosition(0, 15)
+       
+    def setPosition(self, x, y):
+        self.x = x
+        self.y = y
+        
+        for bar in self.hpBar:
+            bar.setPosition(x + 10, y - 5)
+
+    def draw(self):
+
+        self.hpBar[1].setLength(self.hpBar[0].width*(float(self.actor.currentHP)/float(self.actor.hp)))
+        for bar in self.hpBar:
+            bar.draw()
+
+        self.font.setText(self.actor.name)
+        self.font.setAlignment('left')
+        self.font.scaleHeight(32.0)
+        self.font.setPosition(self.x + 5, self.y + 15)
+        self.font.draw()        
+
+        self.setPosition(self.x + 300, self.y)
+        
+        self.hpBar[1].setLength(self.hpBar[0].width*(float(self.actor.target.currentHP)/float(self.actor.target.hp)))
+        for bar in self.hpBar:
+            bar.draw()
+
+        self.font.setText(self.actor.target.name)
+        self.font.setAlignment('left')
+        self.font.scaleHeight(32.0)
+        self.font.setPosition(self.x + 5, self.y + 15)
+        self.font.draw()        
+
+        
 class BattleMenu(MenuObj):
     def __init__(self, scene, character):
         self.scene = scene
@@ -173,7 +218,7 @@ class BattleMenu(MenuObj):
         self.basicCommands = ["Attack", "Tactical", "Item", "Spell/Tech"] #basic command menu
         self.attackCommands = ["Normal", "Strong", "Accurate"] #attack menu
         
-        if character.equipment[character.hand].attack:
+        if character.equipment[character.hand].attack is not []:
             self.attackCommands.append("Combo")
             
         self.tactCommands = ["Boost", "Defend", "Flee"]     #tactical menu
@@ -210,29 +255,25 @@ class BattleMenu(MenuObj):
                 else:
                     commands = self.basicCommands
                 
-                if self.index + 1< len(commands):
+                if self.index + 1 < len(commands):
                     self.index += 1
             
                 
         #overrides default a button pressing
         if key == Input.AButton:
             if self.step == 0:
-                if self.index == 0:
-                    self.step = 1       #attacking menu
-                elif self.index == 1:
-                    self.step = 2       #tactical menu
-                elif self.index == 2:
-                    self.step = 3       #item menu
-                elif self.index == 3:
-                    self.step = 4       #skill menu
+                self.step = self.index + 1
+                #1 - attacking menu
+                #2 - tactical menu
+                #3 - item menu
+                #4 - skill menu
             elif self.step == 1:
-                if self.index == 1:     #strong attack
-                    self.character.power = 1
-                elif self.index == 2:   #accurate attack
-                    self.character.power = 2
-                else:                   #normal attack
-                    self.character.power = 0
+                if self.index < 3:
+                    self.character.power = self.index   #0 - normal, 1 - strong, 2 - accurate
+                else:
+                    self.character.performingCombo = True
                 self.character.attacking = True
+                
                 #if the cost is more than the character can spend then prevent the action
                 if self.character.getFPCost() > self.character.fp:
                     return
@@ -459,7 +500,8 @@ class BattleSystem(Scene):
 
         self.huds = [BattleHUDCharacter(character) for character in self.party] #player huds
         self.eHuds = [BattleHUDEnemy(enemy) for enemy in self.formation]        #enemy hud
-        self.commandWheel = BattleMenu(self, self.party[0])
+        self.engageHud = None                                                   #battle engage hud
+        self.commandWheel = BattleMenu(self, self.party[0])                     #player's commands
         self.inMenu = False
 
         self.active = 0         #which character is currently selecting commands
@@ -497,7 +539,6 @@ class BattleSystem(Scene):
         self.victoryPanel = None
 
         self.comboIndex = 0
-        self.comboDone = True
         self.comboTimer = 0
            
         #images used for displaying the input combo 
@@ -514,13 +555,12 @@ class BattleSystem(Scene):
                     if key == combo[self.comboIndex]:
                         self.comboIndex += 1
                         if self.comboIndex >= len(combo):
-                            self.comboDone = True
                             aC.comboComplete = True
+                            self.comboIndex = 0
                     else:
-                        self.comboDone = True
                         aC.comboComplete = False
                         self.comboTimer = 0
-                    
+            return
             
         if self.introDelay > 0:
             return
@@ -564,11 +604,12 @@ class BattleSystem(Scene):
             self.lose = True
         
         if self.battling:
-            activeChar = self.party[self.active]
-            if activeChar.performingCombo and not self.comboTimer <= 0:
-                self.comboTimer -= 10
-                if self.comboTimer <= 0:
-                    activeChar.comboComplete = False
+            activeChar = self.activeActor
+            if isinstance(activeChar, Character):
+                if activeChar.performingCombo and self.comboTimer > 0:
+                    self.comboTimer -= .5
+                    if self.comboTimer <= 0:
+                        activeChar.comboComplete = False
                     
             if self.comboTimer <= 0:
                 self.execute()
@@ -674,9 +715,11 @@ class BattleSystem(Scene):
     #advances the character for command selection
     def next(self):
         if self.battling:
-            self.order[self.turn][0].turnEnd()
+            self.activeActor.turnEnd()
+            self.comboTimer = 0
+            self.comboIndex = 0
             #if a character in the user's party just acted, then increment the number of total turns
-            if isinstance(self.order[self.turn][0], Character):
+            if isinstance(self.activeActor, Character):
                 self.totalTurns += 1
             self.displayDelay = 0
             self.turn += 1
@@ -689,6 +732,10 @@ class BattleSystem(Scene):
             if isinstance(self.activeActor, Character):
                 if self.activeActor.performingCombo:
                     self.comboTimer = self.activeActor.equipment[self.activeActor.hand].time
+            if self.activeActor.target:
+                self.engageHud = BattleHUDEngage(self.activeActor)
+            else:
+                self.engageHud = None
         else:
             self.active += 1
             if self.active < len(self.party):
@@ -775,10 +822,13 @@ class BattleSystem(Scene):
         self.engine.drawImage(self.inputButtons[0], position = (self.engine.w/2, self.engine.h/2),
                               angle = angle, color = (1,1,1,1), frameY = frame)
         
-        key = aC.equipment[aC.hand].attack[self.comboIndex+1]
-        frame, angle = self.getButtonImage(key)
-        self.engine.drawImage(self.inputButtons[0], position = (self.engine.w/2 + self.inputButtons[0].width + 10.0, self.engine.h/2),
-                              angle = angle, color = (1,1,1,.5), frameY = frame)
+        if self.comboIndex + 1 < len(aC.equipment[aC.hand].attack):
+            key = aC.equipment[aC.hand].attack[self.comboIndex+1]
+            frame, angle = self.getButtonImage(key)
+            self.engine.drawImage(self.inputButtons[0], position = (self.engine.w/2 + self.inputButtons[0].width + 10.0, self.engine.h/2),
+                                    angle = angle, color = (1,1,1,.5), frameY = frame)
+        
+        self.engine.drawText(self.text, self.comboTimer, position = (self.engine.w/2, self.engine.h/2 - 100))
         
     #renders the active highlight and damage
     def renderBattle(self, visibility):
@@ -789,6 +839,10 @@ class BattleSystem(Scene):
         self.activeHighlight.setPosition(pos[0], pos[1])
         self.activeHighlight.setScale(actor.getSprite().width, 16, True)
         self.activeHighlight.draw()
+            
+        if self.comboTimer > 0:
+            self.renderInputCombo(visibility)
+            return
             
         if actor.target != None and self.displayDelay < 100:
             pos = actor.target.getSprite().position    
@@ -801,6 +855,9 @@ class BattleSystem(Scene):
                 color = (1,1,1,1)
             self.engine.drawText(self.text, actor.damage, position = (pos[0], y), color = color)
       
+        if actor.target != None and self.engageHud:
+            self.engageHud.draw()
+        
     #renders the spiffy intro animation
     def renderIntro(self, visibility):
         if self.introDelay > 450:
