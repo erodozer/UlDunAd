@@ -1,4 +1,5 @@
 from sysobj import *
+import Input
         
 class VictoryPanel:
     def __init__(self, scene, turns):
