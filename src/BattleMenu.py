@@ -62,6 +62,8 @@ class BattleMenu(MenuObj):
             else:
                 if self.step == 1:
                     commands = self.attackCommands
+                elif self.step == 2:
+                    commands = self.tactCommands
                 elif self.step == 5:
                     commands = self.scene.targetMenu
                 else:
