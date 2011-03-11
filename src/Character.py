@@ -318,21 +318,23 @@ class Family:
             self.party = self.members[0:len(self.members)]
 
         #the items your family has
-        items = [n.strip() for n in familyini.__getattr__("inventory").split(",")]
         self.inventory = []
-        for item in items:
-            path = os.path.join("..", "data", "items", item)
+        inv = [n.strip().split(":") for n in familyini.__getattr__("inventory").split("|")]
+        for n in inv:
+            if not len(n) == 2:
+                continue
+
+            path = os.path.join("..", "data", "items", n[0])
             if os.path.exists(path):
-                ini = Configuration(os.path.join("..", "data", "items", item, "item.ini"))
+                ini = Configuration(os.path.join(path, "item.ini"))
                 #detecting what type of item it is
                 if ini.parser.has_section("weapon"):
-                    items.append(Weapon(item))
+                    self.inventory.append([Weapon(n[0]), int(n[1])])
                 elif ini.parser.has_section("armor"):
-                    items.append(Armor(item))
+                    self.inventory.append([Armor(n[0]), int(n[1])])
                 else:
-                    items.append(Item(item))
-                
-            
+                    self.inventory.append([Item(n[0]), int(n[1])])
+        
         #amount of money your family possesses
         self.gold = familyini.__getattr__("gold", int)
         #gameplay difficulty (0 - easy, 1- normal, 2 - hard)

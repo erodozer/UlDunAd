@@ -173,7 +173,9 @@ class MenuSystem(Scene):
 
     def select(self, index):
         if self.dimension == 0:
-            if index == 1:      #character
+            if index == 0:      #inventory
+                self.engine.viewport.changeScene("InventoryScene")
+            elif index == 1:    #character
                 self.dimension = 1
             elif index == 2:    #settings
                 self.engine.viewport.changeScene("SettingsScene")
