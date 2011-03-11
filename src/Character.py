@@ -77,8 +77,8 @@ class Character(Actor):
 
         #there are 10 pieces of equipment one can wear
         #left hand weapon, right hand weapon, helm, armor, legs, feet, gloves, and 3 accessories
-        self.equipment = [Weapon(equipSection.__getattr__("left hand")),
-                          Weapon(equipSection.__getattr__("right hand")),
+        self.equipment = [Weapon(equipSection.__getattr__("right hand")),
+                          Weapon(equipSection.__getattr__("left hand")),
                           Armor(equipSection.__getattr__("helmet")),
                           Armor(equipSection.__getattr__("armor")), 
                           Armor(equipSection.__getattr__("legs")), 
@@ -231,6 +231,7 @@ class Character(Actor):
         sprite = self.sprites['standing']
         return sprite
         
+    #updates the character's .ini file
     def update(self):
         equipment = []
         for e in self.equipment:
@@ -353,7 +354,7 @@ class Family:
         self.difficulty = familyini.__getattr__("difficulty", int)  
        
     #creates a new family .ini 
-    def create(self, name, difficulty, gold = 0, inventory = []):
+    def create(self, name, difficulty, gold = 0, inventory = [[]]):
         path = os.path.join("..", "data", "actors", "families", name)
         if not os.path.exists(path):
             os.mkdir(path)
@@ -362,9 +363,10 @@ class Family:
         familyini.family.__setattr__("difficulty", difficulty)
         
         familyini.family.__setattr__("gold", int(gold))
-        familyini.family.__setattr__("inventory", ",".join(inventory))
-        
-        familyini.family.__setattr__("members", "")
+        inv = []
+        for i in inventory:
+            inv.append(":".join(i))
+        familyini.family.__setattr__("inventory", "|".join(inv))
 
         familyini.save()
 
