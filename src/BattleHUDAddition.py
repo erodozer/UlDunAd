@@ -2,7 +2,8 @@ from sysobj import *
 import Input
 
 class BattleHUDAddition:
-    def __init__(self, character):
+    def __init__(self, engine, character):
+        self.engine = engine
         self.character = character
         self.weapon = self.character.equipment[self.character.hand]
         
@@ -23,17 +24,17 @@ class BattleHUDAddition:
 
     def keyPressed(self, key):
         if self.comboTimer > 0:
-            if key == combo[self.comboIndex]:
+            if key == self.addition[self.comboIndex]:
                 self.comboIndex += 1
-                if self.comboIndex >= len(combo):
+                if self.comboIndex >= len(self.addition):
                     self.success = 1
                     self.comboIndex = 0
-                else:
                     self.comboTimer = 0
-                    self.success = 1
+                    print "success"
             else:
                 self.comboTimer = 0
                 self.success = 0
+                print "failed"
             
     def getButtonImage(self, key):
         #directional buttons
@@ -66,13 +67,14 @@ class BattleHUDAddition:
     def run(self):
         if self.comboTimer > 0:
             self.comboTimer -= 1
-        else:
-            self.success = 0
-            
-    def draw(self, visibility):
+            if self.comboTimer <= 0:
+                if self.success == -1:
+                    self.success = 0
+                
+    def draw(self):
         self.engine.drawImage(self.inputButtons[self.comboIndex], position = (self.engine.w/2, self.engine.h/2),
                               color = (1,1,1,1))
         if self.comboIndex + 1 < len(self.addition):
             self.engine.drawImage(self.inputButtons[self.comboIndex+1], position = (self.engine.w/2 + self.inputButtons[0].width + 10.0, self.engine.h/2),
                                   color = (1,1,1,.5))
-        self.engine.drawText(self.text, self.comboTimer, position = (self.engine.w/2, self.engine.h/2 - 100))
+        self.engine.drawText(self.font, self.comboTimer, position = (self.engine.w/2, self.engine.h/2 - 100))
