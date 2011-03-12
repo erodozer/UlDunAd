@@ -19,7 +19,6 @@ class Item:
 class Weapon(Item):
     def __init__(self, name):
         self.name = name
-        print name
          
         if name and not name == "None":
             itemini = Configuration(os.path.join("..", "data", "items", name, "item.ini")).weapon
@@ -30,7 +29,6 @@ class Weapon(Item):
             #combo attacks where you input the specified keys in the amount of time
             #specified (in milliseconds)
             attack = itemini.__getattr__("combo").split(" ")
-            print attack
             self.attack = []
             for key in attack:
                 if key == "Up":     self.attack.append(Input.UpButton)

@@ -14,7 +14,7 @@ class VictoryPanel:
         
         self.diffStar = ImgObj(Texture(os.path.join(battlepath, "star.png")))
         
-        self.font = FontObj("default.ttf", size = 16.0)
+        self.font = FontObj("default.ttf", size = 16)
         
         self.turns = turns    #total number of player turns used in battle
         

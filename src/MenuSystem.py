@@ -74,8 +74,8 @@ class PlayerStats:
         self.back.setPosition(self.engine.w/2, self.position)
         
         
-        self.font = FontObj("default.ttf", size = 16.0)
-        self.bigFont = FontObj("default.ttf", size = 32.0)
+        self.font = FontObj("default.ttf", size = 16)
+        self.bigFont = FontObj("default.ttf", size = 32)
         
         length = 200
         self.bars = [BarObj(Texture(os.path.join(scenepath, "bar_bottom.png")), length),

@@ -44,7 +44,6 @@ class BattleSystem(Scene):
         songs.append(self.engine.listPath(musicpath, "mp3"))
         if len(songs) > 0:
             song = random.choice(songs)[0]
-            print song
             BGMObj(os.path.join("battle", song))
         
         self.background = self.engine.formation.terrain
@@ -57,8 +56,8 @@ class BattleSystem(Scene):
         self.diffStar = ImgObj(Texture(os.path.join(battlepath, "star.png")))
         
         fontStyle = self.engine.data.defaultFont
-        self.text = FontObj(fontStyle, size = 32.0)
-        self.bigText = FontObj(fontStyle, size = 64.0)
+        self.text = FontObj(fontStyle, size = 32)
+        self.bigText = FontObj(fontStyle, size = 64)
 
         self.party = [m for m in self.engine.family.party]
         self.formation = [e for e in self.engine.formation.enemies]
@@ -110,9 +109,16 @@ class BattleSystem(Scene):
         self.victoryPanel = None
         
         self.additionHUD = None
+        
+    #make the additionHUD if the active actor has selected to perform an addition
+    def makeAdditionHUD(self):
+        if isinstance(self.activeActor, Character):
+            if self.activeActor.performingCombo:
+                self.additionHUD = BattleHUDAddition(self.engine, self.activeActor)
 
+    #process key input for the scene
     def keyPressed(self, key, char):
-        if self.introDelay > 0:
+        if self.introDelay > 0: #disable input during the intro
             return
             
         if self.lose:
@@ -160,7 +166,6 @@ class BattleSystem(Scene):
         
         if self.battling:
             if self.additionHUD is not None:
-                print self.additionHUD.comboTimer
                 if self.additionHUD.comboTimer > 0:
                     self.additionHUD.run()
                 else:
@@ -196,10 +201,7 @@ class BattleSystem(Scene):
         self.activeActor = self.order[self.turn][0]
         self.battling = True
         
-        if isinstance(self.activeActor, Character):
-            if self.activeActor.performingCombo:
-                print "made hud"
-                self.additionHUD = BattleHUDAddition(self.engine, self.activeActor)
+        self.makeAdditionHUD()
             
     #executes all of the commands
     def execute(self):
@@ -211,15 +213,7 @@ class BattleSystem(Scene):
             actor.turnStart()
             
         if actor.target != None:
-            #if the actor's target was knocked out during this phase then a new target
-            # is automatically selected and damage is recalculated
-            if actor.target.incap:
-                targets = self.generateEnemyTargets(actor)
-                if len(targets) < 1:
-                    self.next()
-                    return
-                actor.target = random.choice(targets)
-                actor.calculateDamage()
+            actor.calculateDamage()
             
             self.displayDelay += 5
             
@@ -288,10 +282,19 @@ class BattleSystem(Scene):
                 self.active = -1
                 self.next()
             self.activeActor = self.order[self.turn][0]
-            if isinstance(self.activeActor, Character):
-                if self.activeActor.performingCombo:
-                    print "made hud"
-                    self.additionHUD = BattleHUDAddition(self.engine, self.activeActor)
+            
+            #should be performed before the turn officially executes
+            if self.activeActor.target != None:
+                #if the actor's target was knocked out during this phase then a new target
+                # is automatically selected and damage is recalculated
+                if self.activeActor.target.incap:
+                    targets = self.generateEnemyTargets(self.activeActor)
+                    if len(targets) < 1:
+                        self.next()
+                        return
+                    self.activeActor.target = random.choice(targets)
+
+            self.makeAdditionHUD()
             if self.activeActor.target:
                 self.engageHud = BattleHUDEngage(self.activeActor)
             else:
@@ -359,7 +362,6 @@ class BattleSystem(Scene):
             self.engageHud.draw()
             
         if self.additionHUD:
-            print "drawing addition"
             self.additionHUD.draw()
             return
             

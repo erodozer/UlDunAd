@@ -30,11 +30,9 @@ class BattleHUDAddition:
                     self.success = 1
                     self.comboIndex = 0
                     self.comboTimer = 0
-                    print "success"
             else:
                 self.comboTimer = 0
                 self.success = 0
-                print "failed"
             
     def getButtonImage(self, key):
         #directional buttons
