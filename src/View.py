@@ -295,6 +295,33 @@ class Viewport:
     #changes the topmost scene (the one that is being rendered) with a new one
     def changeScene(self, scene):
         if scene not in self.scenes:
+            try:
+                Input.resetKeyPresses()
+                ImgObj.clickableObjs = []
+                if scene == "TestScene":
+                    scene = TestScene(self.engine)
+                else:
+                    scene = WorldScenes.create(self.engine, scene)
+                self.scenes.append(scene)
+                self.visibility.append(0.0)
+                self.hasTransitioned = True
+            except:
+                print scene + " has not yet been implemented or does not exist"
+        else:
+            print scene + " is already present"
+            
+    #removes the passed scene
+    def popScene(self, scene):
+        if scene in self.scenes:
+            Input.resetKeyPresses()
+            self.visibility.pop(self.scenes.index(scene))
+            self.scenes.remove(scene)
+        else:
+            print scene + " has not been pushed yet"
+
+    #adds the passed scene
+    def addScene(self, scene):
+        try:
             Input.resetKeyPresses()
             ImgObj.clickableObjs = []
             if scene == "TestScene":
@@ -303,26 +330,9 @@ class Viewport:
                 scene = WorldScenes.create(self.engine, scene)
             self.scenes.append(scene)
             self.visibility.append(0.0)
-            self.hasTransitioned = True
-
-    #removes the passed scene
-    def popScene(self, scene):
-        if scene in self.scenes:
-            Input.resetKeyPresses()
-            self.visibility.pop(self.scenes.index(scene))
-            self.scenes.remove(scene)
-
-    #adds the passed scene
-    def addScene(self, scene):
-        Input.resetKeyPresses()
-        ImgObj.clickableObjs = []
-        if scene == "TestScene":
-            scene = TestScene(self.engine)
-        else:
-            scene = WorldScenes.create(self.engine, scene)
-        self.scenes.append(scene)
-        self.visibility.append(0.0)
-    
+        except:
+            print scene + " has not yet been implemented or does not exist"
+            
     #checks to see where the position of the mouse is over 
     #an object and if that object has been clicked
     def detect(self, scene):
