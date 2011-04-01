@@ -168,8 +168,14 @@ class Formation:
         except AttributeError:
             self.name = name
             
-        #all the members in your party
-        self.enemies = [Enemy(n) for n in formationini.enemies.split("|")]
+        self.enemies = []
+        names = formationini.enemies.split("|")
+        while len(names) > 0:
+            self.enemies.append(Enemy(names[0]))
+            if names.count(names[0]) > 0:
+                self.enemies[-1].name += " " + chr(64 + names.count(names[0]))
+            names.pop(0)
+
         
         #assigns the positions and scales to the enemies
         for i, enemy in enumerate(self.enemies):
