@@ -107,6 +107,7 @@ class Main:
         self.viewport.addScene(startingScene)
 
         self.family = None      #your selected family and party
+        self.formation = None   #current battling formation
         self.town = None        #current town/location
         
     def run(self):
