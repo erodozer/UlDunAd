@@ -21,6 +21,7 @@ class Weapon(Item):
         self.name = name
          
         if name and not name == "None":
+            self.sprite = ImgObj(Texture(os.path.join("items", name, "item.png")))
             itemini = Configuration(os.path.join("..", "data", "items", name, "item.ini")).weapon
             self.type = itemini.__getattr__("type")
             self.str  = itemini.__getattr__("str", int)
@@ -41,6 +42,7 @@ class Weapon(Item):
                 else:               self.attack.append(Input.DButton)
             self.time = itemini.__getattr__("combotime", int)
         else:
+            self.sprite = None
             self.type = "unknown"
             self.str  = 1
             self.attack = []
@@ -49,20 +51,20 @@ class Weapon(Item):
         
 class Armor(Item):
     def __init__(self, name):
-        if not name or name == "None":
-            return None
-        
-        try:
-            itemini = Configuration(os.path.join("..", "data", "items", name, "item.ini")).armor
-        except:
-            return None
-            
         self.name = name
-        self.defn = itemini.__getattr__("def", int)
-        self.spd  = itemini.__getattr__("str", int)
-        self.evd  = itemini.__getattr__("evd", int)
-        self.mag  = itemini.__getattr__("mag", int)
-        self.res  = itemini.__getattr__("res", int)
-
         
-        
+        if name and not name == "None":
+            self.sprite = ImgObj(Texture(os.path.join("items", name, "item.png")))
+            itemini = Configuration(os.path.join("..", "data", "items", name, "item.ini")).armor
+            self.defn = itemini.__getattr__("def", int)
+            self.spd  = itemini.__getattr__("str", int)
+            self.evd  = itemini.__getattr__("evd", int)
+            self.mag  = itemini.__getattr__("mag", int)
+            self.res  = itemini.__getattr__("res", int)
+        else:
+            self.sprite = None
+            self.defn = 0
+            self.spd  = 0
+            self.evd  = 0
+            self.mag  = 0
+            self.res  = 0
