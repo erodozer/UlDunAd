@@ -79,14 +79,15 @@ class Character(Actor):
         #left hand weapon, right hand weapon, helm, armor, legs, feet, gloves, and 3 accessories
         self.equipment = [Weapon(equipSection.__getattr__("right hand")),
                           Weapon(equipSection.__getattr__("left hand")),
+                          Armor(equipSection.__getattr__("accessory1")),
+                          Armor(equipSection.__getattr__("accessory2")),
+                          Armor(equipSection.__getattr__("accessory3")),
                           Armor(equipSection.__getattr__("helmet")),
                           Armor(equipSection.__getattr__("armor")), 
                           Armor(equipSection.__getattr__("legs")), 
                           Armor(equipSection.__getattr__("feet")),
                           Armor(equipSection.__getattr__("gloves")),
-                          Armor(equipSection.__getattr__("accessory1")),
-                          Armor(equipSection.__getattr__("accessory2")),
-                          Armor(equipSection.__getattr__("accessory3"))]
+                          ]
         
         self.hand = 0       #0 = right handed, 1 = left handed
                             #dominant hand determines which weapons gets 
@@ -277,16 +278,16 @@ class Character(Actor):
         dist.__setattr__("magDist", stats[5])
         dist.__setattr__("resDist", stats[6])
         
-        eqp.__setattr__("left hand",  equipment[0])
-        eqp.__setattr__("right hand", equipment[1])
-        eqp.__setattr__("helmet",     equipment[2])
-        eqp.__setattr__("armor",      equipment[3]) 
-        eqp.__setattr__("legs",       equipment[4]) 
-        eqp.__setattr__("feet",       equipment[5])
-        eqp.__setattr__("gloves",     equipment[6])
-        eqp.__setattr__("accessory1", equipment[7])
-        eqp.__setattr__("accessory2", equipment[8])
-        eqp.__setattr__("accessory3", equipment[9])
+        eqp.__setattr__("right hand", equipment[0])
+        eqp.__setattr__("left hand",  equipment[1])
+        eqp.__setattr__("accessory1", equipment[2])
+        eqp.__setattr__("accessory2", equipment[3])
+        eqp.__setattr__("accessory3", equipment[4])
+        eqp.__setattr__("helmet",     equipment[5])
+        eqp.__setattr__("armor",      equipment[6]) 
+        eqp.__setattr__("legs",       equipment[7]) 
+        eqp.__setattr__("feet",       equipment[8])
+        eqp.__setattr__("gloves",     equipment[9])
         
         prof.__setattr__("sword",  proficiency[0])
         prof.__setattr__("dagger", proficiency[1])
