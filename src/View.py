@@ -305,7 +305,7 @@ class Viewport:
                 self.scenes.append(scene)
                 self.visibility.append(0.0)
                 self.hasTransitioned = True
-            except:
+            except ImportError:
                 print scene + " has not yet been implemented or does not exist"
         else:
             print scene + " is already present"
@@ -330,7 +330,7 @@ class Viewport:
                 scene = WorldScenes.create(self.engine, scene)
             self.scenes.append(scene)
             self.visibility.append(0.0)
-        except:
+        except ImportError:
             print scene + " has not yet been implemented or does not exist"
             
     #checks to see where the position of the mouse is over 
