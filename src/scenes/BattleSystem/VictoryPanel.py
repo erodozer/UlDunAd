@@ -22,7 +22,7 @@ class VictoryPanel:
         self.family = self.engine.family
         self.party = self.engine.family.party 
         
-        self.difficulty = self.formation.getDifficulty(self.party)
+        self.difficulty = self.formation.getSelfDifficulty(self.party)
         #dropped items
         self.items = []
         

@@ -188,11 +188,12 @@ class Formation:
 
         self.terrain = ImgObj(Texture(os.path.join("terrain", formationini.__getattr__("terrain") + ".png")))
    
-    def getDifficulty(self, party):
+    @staticmethod
+    def getDifficulty(enemies, party):
         statsE = [0.0 for i in range(8)]
         statsP = [0.0 for i in range(8)]
         diff   = [0.0 for i in range(8)]
-        for enemy in self.enemies:
+        for enemy in enemies:
             statsE[0] += enemy.level
             statsE[1] += enemy.hp
             statsE[2] += enemy.str
@@ -212,7 +213,10 @@ class Formation:
             statsP[7] += member.res
         
         for i in range(len(diff)):
-            diff[i] = max(0.0, ((statsE[i]/len(self.enemies)) - (statsP[i]/len(party)))/255.0)
+            diff[i] = max(0.0, ((statsE[i]/len(enemies)) - (statsP[i]/len(party)))/255.0)
         difficulty = sum(diff) + 1
-        return difficulty
+        return difficulty        
+
+    def getSelfDifficulty(self, party):
+        return Formation.getDifficulty(self.enemies, party)
 

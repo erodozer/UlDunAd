@@ -188,13 +188,11 @@ class BattleSystem(Scene):
             self.turns[enemy] = 0
 
         for character in self.party:
-            if not (character.boost or character.defend):
-                self.turns[character] = random.randint(0, 50) + character.spd
+            self.turns[character] = random.randint(0, 50) + character.spd
 
         for enemy in self.formation:
-            if not (enemy.boost or enemy.defend):
-                self.turns[enemy] = random.randint(0, 50) + enemy.spd
-                enemy.getCommand(self.generateEnemyTargets(enemy))  #gets enemy's command and target
+            self.turns[enemy] = random.randint(0, 50) + enemy.spd
+            enemy.getCommand(self.generateEnemyTargets(enemy))  #gets enemy's command and target
         
         self.order = sorted(self.turns.items(), key=itemgetter(1))
     
@@ -376,7 +374,9 @@ class BattleSystem(Scene):
                 color = (1,1,1,1)
             self.engine.drawText(self.text, actor.damage, position = (pos[0], y), color = color)
 
-        
+        for i in range(min(3, len(self.order)-self.turn)):
+            self.engine.drawText(self.text, self.order[self.turn+i][0].name, position = (self.engine.w*.75, self.engine.h *.9 - 45*i), color = (1,1,1,1-(.33*i)))
+            
     #renders the spiffy intro animation
     def renderIntro(self, visibility):
         if self.introDelay > 450:
@@ -416,7 +416,7 @@ class BattleSystem(Scene):
                 alpha = self.introDelay/20.0
             self.engine.drawText(self.bigText, self.engine.formation.name, (self.engine.w/2, self.engine.h/2 + 30),
                                     color = (1,1,1,alpha)) 
-            difficulty = self.engine.formation.getDifficulty(self.party)
+            difficulty = self.engine.formation.getSelfDifficulty(self.party)
             if difficulty > 0:
                 for i in range(difficulty):
                     pos = (self.engine.w/2 - (self.diffStar.width/2 + 10)*(difficulty-1) + (self.diffStar.width + 10) * i,
