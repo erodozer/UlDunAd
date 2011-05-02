@@ -411,6 +411,8 @@ class Party:
         self.avgMag  = getAvgStat("mag")
         self.avgRes  = getAvgStat("res")
         
+        self.size = len(self.members)
+        
         
     #returns a list of members that are incapacitated
     def getIncap(self):
