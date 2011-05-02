@@ -473,6 +473,15 @@ class BattleSystem(Scene):
     def victory(self):
         self.victoryPanel = VictoryPanel(self, self.totalTurns)
         
+    def flee(self):
+        #chance of fleeing should be determined by comparing party's stat's to the formations
+        #it should be harder to flee when the party is almost dead and easier to flee when the
+        #enemies formation is almost vanquished
+        diff = Formation.getDifficulty(self.formation, self.party)
+        chance = random.randint(Party(self.party).avgSpd, 100) / diff 
+        if chance > 50: #successful escape
+            self.end()
+        
     def end(self):
         if self.engine.town:
             self.engine.viewport.changeScene("Town")
