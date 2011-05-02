@@ -25,6 +25,15 @@ from Item import *
 class Actor:
     def __init__(self, name):
 
+        #base stats
+        self.hp   = 0  #hit points
+        self.str  = 0  #strength
+        self.defn = 0  #defense
+        self.spd  = 0  #speed
+        self.evd  = 0  #evasion
+        self.mag  = 0  #magic strength 
+        self.res  = 0  #magic defense (resistance)
+
         #used in battle
         self.maxFP = 100
         self.fp = 0
