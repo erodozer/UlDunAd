@@ -152,3 +152,38 @@ class Scout(Job):
         self.skills = [Hiding(self)]
                 
         self.state = 'standing'
+
+class Shepard(Job):
+    def __init__(self):
+        
+        self.name = "Shepard"
+
+        self.description = "Shepards are a unique job.  Pacifists in battle, they prefer to befriend " + \
+                           "their foes.  Their ability to herd enemies together, allows other members to " + \
+                           "strike all enemies at once with physical blows.  They also increase the chances" + \
+                           "of loot drop from enemies."
+        self.hp   = 80
+        self.str  = 5
+        self.defn = 8
+        self.spd  = 7
+        self.evd  = 14
+        self.mag  = 7
+        self.res  = 9
+        
+        self.stats = [self.hp, self.str, self.defn, self.spd, self.evd, self.mag, self.res]
+        
+        #jobs have their own weapon proficiency buffs to being with
+        self.swordProf  = 0
+        self.daggerProf = 75
+        self.spearProf  = 0
+        self.staffProf  = 525
+        self.gunsProf   = 0
+        self.fistProf   = 150
+        
+        self.proficiencies = [self.swordProf, self.daggerProf, self.spearProf, 
+                              self.staffProf, self.gunsProf, self.fistProf]
+        
+        #skill tree
+        self.skills = [Herd(self)]
+                
+        self.state = 'standing'
