@@ -330,9 +330,9 @@ class Family:
 
         #the party used in battle is the first 3 members you have ordered
         if len(self.members) >= 3:
-            self.party = self.members[0:3]
+            self.party = Party(self.members[0:3])
         else:
-            self.party = self.members[0:len(self.members)]
+            self.party = Party(self.members[0:len(self.members)])
 
         #the items your family has
         self.inventory = []
@@ -392,11 +392,30 @@ class Party:
         self.treasureHunterPresent = False
         self.piratePresent = False
         for mem in self.members:
-            if isInstance(mem, Shepard):
+            if isinstance(mem, Shepard):
                 self.shepardPresent = True
-            elif isInstance(mem, TreasureHunter):
+            elif isinstance(mem, TreasureHunter):
                 self.treasureHunterPresent = True
-            elif isInstance(mem, Pirate):
+            elif isinstance(mem, Pirate):
                 self.piratePresent = True
             
+        #gets the party average (of those alive) for a particular status
+        def getAvgStat(stat):
+            sum([eval("m." + stat) for m in self.getAlive()])/len(self.getAlive())
         
+        self.avgHP   = getAvgStat("hp")
+        self.avgStr  = getAvgStat("str")
+        self.avgDefn = getAvgStat("defn")
+        self.avgSpd  = getAvgStat("spd")
+        self.avgEvd  = getAvgStat("evd")
+        self.avgMag  = getAvgStat("mag")
+        self.avgRes  = getAvgStat("res")
+        
+        
+    #returns a list of members that are incapacitated
+    def getIncap(self):
+        return [m for m in self.members if m.incap]
+        
+    #returns a list of members still alive
+    def getAlive(self):
+        return [m for m in self.members if not m.incap]
