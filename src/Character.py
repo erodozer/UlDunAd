@@ -394,10 +394,10 @@ class Party:
         for mem in self.members:
             if isinstance(mem, Shepard):
                 self.shepardPresent = True
-            elif isinstance(mem, TreasureHunter):
-                self.treasureHunterPresent = True
-            elif isinstance(mem, Pirate):
-                self.piratePresent = True
+        #    elif isinstance(mem, TreasureHunter):
+        #        self.treasureHunterPresent = True
+        #    elif isinstance(mem, Pirate):
+        #        self.piratePresent = True
             
         #gets the party average (of those alive) for a particular status
         def getAvgStat(stat):
