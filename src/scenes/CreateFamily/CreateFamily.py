@@ -30,7 +30,7 @@ class CreateFamily(Scene):
         self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
         self.background.setPosition(self.engine.w/2,self.engine.h/2)
         
-        self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), self.engine.w/4, 0)
+        self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), 0.0, 0.0)
         
         self.button = ImgObj(Texture("ok.png"), boundable = True, frameX = 2)
         self.button.setScale(75,75,inPixels = True)

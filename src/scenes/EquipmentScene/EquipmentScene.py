@@ -16,6 +16,8 @@ from Character import Family
 
 from MenuObj import MenuObj
 
+from Item import *
+
 class EquipmentButtons(MenuObj):
     def __init__(self, scene):
         self.scene = scene
@@ -33,6 +35,10 @@ class EquipmentButtons(MenuObj):
         self.commandButtons = [ImgObj(Texture(os.path.join(scenepath, "icon.png")), 
                                        boundable = True, frameY = 2)
                                 for command in self.commands]
+                                
+        self.empty = ImgObj(Texture("ok.png"), frameX = 2)
+        self.empty.setFrame(x = 2)
+        self.empty.setScale(self.commandButtons[0].width, self.commandButtons[0].height, inPixels = True)
     
         self.activeArea = 0     #0 = bottom, 1 = side
         self.index = 0  
@@ -79,6 +85,11 @@ class EquipmentButtons(MenuObj):
             else:
                 button.setFrame(y = 1)
             self.engine.drawImage(button)
+            
+            if self.character.equipment[i].name is not "None":
+                self.engine.drawImage(self.character.equipment[i].sprite, position = button.position, scale = button.scale)
+            else:
+                self.engine.drawImage(self.empty, position = button.position)
  
 class ItemMenu(MenuObj):
     def __init__(self, scene):
@@ -93,7 +104,7 @@ class ItemMenu(MenuObj):
         
         self.commandButtons = [ImgObj(Texture(os.path.join(scenepath, "button.png")), 
                                        boundable = True, frameY = 2)
-                                for command in self.engine.family.inventory]
+                                for command in self.engine.family.inventory if isinstance(command[0], Weapon)]
     
         self.activeArea = 0     #0 = bottom, 1 = side
         self.index = 0  
@@ -108,6 +119,8 @@ class ItemMenu(MenuObj):
             button.setPosition(self.position[0]+self.window.scale[0]/2,
                                self.position[1]+self.window.scale[1]/2 - 10 - 32*i)    
         
+        self.font = FontObj("default.ttf", size = 32.0)
+        self.font.setAlignment("left")
         
     def buttonClicked(self, image):
         pass
@@ -149,7 +162,7 @@ class ItemWindow:
                              height = 64)
         self.window.setPosition(self.engine.w*.75, self.engine.h-64-self.window.scale[1]/2)
                              
-        self.font = FontObj("default.ttf", size = 32.0)
+        self.font = FontObj("default.ttf", size = 32)
         self.font.setAlignment("left")
         
     def draw(self):

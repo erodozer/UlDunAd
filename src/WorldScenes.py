@@ -20,5 +20,5 @@ scenes = ["MainMenu", "CreateFamily", "CreateCharacter", "Maplist",
 
 def create(engine, name):
 
-  scene = __import__(name, globals(), locals(), [name], -1)
+  scene = __import__('scenes.' + name + '.' + name, globals(), locals(), [name], -1)
   return getattr(scene, name)(engine = engine)
