@@ -38,16 +38,16 @@ except ImportError:
 FPS = 60
 caption = 'UlDunAd - Ultimate Dungeon Adventure [FPS: %i]'
 
-if not os.path.exists(os.path.join("uldunad.ini")):
-    Configuration(os.path.join("uldunad.ini")).save()
-    runini = Configuration(os.path.join("uldunad.ini"))
+if not os.path.exists(os.path.join("..", "uldunad.ini")):
+    Configuration(os.path.join("..", "uldunad.ini")).save()
+    runini = Configuration(os.path.join("..", "uldunad.ini"))
     runini.video.__setattr__("resolution", str(800) + "x" + str(600) + "x" + "W")
     runini.audio.__setattr__("volume", str(10))
     runini.save()
     Input.create(runini)
     Input.load(runini)
 else:
-    runini = Configuration(os.path.join("uldunad.ini"))
+    runini = Configuration(os.path.join("..", "uldunad.ini"))
     Input.load(runini)
 
 w, h, fullscreen = runini.video.__getattr__("resolution").split("x")
