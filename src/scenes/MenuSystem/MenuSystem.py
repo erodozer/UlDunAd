@@ -144,7 +144,7 @@ class MenuSystem(Scene):
         self.menuButton = ImgObj(Texture(os.path.join(scenepath, "button.png")), frameY = 2)
 
         self.playerWin = [PlayerStats(self, char, self.engine.h/4 + (self.engine.h/10 * i))
-                          for i, char in enumerate(self.family.party)]
+                          for i, char in enumerate(self.family.party.members)]
 
         self.dimension = 0  #this defines which sub-level of the menu you are on
         #self.statusbox = self.engine.loadImage(os.path.join("Data", "statusbox.png"))

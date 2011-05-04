@@ -118,5 +118,5 @@ class Maplist(Scene):
         self.engine.drawText(self.font, "%s:%i" % (self.engine.family.name, len(self.engine.family.members)),
                              position = (self.engine.w*.8, self.engine.h*.8))
 
-        self.engine.drawText(self.font, "Party:%i" % (len(self.engine.family.party)),
+        self.engine.drawText(self.font, "Party:%i" % (self.engine.family.party.size),
                              position = (self.engine.w*.8, self.engine.h*.6))
