@@ -59,7 +59,7 @@ class BattleSystem(Scene):
         self.text = FontObj(fontStyle, size = 32)
         self.bigText = FontObj(fontStyle, size = 64)
 
-        self.party = [m for m in self.engine.family.party]
+        self.party = [m for m in self.engine.family.party.members]
         self.formation = [e for e in self.engine.formation.enemies]
 
         self.incapParty = 0     #keeps track of how many in the party are incapacitated
@@ -477,8 +477,8 @@ class BattleSystem(Scene):
         #chance of fleeing should be determined by comparing party's stat's to the formations
         #it should be harder to flee when the party is almost dead and easier to flee when the
         #enemies formation is almost vanquished
-        diff = Formation.getDifficulty(self.formation, self.party)
-        chance = random.randint(Party(self.party).avgSpd, 100) / diff 
+        diff = Formation.getDifficulty(self.formation, self.party.getAlive())
+        chance = random.randint(self.party.avgSpd, 100) / diff 
         if chance > 50: #successful escape
             self.end()
         
