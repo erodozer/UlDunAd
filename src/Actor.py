@@ -22,17 +22,17 @@ from Item import *
 #this class contains the basic variables and methods for characters and enemies
 #most shared variables and methods are just for battle since enemies are supposed
 #to have just as many options as characters to create a far fight and flexibility
-class Actor:
+class Actor(object):
     def __init__(self, name):
 
         #base stats
-        self.hp   = 0  #hit points
-        self.str  = 0  #strength
-        self.defn = 0  #defense
-        self.spd  = 0  #speed
-        self.evd  = 0  #evasion
-        self.mag  = 0  #magic strength 
-        self.res  = 0  #magic defense (resistance)
+        self.hp   = 1  #hit points
+        self.str  = 1  #strength
+        self.defn = 1  #defense
+        self.spd  = 1  #speed
+        self.evd  = 1  #evasion
+        self.mag  = 1  #magic strength 
+        self.res  = 1  #magic defense (resistance)
 
         #used in battle
         self.maxFP = 100
