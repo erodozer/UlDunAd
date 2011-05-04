@@ -399,6 +399,12 @@ class Party:
         #    elif isinstance(mem, Pirate):
         #        self.piratePresent = True
             
+        self.refreshAvg()
+        
+        self.size = len(self.members)
+        
+    #refreshes the party's average stats
+    def refreshAvg(self):
         #gets the party average (of those alive) for a particular status
         def getAvgStat(stat):
             sum([eval("m." + stat) for m in self.getAlive()])/len(self.getAlive())
@@ -410,9 +416,6 @@ class Party:
         self.avgEvd  = getAvgStat("evd")
         self.avgMag  = getAvgStat("mag")
         self.avgRes  = getAvgStat("res")
-        
-        self.size = len(self.members)
-        
         
     #returns a list of members that are incapacitated
     def getIncap(self):
