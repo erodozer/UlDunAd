@@ -33,6 +33,8 @@ class Enemy(Actor):
         if not name:
             return
 
+        super(Enemy, self).__init__(name)
+
         path = os.path.join("actors", "enemies", name)
         enemyini = Configuration(os.path.join("..", "data", path, "enemy.ini"))
         
@@ -87,8 +89,6 @@ class Enemy(Actor):
         else:
             self.drop = None
         
-        Actor.__init__(self, name)
-     
     def getCommand(self, targets):
         '''commented out due to skills not yet working
         if len(self.skills) > 0:

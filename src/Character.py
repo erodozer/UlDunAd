@@ -31,6 +31,8 @@ class Character(Actor):
         if not name:
             return
         
+        super(Character, self).__init__(name)
+
         playerini = Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini"))
         
         self.name = name
@@ -124,9 +126,7 @@ class Character(Actor):
         
         self.performingCombo = False #is the character going to perform a weapon technique
         self.comboComplete = False   #did the player successfully complete the combo
-        
-        Actor.__init__(self, name)
-    
+            
     #searches path for files with filetype or folder
     def loadSprites(self):
         sprites = {}
