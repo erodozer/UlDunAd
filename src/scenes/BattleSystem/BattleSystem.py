@@ -211,8 +211,6 @@ class BattleSystem(Scene):
             actor.turnStart()
             
         if actor.target != None:
-            actor.calculateDamage()
-            
             self.displayDelay += 5
             
             if self.displayDelay >= 100:
