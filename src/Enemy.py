@@ -96,21 +96,17 @@ class Enemy(Actor):
         else:
             command = random.randint(0,1)   #randomly picks attack, tactical
         '''
-        command = random.randint(0,1)   #randomly picks attack or tactical
         #if the enemy does not have enough fp to attack then it must resort to tactical commands
-        if self.fp < 35.0 and command == 0:
-           command = 1
+        if self.fp < 35.0:
+            command = 1
+        else:
+            command = random.randint(0,1)   #randomly picks attack or tactical
             
         if command == 0:    #attack and targeting
-            self.attacking = True
+            self.command = Attack(self, random.randint(0,2))
             self.target = random.choice(targets)
-            self.power = random.randint(0,2)
         elif command == 1:  #tactical/defense choosing
-            command = random.randint(0,1)
-            if command == 0:
-                self.boost = True
-            else:
-                self.defend = True
+            self.command = random.choice(Defend(self), Boost(self))
         
     def loadSprites(self, path):
         normal = Texture(os.path.join(path, "normal.png"))
@@ -124,26 +120,14 @@ class Enemy(Actor):
         
         return sprites
 
-    def calculateDamage(self):
-         #first was calculate to see if the actor hits his target
-        hit = random.randint(0, 255) - self.target.evd >= self.target.evd*1.5
-        if hit:
-            if self.cast:
-                self.damage = (self.mag + self.command.damage) - (self.target.res * 1.368295)
-            elif self.attacking:
-                self.damage = self.str - (self.target.defn * 1.368295)
-            self.damage = max(0, int(self.damage))
-        else:
-            self.damage = "Miss"
-    
     #draws the enemy sprite in battle
     def getSprite(self):
         sprite = self.sprites['normal']
         if self.currentHP < self.hp / 3.0:
             sprite = self.sprites['weakened']
-        if self.defend:
+        elif isinstance(self.command, Defend):
             sprite = self.sprites['defend']
-        if self.boost:
+        elif isinstance(self.command, Boost):
             sprite = self.sprites['boost']
         
         sprite.setPosition(self.position[0], self.position[1])
