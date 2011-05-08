@@ -29,6 +29,8 @@ from BattleHUDAddition import BattleHUDAddition
 from BattleMenu import BattleMenu
 from VictoryPanel import VictoryPanel
    
+from Command import *
+
 #unlike most other scenes in this game, the battle scene 
 #is completely controlled by the keyboard instead of mouse
 class BattleSystem(Scene):
@@ -252,7 +254,7 @@ class BattleSystem(Scene):
     #generates the target list for allies
     def generateTargets(self, actor):
 
-        if actor.attacking or actor.cast:
+        if isinstance(actor.command, Attack) or isinstance(actor.command, ComboAttack) or isinstance(actor.command, Cast):
             targets = [enemy.name for enemy in self.formation]
         else:
             targets= [member.name for member in self.party]
