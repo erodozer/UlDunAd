@@ -209,7 +209,10 @@ class BattleSystem(Scene):
         
         if self.displayDelay == 0:
             actor.turnStart()
-            
+        
+        anim = actor.command.animation
+        self.engine.drawAnimation(anim)
+        
         if actor.target != None:
             self.displayDelay += 5
             
