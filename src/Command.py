@@ -1,5 +1,8 @@
 
 import sysobj
+import random
+
+from Character import Character
 
 #command objects are specifically for the battle system
 class Command(object):
@@ -30,12 +33,18 @@ class Attack(Command):
 	    self.fpCost = 45
 	    
     def execute(self):
+	#enemies need to be processed differently attack wise for determining chance of landing the blow
+	if isinstance(self.parent, Character):
+	    factor = (self.parent.proficiency*2)
+	else:
+	    factor = random.randint(0, 255)
+	    
 	if self.style == 1:
 	    hit = True
 	elif self.style == 2:
-	    hit = (self.parent.proficiency*2) - self.parent.target.evd >= self.parent.target.evd*3
+	    hit = factor - self.parent.target.evd >= self.parent.target.evd*3
 	else:
-	    hit = (self.parent.proficiency*2) - self.parent.target.evd >= self.parent.target.evd*1.5
+	    hit = factor - self.parent.target.evd >= self.parent.target.evd*1.5
         
 	if hit:
 	    damage = self.parent.str - (self.parent.target.defn * 1.368295)
@@ -43,7 +52,7 @@ class Attack(Command):
 		damage /= 1.5
 	    elif self.style == 2:
 		damage *= 2
-	    damage = max(0, int(self.damage))
+	    damage = max(0, int(damage))
 	else:
             damage = "Miss"
 	self.parent.damage = damage
