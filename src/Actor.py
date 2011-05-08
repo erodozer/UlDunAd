@@ -40,22 +40,12 @@ class Actor(object):
         self.currentHP = self.hp
         self.incap = False      #actors become incapacitated when their hp reaches 0
         
-        #is the character attacking
-        self.attacking = False
-        self.power = 0          #0 = normal attack, 1 = strong attack, 2 = accurate attack
+        self.command = None
         
         #are they casting a spell or technique, if they are, which one
         self.cast = False
-        self.command = None
+        self.spell = None
         
-        #when an enemy boosts instead of defends,
-        #their def is halved but they get full FP the next turn
-        self.boost = False
-        
-        #when a character defends they gain the normal amount of FP per turn (20%)
-        #but their def is multiplied by 250%
-        self.defend = False        
-
         #the enemy or ally being targeted
         self.target = None
         
@@ -67,24 +57,8 @@ class Actor(object):
         self.active = False
 
     def turnStart(self):
-        if self.boost:
-            self.defn /= 2
-        elif self.defend:
-            self.defn *= 2.5
-        elif self.cast or self.attacking:
-            self.calculateDamage()
-           
-    #calculates and returns the cost of doing an action
-    def getFPCost(self):
-        if self.attacking:
-            #strong attack takes more fp
-            if self.power == 1:
-                return 45.0
-            else:
-                return 35.0
-        elif self.cast:
-            return self.command.cost
-            
+        self.command.execute()
+
     #calculates the amount of damage towards a target
     def calculateDamage(self):
         pass
@@ -94,20 +68,10 @@ class Actor(object):
         self.fp += self.maxFP / 5
 
         #resets defense
-        if self.boost:
-            self.fp = self.maxFP
-            self.defn *= 2
-        elif self.defend:
-            self.defn /= 2.5
-        elif self.attacking or self.cast:
-            self.fp -= self.getFPCost()
-
+        self.command.reset()
+        
         self.fp = min(self.fp, self.maxFP)
 
-        self.boost = False
-        self.defend = False
-        self.attacking = False
         self.target = None
-        self.cast = False
         self.command = None
         self.power = 0
