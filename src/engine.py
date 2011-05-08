@@ -150,9 +150,9 @@ class Main:
     def drawImage(self, image, position = None, scale = None, angle = None, color = None, frameX = None, frameY = None):
 
         #prevents it from drawing an object that does not exist in the first place
-        if not image:
+        if not isinstance(image, ImgObj):
             return
-
+        
         if position:
             image.setPosition(position[0], position[1])
         if scale:
@@ -177,6 +177,9 @@ class Main:
     #                    (1...n then n...1) (-1 = neither, 0 = frameX, 1 = frameY, 2 = both)
     # delay         millisecond delay for animation
     def drawAnimation(self, image, direction = 0, loop = True, reverse = -1, delay = 20):
+        if not isinstance(image, ImgObj):
+            return
+            
         x = image.currentFrame[0]
         y = image.currentFrame[1]
         
