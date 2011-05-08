@@ -20,6 +20,8 @@ from Actor import Actor
 
 import random
 
+from Command import *
+
 class Enemy(Actor):
     _LevelMax = 20      #this is the current level cap, I will adjust this with the number of content available
     #exp is calculated by enemy level and their stats
@@ -106,7 +108,7 @@ class Enemy(Actor):
             self.command = Attack(self, random.randint(0,2))
             self.target = random.choice(targets)
         elif command == 1:  #tactical/defense choosing
-            self.command = random.choice(Defend(self), Boost(self))
+            self.command = random.choice([Defend(self), Boost(self)])
         
     def loadSprites(self, path):
         normal = Texture(os.path.join(path, "normal.png"))
