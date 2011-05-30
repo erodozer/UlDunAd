@@ -45,7 +45,8 @@ class FontObj:
         self.rect      = (0.0,0.0,1.0,1.0)      #left, top, right, bottom, crops the texture
         self.alignment = 1                      #alignment of the text (left, center , right)
         self.shadow = True                      #does the font project a shadow
-
+        self.text = ""
+        
         self.setText(text)                      #it is not necessary to enter a string upon initialization, 
                                                 #but it is upon time of rendering
         
@@ -104,11 +105,17 @@ class FontObj:
 
     #changes what the font is supposed to say
     def setText(self, text):
+
         if type(text) == list:
-            self.text = string.join(text, '')
+            text = string.join(text, '')
         else:
-            self.text = str(text)       #converts any passed value into a string
+            text = str(text)       #converts any passed value into a string
         
+        #don't create new texture if the text is the same
+        if text == self.text:
+            return
+        
+        self.text = text
         self.texture.changeTexture(self.font.render(self.text, True, (255,255,255)))
         self.pixelSize = self.texture.pixelSize
         self.setScale(1,1)  #makes sure the surface is resized because 
@@ -131,11 +138,12 @@ class FontObj:
 
     #changes the size of the image and scales the surface
     def setScale(self, width, height):
-        if (width >= 0 and width <= 1) and (height >= 0 and height <= 1):
+        if self.scale[0] != width and self.scale[1] != height:
+            if (width >= 0 and width <= 1) and (height >= 0 and height <= 1):
                 self.scale = (width,height)
-        else:
-            self.scale = (float(width)/float(self.pixelSize[0]), float(height)/float(self.pixelSize[1]))
-        self.getDimensions()
+            else:
+                self.scale = (float(width)/float(self.pixelSize[0]), float(height)/float(self.pixelSize[1]))
+            self.getDimensions()
         
     def scaleWidth(self, width, keep_aspect_ratio = True):
         height = self.scale[1]
@@ -148,7 +156,7 @@ class FontObj:
         width = self.scale[0]
         if keep_aspect_ratio:
             width = self.scale[0] * (height/self.pixelSize[1])
-        self.scale = (width, height/self.pixelSize[1])
+        self.setScale(width, height/self.pixelSize[1])
         self.getDimensions()
         
     #rotates the image to the angle
