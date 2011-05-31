@@ -64,7 +64,7 @@ class BGMObj:
 
         if not enabled:
             return
-            
+        
         #checks if the file exists and if it does then it should play it
         if os.path.exists(os.path.join(audiopath)):
             if queue == True:
@@ -74,7 +74,6 @@ class BGMObj:
                 pygame.mixer.music.load(audiopath)
                 pygame.mixer.music.play(self.loop)
         else:
-            pygame.mixer.music.fadeout(100)
             return
   
     #changes how many times the song will loop
@@ -90,7 +89,14 @@ class BGMObj:
     def stop(self):
         pygame.mixer.music.stop()
 
+    #fades the music out and stops it
+    #   @time       time, in milliseconds, it takes to fade the music out
+    def fadeToStop(time = 100):
+        pygame.mixer.music.fadeout(time)
+        pygame.mixer.music.stop()
+
     #change the volume
+    #   @volume     volume of the music, value between 0 - 10
     def setVolume(self, volume):
-        pygame.mixer.music.set_volume(volume/10)
+        pygame.mixer.music.set_volume(int(volume)/10.0)
 
