@@ -14,8 +14,11 @@ class BattleHUDAddition:
         self.addition = self.weapon.attack      #the list of input keys that need to be hit
         self.success = -1                       #0 is failure, 1 = success
         
+        self.combo = self.character.command
+        self.end = False
+        
         #images used for displaying the input combo 
-        self.inputButtons = [ImgObj(Texture("inputButtons.png"), frameY = 5) for i in self.addition]
+        self.inputButtons = [ImgObj(Texture("inputButtons.png"), frameY = 5) for i in self.combo.keys]
         for i, button in enumerate(self.inputButtons):
             frame, angle = self.getButtonImage(self.addition[i])
             button.setFrame(y = frame)
@@ -23,16 +26,8 @@ class BattleHUDAddition:
             button.setScale(96,96, inPixels = True)
 
     def keyPressed(self, key):
-        if self.comboTimer > 0:
-            if key == self.addition[self.comboIndex]:
-                self.comboIndex += 1
-                if self.comboIndex >= len(self.addition):
-                    self.success = 1
-                    self.comboIndex = 0
-                    self.comboTimer = 0
-            else:
-                self.comboTimer = 0
-                self.success = 0
+        if self.combo.runKey(key):
+            self.end = True
             
     def getButtonImage(self, key):
         #directional buttons
@@ -63,16 +58,18 @@ class BattleHUDAddition:
         return frame, angle
         
     def run(self):
-        if self.comboTimer > 0:
-            self.comboTimer -= 1
-            if self.comboTimer <= 0:
-                if self.success == -1:
-                    self.success = 0
+        if self.combo.runTimer(self.engine.clock.get_time()):
+           self.end = True
                 
     def draw(self):
-        self.engine.drawImage(self.inputButtons[self.comboIndex], position = (self.engine.w/2, self.engine.h/2),
-                              color = (1,1,1,1))
-        if self.comboIndex + 1 < len(self.addition):
-            self.engine.drawImage(self.inputButtons[self.comboIndex+1], position = (self.engine.w/2 + self.inputButtons[0].width + 10.0, self.engine.h/2),
-                                  color = (1,1,1,.5))
-        self.engine.drawText(self.font, self.comboTimer, position = (self.engine.w/2, self.engine.h/2 - 100))
+        y = self.engine.h/2
+        for i in range(len(self.combo.keys)):
+            x = self.engine.w/2 - (self.inputButtons[0].width + 10.0) * (i - self.combo.keyIndex)
+            if i == self.combo.keyIndex:
+                col = (1,1,1,1)
+            else:
+                col = (1,1,1,.5)
+            
+            self.engine.drawImage(self.inputButtons[i], position = (x, y), color = col)
+        
+        self.engine.drawText(self.font, "%3d" % self.comboTimer, position = (self.engine.w/2, self.engine.h/2 - 100))
