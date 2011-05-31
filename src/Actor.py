@@ -59,10 +59,6 @@ class Actor(object):
     def turnStart(self):
         self.command.execute()
 
-    #calculates the amount of damage towards a target
-    def calculateDamage(self):
-        pass
-        
     #ends the enemy's turn
     def turnEnd(self):
         self.fp += self.maxFP / 5
