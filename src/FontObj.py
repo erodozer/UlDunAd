@@ -173,6 +173,16 @@ class FontObj:
         for i in range(len(color)):
             self.color[i] = color[i]
 
+    #fades from the current color to the new color in the set amount of time
+    # remember that the color must be in RGBA format
+    def fade(self, color, milliseconds):
+        color = list(color)
+        if list(self.color) != color:
+            for i in range(len(self.color)):
+                self.color[i] = self.color[i] + (color[i] - self.color[i])/milliseconds
+            return True
+        return False
+        
     #finally draws the image to the screen
     def draw(self):
         def render(position = self.position, scale = self.scale, angle = self.angle, color = self.color):
