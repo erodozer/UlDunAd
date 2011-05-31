@@ -280,6 +280,7 @@ class BattleSystem(Scene):
                 self.turn = 0
                 self.active = -1
                 self.next()
+                return
             self.activeActor = self.order[self.turn][0]
             
             #should be performed before the turn officially executes
