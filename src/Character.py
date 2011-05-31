@@ -124,9 +124,6 @@ class Character(Actor):
         
         self.sprites = self.loadSprites() #for now, more work will be done later
         
-        self.performingCombo = False #is the character going to perform a weapon technique
-        self.comboComplete = False   #did the player successfully complete the combo
-            
     #searches path for files with filetype or folder
     def loadSprites(self):
         sprites = {}
@@ -206,30 +203,6 @@ class Character(Actor):
             return "S"
         else:
             return "SS"
-
-    def calculateDamage(self):
-        #first was calculate to see if the actor hits his target
-        if self.performingCombo:
-            hit = self.comboComplete
-        else:
-            hit = (self.proficiency*2) - self.target.evd >= self.target.evd*1.5
-            
-        if hit:
-            if self.cast:
-                self.damage = (self.mag + self.command.damage) - (self.target.res * 1.368295)
-            elif self.attacking:
-                if self.performingCombo:
-                    self.damage = (self.str*1.25 - (self.target.defn * 1.368295))*len(self.equipment[self.hand].attack)
-                else:
-                    self.damage = self.str - (self.target.defn * 1.368295)
-            self.damage = max(0, int(self.damage))
-        else:
-            self.damage = "Miss"
-    
-    def turnEnd(self):
-        Actor.turnEnd(self)
-        self.performingCombo = False
-        self.comboComplete = False
         
     def getSprite(self):
         sprite = self.sprites['standing']
