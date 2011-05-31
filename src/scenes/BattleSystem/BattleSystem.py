@@ -15,7 +15,7 @@ from operator import itemgetter
 from View   import *
 from Actor  import *
 from Character import *
-from Enemy import Enemy
+from Enemy import *
 
 import string
 import Input
@@ -420,7 +420,7 @@ class BattleSystem(Scene):
                                     color = (1,1,1,alpha)) 
             difficulty = self.engine.formation.getSelfDifficulty(self.party)
             if difficulty > 0:
-                for i in range(difficulty):
+                for i in range(int(difficulty)):
                     pos = (self.engine.w/2 - (self.diffStar.width/2 + 10)*(difficulty-1) + (self.diffStar.width + 10) * i,
                             self.engine.h/2 - 30)
                     self.engine.drawImage(self.diffStar, position = pos)
