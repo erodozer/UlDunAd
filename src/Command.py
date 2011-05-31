@@ -100,11 +100,12 @@ class ComboAttack(Command):
 	return False
 	
     def execute(self):
-        hit = self.complete
-        if hit:
-	    self.parent.damage = (self.str*1.25 - (self.target.defn * 1.368295))*len(self.equipment[self.hand].attack)
-        else:
-            self.parent.damage = "Miss"
+	if self.complete:
+	    damage = (self.parent.str*1.25 - (self.parent.target.defn * 1.368295))*len(self.keys)
+	    damage = max(0, int(damage))
+	else:
+            damage = "Miss"
+	self.parent.damage = damage
     
 #when a character defends they gain the normal amount of FP per turn (20%)
 #but their def is multiplied by 250%
