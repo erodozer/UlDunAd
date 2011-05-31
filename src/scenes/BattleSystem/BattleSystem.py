@@ -47,8 +47,12 @@ class BattleSystem(Scene):
         victorySongs = self.engine.listPath(musicpath, "ogg|mp3")
         
         if len(battleSongs) > 0:
-            song = random.choice(battleSongs)
-            self.music = BGMObj(os.path.join("battle", song))
+            self.battleSong = os.path.join("battle", random.choice(battleSongs))
+            
+        if len(victorySongs) > 0:
+            self.victorySong = os.path.join("victory", random.choice(victorySongs))
+            
+        self.music = BGMObj(self.battleSong)
         
         self.background = self.engine.formation.terrain
         self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
@@ -476,9 +480,7 @@ class BattleSystem(Scene):
     #show the victory screen
     def victory(self):
         self.victoryPanel = VictoryPanel(self, self.totalTurns)
-        if len(victorySongs) > 0:
-            song = random.choice(victorySongs)
-            self.music = BGMObj(os.path.join("victory", song))
+        self.music = BGMObj(self.victorySong)
         
     def flee(self):
         #chance of fleeing should be determined by comparing party's stat's to the formations
