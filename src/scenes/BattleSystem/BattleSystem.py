@@ -168,7 +168,7 @@ class BattleSystem(Scene):
         if self.battling:
             if self.additionHUD is not None:
                 if not self.additionHUD.end:
-                    self.additionHUD.runTimer(self.engine.clock.get_ticks())
+                    self.additionHUD.run()
                 else:
                     self.additionHUD = None
             else:
