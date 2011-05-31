@@ -232,7 +232,9 @@ class ImgObj:
         if list(self.color) != color:
             for i in range(len(self.color)):
                 self.color[i] = self.color[i] + (color[i] - self.color[i])/milliseconds
-
+            return True
+        return False
+        
     #change whether or not the image can be treated as a button
     def setBoundable(self, boundable):
         self.isBoundable = boundable
