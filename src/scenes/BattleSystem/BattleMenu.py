@@ -99,7 +99,7 @@ class BattleMenu(MenuObj):
                 if self.index == 2:   #flee
                     self.scene.flee()
                 else:
-                    self.character.command = self.tactCommands[self.index][0]
+                    self.character.command = self.tactCommands[self.index][1]
                 self.scene.next()
             elif self.step == 3:
                 self.character.command = self.itemCommands[self.index]
