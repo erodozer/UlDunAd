@@ -11,6 +11,7 @@ Licensed under the GNU General Public License V3
 
 import os
 import sys
+
 import pygame
 from pygame.locals import *
 
@@ -254,18 +255,23 @@ class Main:
     def listPath(self, path, value = "ini", flag = None, exclude = None):
         items = []
         searchpath = os.path.join("..", "data", path)
-        #retrieve just the file names
-        if flag == "filename":
-            items = [n.rsplit("/",1)[1].replace("." + value, "") for n in glob.glob(os.path.join(searchpath, "*." + value))]
         #returns a list of the folders in the path
-        elif flag == "folder":
+        if flag == "folder":
             items = os.listdir(searchpath)
-        #returns a list of the folders in the path that contain the searched file
-        elif flag == "folderDeepSearch":
-            items = [n for n in os.listdir(searchpath) if os.path.isfile(os.path.join(searchpath, n, value))]
-        #retrieve the entire filename, extension included
         else:
-            items = [n.rsplit("/",1)[1] for n in glob.glob(os.path.join(searchpath, "*." + value))]
+            #allow for multiple endings when searching
+            for val in value.split("|"):
+                #retrieve just the file names
+                if flag == "filename":
+                    item = [n.rsplit("/",1)[1].replace("." + value, "") for n in glob.glob(os.path.join(searchpath, "*." + val))]
+                #returns a list of the folders in the path that contain the searched file
+                elif flag == "folderDeepSearch":
+                    item = [n for n in os.listdir(searchpath) if os.path.isfile(os.path.join(searchpath, n, val))]
+                #retrieve the entire filename, extension included
+                else:
+                    item = [n.rsplit("/",1)[1] for n in glob.glob(os.path.join(searchpath, "*." + val))]
+                for i in item:
+                    items.append(i)
         #removes this file from list
         if exclude:
             items.remove(exclude)
