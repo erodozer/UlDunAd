@@ -115,7 +115,7 @@ class BattleSystem(Scene):
     #make the additionHUD if the active actor has selected to perform an addition
     def makeAdditionHUD(self):
         if isinstance(self.activeActor, Character):
-            if self.activeActor.performingCombo:
+            if isinstance(self.activeActor.command, ComboAttack):
                 self.additionHUD = BattleHUDAddition(self.engine, self.activeActor)
 
     #process key input for the scene
@@ -129,9 +129,8 @@ class BattleSystem(Scene):
             self.victoryPanel.keyPressed(key)
         elif self.battling:
             if self.additionHUD:
-                self.additionHUD.keyPressed(key)
-            return
-            
+                if not self.additionHUD.end:
+                    self.additionHUD.keyPressed(key)
         else:
             if key == Input.BButton:
                 if self.commandWheel.step == 0:
@@ -168,10 +167,9 @@ class BattleSystem(Scene):
         
         if self.battling:
             if self.additionHUD is not None:
-                if self.additionHUD.comboTimer > 0:
-                    self.additionHUD.run()
+                if not self.additionHUD.end:
+                    self.additionHUD.runTimer(self.engine.clock.get_ticks())
                 else:
-                    self.activeActor.comboComplete = self.additionHUD.success
                     self.additionHUD = None
             else:
                 self.execute()
