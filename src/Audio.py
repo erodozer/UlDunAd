@@ -74,7 +74,8 @@ class BGMObj:
                 pygame.mixer.music.load(audiopath)
                 pygame.mixer.music.play(self.loop)
         else:
-            return None
+            pygame.mixer.music.fadeout(100)
+            return
   
     #changes how many times the song will loop
     def setLoop(loop = -1):
