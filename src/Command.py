@@ -1,6 +1,7 @@
 
 import sysobj
 import random
+from math import *
 
 from Character import Character
 
@@ -71,14 +72,13 @@ class ComboAttack(Command):
 	self.fpCost = 65
 	self.complete = False
 	self.weapon = self.parent.equipment[self.parent.hand]
-	self.keys = self.weapon.attack
-	print self.keys
-	self.timer = self.weapon.time
+	self.keys = self.weapon.attack				#the list of input keys that need to be hit
+	self.timer = self.weapon.time 				#time given to perform the attack
 	self.keyIndex = 0
 	
     #handle the execution of the combo attack
     def runTimer(self, timer):
-	self.timer -= timer
+	self.timer = max(self.timer - timer, 0)
 	if self.timer < 0:
 	    self.complete = False
 	    return True
@@ -86,13 +86,15 @@ class ComboAttack(Command):
 	return False
 	
     def runKey(self, key):
+	if self.timer < 0:
+	    self.complete = False
+	    return True
+	    
 	if key == self.keys[self.keyIndex]:
 	    self.keyIndex += 1
 	
 	if self.keyIndex >= len(self.keys):
 	    self.complete = True
-	    return True
-	else:
 	    return True
 	
 	return False
