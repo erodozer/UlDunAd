@@ -91,7 +91,7 @@ class BGMObj:
 
     #fades the music out and stops it
     #   @time       time, in milliseconds, it takes to fade the music out
-    def fadeToStop(time = 100):
+    def fadeToStop(self, time = 100):
         pygame.mixer.music.fadeout(time)
         pygame.mixer.music.stop()
 
