@@ -66,8 +66,39 @@ class Cast(Command):
         self.parent.damage = (self.mag + self.command.damage) - (self.parent.target.res * 1.368295)
             
 class ComboAttack(Command):
+    def __init__(self, actor):
+	super(ComboAttack, self).__init__(actor)
+	self.fpCost = 65
+	self.complete = False
+	self.weapon = self.parent.equipment[self.parent.hand]
+	self.keys = self.weapon.attack
+	print self.keys
+	self.timer = self.weapon.time
+	self.keyIndex = 0
+	
+    #handle the execution of the combo attack
+    def runTimer(self, timer):
+	self.timer -= timer
+	if self.timer < 0:
+	    self.complete = False
+	    return True
+	    
+	return False
+	
+    def runKey(self, key):
+	if key == self.keys[self.keyIndex]:
+	    self.keyIndex += 1
+	
+	if self.keyIndex >= len(self.keys):
+	    self.complete = True
+	    return True
+	else:
+	    return True
+	
+	return False
+	
     def execute(self):
-        hit = self.parent.comboComplete
+        hit = self.complete
         if hit:
 	    self.parent.damage = (self.str*1.25 - (self.target.defn * 1.368295))*len(self.equipment[self.hand].attack)
         else:
