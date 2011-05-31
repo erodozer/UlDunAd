@@ -29,16 +29,16 @@ class BattleMenu(MenuObj):
         self.step = 0           #menu showing
         
         self.basicCommands = ["Attack", "Tactical", "Item", "Spell/Tech"] #basic command menu
-        self.attackCommands = {"Normal"  :Attack(self.character, 0), 
-                               "Accurate":Attack(self.character, 1),
-                               "Strong"  :Attack(self.character, 2)} #attack menu
+        self.attackCommands = [["Normal"  ,Attack(self.character, 0)], 
+                               ["Accurate",Attack(self.character, 1)],
+                               ["Strong"  ,Attack(self.character, 2)]] #attack menu
         
         if character.equipment[character.hand].attack:
-            self.attackCommands["Combo"] = ComboAttack(self.character)
+            self.attackCommands.append(["Combo", ComboAttack(self.character)])
             
-        self.tactCommands = {"Boost" :Boost(self.character),
-                             "Defend":Defend(self.character),
-                             "Flee"  :None} #tactical menu
+        self.tactCommands = [["Boost" ,Boost(self.character)],
+                             ["Defend",Defend(self.character)],
+                             ["Flee"  ,None]] #tactical menu
         self.itemCommands = self.engine.family.inventory    #item menu
         self.techCommands = character.skills                #character's list of skills
         
@@ -87,7 +87,7 @@ class BattleMenu(MenuObj):
                 #3 - item menu
                 #4 - skill menu
             elif self.step == 1:
-                self.character.command = list(self.attackCommands.values())[self.index]
+                self.character.command = self.attackCommands[self.index][1]
                 
                 #if the cost is more than the character can spend then prevent the action
                 if self.character.command.fpCost > self.character.fp:
@@ -99,7 +99,7 @@ class BattleMenu(MenuObj):
                 if self.index == 2:   #flee
                     self.scene.flee()
                 else:
-                    self.character.command = list(self.tactCommands.values())[self.index]
+                    self.character.command = self.tactCommands[self.index][0]
                 self.scene.next()
             elif self.step == 3:
                 self.character.command = self.itemCommands[self.index]
@@ -151,11 +151,11 @@ class BattleMenu(MenuObj):
                 commands = self.tactCommands
             elif self.step == 5:
                 commands = self.scene.targetMenu
-            
-            if isinstance(commands, dict):
-                commands = list(commands.keys())
-                
-            self.text.setText(commands[self.index])
+
+            if self.step == 0 or self.step == 5:
+                self.text.setText(commands[self.index])
+            else:
+                self.text.setText(commands[self.index][0])
             self.text.setPosition(self.back.position[0],self.back.position[1])
             self.text.scaleHeight(24.0)
             self.text.draw()
