@@ -27,7 +27,7 @@ class Weapon(Item):
             self.attackAnimation = ImgObj(Texture(os.path.join("items", name, "attack.png"),
                                           fallback = Texture(os.path.join("animations", "attack.png"))), frameX = 9)
             self.defendAnimation = ImgObj(Texture(os.path.join("items", name, "defend.png"),
-                                          fallback = Texture(os.path.join("animations", "defend.png"))), frameX = 9)
+                                          fallback = Texture(os.path.join("animations", "defend.png"))), frameX = 10)
             self.str  = itemini.__getattr__("str", int)
         
             #weapons, if available, have the ability to perform special
@@ -48,7 +48,7 @@ class Weapon(Item):
         else:
             self.sprite = None
             self.attackAnimation = ImgObj(Texture(os.path.join("animations", "attack.png")), frameX = 9)
-            self.defendAnimation = ImgObj(Texture(os.path.join("animations", "defend.png")), frameX = 9)
+            self.defendAnimation = ImgObj(Texture(os.path.join("animations", "defend.png")), frameX = 10)
             self.type = "unknown"
             self.str  = 1
             self.attack = []

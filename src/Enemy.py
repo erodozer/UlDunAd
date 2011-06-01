@@ -81,7 +81,7 @@ class Enemy(Actor):
         self.attackAnimation = ImgObj(Texture(os.path.join(path, "attack.png"),
                                           fallback = Texture(os.path.join("animations", "attack.png"))), frameX = 9)
         self.defendAnimation = ImgObj(Texture(os.path.join(path, "defend.png"),
-                                          fallback = Texture(os.path.join("animations", "defend.png"))), frameX = 9)
+                                          fallback = Texture(os.path.join("animations", "defend.png"))), frameX = 10)
 
         path = os.path.join("..", "data", "items", self.drop)
         if os.path.exists(path):
