@@ -161,7 +161,7 @@ class Formation:
             if names.count(names[0]) > 0:
                 self.enemies[-1].name += " " + chr(64 + names.count(names[0]))
             names.pop(0)
-
+        self.enemies.reverse()
         
         #assigns the positions and scales to the enemies
         for i, enemy in enumerate(self.enemies):
