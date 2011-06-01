@@ -232,9 +232,7 @@ class ImgObj:
         if list(self.color) != color:
             for i in range(len(self.color)):
                 self.color[i] = self.color[i] + (color[i] - self.color[i])/milliseconds
-            print True
             return True
-        print False
         return False
         
     #change whether or not the image can be treated as a button
@@ -260,7 +258,6 @@ class ImgObj:
     #very simple collision detection
     #does not work with rotations
     def getCollision(self, point):
-        
         
         x1 = self.position[0]
         if self.alignment == 0:
