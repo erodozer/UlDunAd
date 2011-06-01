@@ -79,19 +79,17 @@ class ComboAttack(Command):
     #handle the execution of the combo attack
     def runTimer(self, timer):
 	self.timer = max(self.timer - timer, 0)
-	if self.timer < 0:
+	if self.timer <= 0:
 	    self.complete = False
 	    return True
-	    
 	return False
 	
     def runKey(self, key):
-	if self.timer < 0:
-	    self.complete = False
-	    return True
-	    
 	if key == self.keys[self.keyIndex]:
 	    self.keyIndex += 1
+	else:
+	    self.complete = False
+	    return True
 	
 	if self.keyIndex >= len(self.keys):
 	    self.complete = True
