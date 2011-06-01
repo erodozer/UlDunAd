@@ -215,9 +215,17 @@ class BattleSystem(Scene):
         
         if self.displayDelay == 0:
             actor.turnStart()
-        
+            anim = actor.command.animation
+            if isinstance(anim, ImgObj):
+                anim.setFrame(x = 1)
+                if isinstance(actor, Enemy):
+                    anim.setScale(-anim.width, anim.height, inPixels = True)
+            self.displayDelay = 1
+            
         anim = actor.command.animation
-        self.engine.drawAnimation(anim)
+        if isinstance(anim, ImgObj):
+            if anim.currentFrame[0] < anim.frames[0]:
+                return
         
         if actor.target != None:
             self.displayDelay += 5
@@ -355,6 +363,10 @@ class BattleSystem(Scene):
             
     #renders the active highlight and damage
     def renderBattle(self, visibility):
+        #draws order of the next 2 turns
+        for i in range(min(3, len(self.order)-self.turn)):
+            self.engine.drawText(self.text, self.order[self.turn+i][0].name, position = (self.engine.w*.75, self.engine.h *.9 - 45*i), color = (1,1,1,1-(.33*i)))
+
         actor = self.activeActor
             
         #eyecandy highlight for who is currently attacking
@@ -371,6 +383,15 @@ class BattleSystem(Scene):
             self.additionHUD.draw()
             return
             
+        anim = actor.command.animation
+        if isinstance(anim, ImgObj):
+            if anim.currentFrame[0] < anim.frames[0]:
+                pos = actor.target.getSprite().position
+                anim.setPosition(pos[0], pos[1])
+                anim.setFrame(x = anim.currentFrame[0] + self.engine.clock.get_time()/(anim.frames[0]*5.0))
+                anim.draw()
+                return
+
         if actor.target != None and self.displayDelay < 100:
             pos = actor.target.getSprite().position    
             #draws the damage on screen
@@ -382,9 +403,6 @@ class BattleSystem(Scene):
                 color = (1,1,1,1)
             self.engine.drawText(self.text, actor.damage, position = (pos[0], y), color = color)
 
-        for i in range(min(3, len(self.order)-self.turn)):
-            self.engine.drawText(self.text, self.order[self.turn+i][0].name, position = (self.engine.w*.75, self.engine.h *.9 - 45*i), color = (1,1,1,1-(.33*i)))
-            
     #renders the spiffy intro animation
     def renderIntro(self, visibility):
         if self.introDelay > 450:
