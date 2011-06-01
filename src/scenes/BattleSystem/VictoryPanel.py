@@ -11,10 +11,12 @@ class VictoryPanel:
         self.background = ImgObj(Texture(os.path.join(battlepath, "victorypanel.png")))
         self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
         self.background.setPosition(self.engine.w/2, self.engine.h/2)
+        self.background.setColor((1,1,1,0))
         
         self.diffStar = ImgObj(Texture(os.path.join(battlepath, "star.png")))
         
         self.font = FontObj("default.ttf", size = 16)
+        self.font.setColor((1,1,1,0))
         
         self.turns = turns    #total number of player turns used in battle
         
@@ -48,8 +50,6 @@ class VictoryPanel:
         self.bonusGold = self.gold * self.difficulty
         self.bonusGold *= (len(self.formation.enemies)*((self.difficulty-1)*3))/self.turns
         
-        self.alpha = 0.0
-        
         self.levelUp = [False for i in self.party]
         
     def keyPressed(self, key):
@@ -78,12 +78,12 @@ class VictoryPanel:
             self.scene.end()
         
     def render(self):
-        self.background.setColor((1,1,1,self.alpha))
+        self.background.fade((1,1,1,1), 10)
         self.background.draw()
         
         self.font.setAlignment("right")
         
-        self.font.setColor((1,1,1,self.alpha))
+        self.font.fade((1,1,1,1), 10)
         
         #difficulty
         self.font.setText("%i" % self.difficulty)
@@ -110,8 +110,5 @@ class VictoryPanel:
                 self.font.setText("%s Leveled Up!" % (self.party[i].name))
                 self.font.setPosition(self.engine.w*.9 - 20*(i+1), 175 - 30*(i+1))
                 self.font.draw()
-        
-        self.alpha = min(1.0, self.alpha+.1)
-        
         
  
