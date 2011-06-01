@@ -78,6 +78,11 @@ class Enemy(Actor):
         self.drop = baseSection.__getattr__("drop")
         self.dropChance = baseSection.__getattr__("dropChance", int)
         
+        self.attackAnimation = ImgObj(Texture(os.path.join(path, "attack.png"),
+                                          fallback = Texture(os.path.join("animations", "attack.png"))), frameX = 9)
+        self.defendAnimation = ImgObj(Texture(os.path.join(path, "defend.png"),
+                                          fallback = Texture(os.path.join("animations", "defend.png"))), frameX = 9)
+
         path = os.path.join("..", "data", "items", self.drop)
         if os.path.exists(path):
             ini = Configuration(os.path.join("..", "data", "items", self.drop, "item.ini"))
@@ -90,7 +95,7 @@ class Enemy(Actor):
                 self.drop = Item(item)
         else:
             self.drop = None
-        
+            
     def getCommand(self, targets):
         '''commented out due to skills not yet working
         if len(self.skills) > 0:

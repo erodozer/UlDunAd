@@ -24,6 +24,10 @@ class Weapon(Item):
             self.sprite = ImgObj(Texture(os.path.join("items", name, "item.png")))
             itemini = Configuration(os.path.join("..", "data", "items", name, "item.ini")).weapon
             self.type = itemini.__getattr__("type")
+            self.attackAnimation = ImgObj(Texture(os.path.join("items", name, "attack.png"),
+                                          fallback = Texture(os.path.join("animations", "attack.png"))), frameX = 9)
+            self.defendAnimation = ImgObj(Texture(os.path.join("items", name, "defend.png"),
+                                          fallback = Texture(os.path.join("animations", "defend.png"))), frameX = 9)
             self.str  = itemini.__getattr__("str", int)
         
             #weapons, if available, have the ability to perform special
@@ -43,6 +47,8 @@ class Weapon(Item):
             self.time = itemini.__getattr__("combotime", int)
         else:
             self.sprite = None
+            self.attackAnimation = ImgObj(Texture(os.path.join("animations", "attack.png")), frameX = 9)
+            self.defendAnimation = ImgObj(Texture(os.path.join("animations", "defend.png")), frameX = 9)
             self.type = "unknown"
             self.str  = 1
             self.attack = []

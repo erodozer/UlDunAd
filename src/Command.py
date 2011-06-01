@@ -24,7 +24,11 @@ class Command(object):
 class Attack(Command):
     def __init__(self, actor, style = 0):
 	super(Attack, self).__init__(actor)
-	#self.animation = self.parent.equipment[self.parent.hand].animation
+	if isinstance(self.parent, Character):
+	    self.animation = self.parent.equipment[self.parent.hand].attackAnimation
+	else:
+	    self.animation = self.parent.attackAnimation
+	    
 	self.style = style	#3 different styles of attack
 				#  0 - normal
 				#  1 - aim, 100% accuracy but weaker
@@ -57,7 +61,18 @@ class Attack(Command):
 	else:
             damage = "Miss"
 	self.parent.damage = damage
-    
+	
+	if isinstance(self.parent.target.command, Defend):
+	    if isinstance(self.parent, Character):
+		self.animation = self.parent.equipment[self.parent.hand].attackAnimation
+	    else:
+		self.animation = self.parent.attackAnimation
+	else:
+	    if isinstance(self.parent, Character):
+		self.animation = self.parent.equipment[self.parent.hand].defendAnimation
+	    else:
+		self.animation = self.parent.defendAnimation
+	    
 class Cast(Command):
     def __init__(self, actor):
 	self.parent = actor
@@ -69,6 +84,7 @@ class Cast(Command):
 class ComboAttack(Command):
     def __init__(self, actor):
 	super(ComboAttack, self).__init__(actor)
+	self.animation = self.parent.equipment[self.parent.hand].attackAnimation
 	self.fpCost = 65
 	self.complete = False
 	self.weapon = self.parent.equipment[self.parent.hand]
@@ -104,6 +120,10 @@ class ComboAttack(Command):
 	else:
             damage = "Miss"
 	self.parent.damage = damage
+	if isinstance(self.parent.target.command, Defend):
+	    self.animation = self.parent.equipment[self.parent.hand].defendAnimation
+	else:
+	    self.animation = self.parent.equipment[self.parent.hand].attackAnimation
     
 #when a character defends they gain the normal amount of FP per turn (20%)
 #but their def is multiplied by 250%
