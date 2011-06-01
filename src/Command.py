@@ -64,14 +64,14 @@ class Attack(Command):
 	
 	if isinstance(self.parent.target.command, Defend):
 	    if isinstance(self.parent, Character):
-		self.animation = self.parent.equipment[self.parent.hand].attackAnimation
-	    else:
-		self.animation = self.parent.attackAnimation
-	else:
-	    if isinstance(self.parent, Character):
 		self.animation = self.parent.equipment[self.parent.hand].defendAnimation
 	    else:
 		self.animation = self.parent.defendAnimation
+	else:
+	    if isinstance(self.parent, Character):
+		self.animation = self.parent.equipment[self.parent.hand].attackAnimation
+	    else:
+		self.animation = self.parent.attackAnimation
 	    
 class Cast(Command):
     def __init__(self, actor):
