@@ -58,12 +58,12 @@ class BattleHUDAddition:
                 
     def draw(self):
         y = self.engine.h/2
-        for i in range(len(self.combo.keys)):
+        for i in range(len(self.combo.keys[max(0, self.combo.keyIndex-2):min(self.combo.keyIndex+2, len(self.combo.keys))])):
             x = self.engine.w/2 - (self.inputButtons[0].width + 10.0) * (self.combo.keyIndex - i)
             if i == self.combo.keyIndex:
                 col = (1,1,1,1)
             else:
-                col = (.5,1,1,.5)
+                col = (1,.5,.5,.5)
             
             self.engine.drawImage(self.inputButtons[i], position = (x, y), color = col)
         
