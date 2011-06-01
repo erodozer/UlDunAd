@@ -176,7 +176,7 @@ class FontObj:
     #fades from the current color to the new color in the set amount of time
     # remember that the color must be in RGBA format
     def fade(self, color, milliseconds):
-        color = list(color)
+        color = [float(c) for c in color]   #makes sure the color is an array of floats
         if list(self.color) != color:
             for i in range(len(self.color)):
                 self.color[i] = self.color[i] + (color[i] - self.color[i])/milliseconds

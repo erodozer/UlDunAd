@@ -223,16 +223,18 @@ class ImgObj:
     #sets the colour of the image (RGBA 0.0 -> 1.0)
     def setColor(self, color):
         for i in range(len(self.color)):
-            self.color[i] = color[i]
+            self.color[i] = float(color[i])
 
     #fades from the current color to the new color in the set amount of time
     # remember that the color must be in RGBA format
     def fade(self, color, milliseconds):
-        color = list(color)
+        color = [float(c) for c in color]   #makes sure the color is an array of floats
         if list(self.color) != color:
             for i in range(len(self.color)):
                 self.color[i] = self.color[i] + (color[i] - self.color[i])/milliseconds
+            print True
             return True
+        print False
         return False
         
     #change whether or not the image can be treated as a button
