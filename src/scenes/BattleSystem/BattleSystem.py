@@ -79,7 +79,7 @@ class BattleSystem(Scene):
         self.huds = [BattleHUDCharacter(character) for character in self.party] #player huds
         self.eHuds = [BattleHUDEnemy(enemy) for enemy in self.formation]        #enemy hud
         self.engageHud = None                                                   #battle engage hud
-        self.commandWheel = BattleMenu(self, self.party[0])                     #player's commands
+        self.commandMenu = BattleMenu(self, self.party[0])                     #player's commands
         self.inMenu = False
 
         self.active = 0         #which character is currently selecting commands
@@ -139,15 +139,15 @@ class BattleSystem(Scene):
                     self.additionHUD.keyPressed(key)
         else:
             if key == Input.BButton:
-                if self.commandWheel.step == 0:
+                if self.commandMenu.step == 0:
                     self.active -= 1
                     if self.active < 0:
                         self.active = 0
-                    self.commandWheel = BattleMenu(self, self.party[self.active])
+                    self.commandMenu = BattleMenu(self, self.party[self.active])
                 if self.targeting:
                     self.targeting = False
                     
-            self.commandWheel.keyPressed(key)
+            self.commandMenu.keyPressed(key)
     
     def select(self, index):
         if self.lose:
@@ -200,6 +200,11 @@ class BattleSystem(Scene):
             self.turns[enemy] = random.randint(0, 50) + enemy.spd
             enemy.getCommand(self.generateEnemyTargets(enemy))  #gets enemy's command and target
         
+        #automatically puts actors who are defending or boosting first in order
+        for actor in self.turns.keys():
+            if isinstance(actor, Defend) or isinstance(actor, Boost):
+                self.turns[actor] = 1000
+                
         self.order = sorted(self.turns.items(), key=itemgetter(1))
     
         self.activeActor = self.order[self.turn][0]
@@ -316,9 +321,9 @@ class BattleSystem(Scene):
         else:
             self.active += 1
             if self.active < len(self.party):
-                self.commandWheel = BattleMenu(self, self.party[self.active])
+                self.commandMenu = BattleMenu(self, self.party[self.active])
             else:
-                self.commandWheel = None
+                self.commandMenu = None
                 self.battleStart()
             self.targeting = False
     
@@ -353,13 +358,13 @@ class BattleSystem(Scene):
             self.pointer.draw()
                 
             if self.targeting:
-                self.eHuds[self.commandWheel.index].update()
-                self.eHuds[self.commandWheel.index].draw()
-                target = self.formation[self.commandWheel.index].getSprite()
+                self.eHuds[self.commandMenu.index].update()
+                self.eHuds[self.commandMenu.index].draw()
+                target = self.formation[self.commandMenu.index].getSprite()
                 self.pointer.setPosition(target.position[0], target.position[1] + target.height/2 + 20)
                 self.pointer.setFrame(x = 2)
                 self.pointer.draw()
-            self.commandWheel.render(visibility)
+            self.commandMenu.render(visibility)
             
     #renders the active highlight and damage
     def renderBattle(self, visibility):
@@ -376,7 +381,7 @@ class BattleSystem(Scene):
         self.activeHighlight.draw()
             
       
-        if actor.target != None and self.engageHud:
+        if self.engageHud:
             self.engageHud.draw()
             
         if self.additionHUD:
