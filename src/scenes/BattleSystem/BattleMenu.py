@@ -4,6 +4,8 @@ import Input
 from MenuObj import MenuObj
 from Command import *
 
+pageLength = 5     #length of each set of commands
+    
 #Bottom right corner command menu circle thing
 class BattleMenu(MenuObj):
     def __init__(self, scene, character):
@@ -15,18 +17,13 @@ class BattleMenu(MenuObj):
         self.text = FontObj(fontStyle)
         
         #0 = attack menu, 2 = strategic menu, 3 = item menu
-        self.commandWin = WinObj(Texture("window.png"), 0, 0)
-        self.commandWin.setDimensions(self.engine.w-30, 400)
         self.highlight = ImgObj(Texture("window_selected.png"))
-        self.highlight.setScale(self.engine.w/2 - 10, 32.0, inPixels = True)
-        
-        #the wheel backdrop
-        self.back = ImgObj(Texture(os.path.join("scenes", "battlesystem", "commandwheel.png")))
-        self.back.setPosition(self.engine.w - self.back.width/2, self.back.height/2)
         
         self.command = 0        #command selected
         self.index = 0          #index selected in the window
         self.step = 0           #menu showing
+        
+        self.page = 0           #offset index for grouping commands in sets
         
         self.basicCommands = ["Attack", "Tactical", "Item", "Spell/Tech"] #basic command menu
         self.attackCommands = [["Normal"  ,Attack(self.character, 0)], 
@@ -42,40 +39,31 @@ class BattleMenu(MenuObj):
         self.itemCommands = self.engine.family.inventory    #item menu
         self.techCommands = character.skills                #character's list of skills
         
+        self.activeCommands = self.basicCommands
+        
+        self.makeMenu()
+        
+    def makeMenu(self):
+        commands = self.activeCommands
+        self.commandWin = WinObj(Texture("window.png"), 200, 32 * min(5,len(commands)-self.page)+8)
+        self.commandWin.setPosition(self.engine.w - (self.commandWin.scale[0] + 10),
+                                    self.commandWin.scale[1]/2 + 10)
+        self.highlight.setScale(self.commandWin.scale[0] - 10, 32.0, inPixels = True)
+        
     def keyPressed(self, key):
         
         if key == Input.UpButton:
-            #since item and skill menus have two columns
-            #to go up a row you have to subtract 2
-            if self.step == 3 or self.step == 4:
-                if self.index > 1:
-                    self.index -= 2
-            else:
-                if self.index > 0:
-                    self.index -= 1
+            if self.index % pageLength == 0:
+                self.page = max(0, self.page - pageLength)
+            self.index = max(self.index-1, 0)
+
                     
         if key == Input.DnButton:
-            #since item and skill menus have two columns
-            #to go down a row you have to add 2
-            if self.step == 3 or self.step == 4:
-                if self.step == 3:
-                    commands = self.itemCommands
-                else:
-                    commands = self.techCommands
-                if self.index + 2 < len(commands):
-                    self.index += 2
-            else:
-                if self.step == 1:
-                    commands = self.attackCommands
-                elif self.step == 2:
-                    commands = self.tactCommands
-                elif self.step == 5:
-                    commands = self.scene.targetMenu
-                else:
-                    commands = self.basicCommands
-                
-                if self.index + 1 < len(commands):
-                    self.index += 1
+            commands = self.activeCommands
+            self.index = min(self.index + 1, len(commands) - 1)
+                    
+            if self.index % 5 == 0:
+                self.page = min(self.page + pageLength, len(commands) - pageLength)
             
                 
         #overrides default a button pressing
@@ -86,6 +74,16 @@ class BattleMenu(MenuObj):
                 #2 - tactical menu
                 #3 - item menu
                 #4 - skill menu
+                if self.step == 0:
+                    self.activeCommands = self.basicCommands
+                elif self.step == 1:
+                    self.activeCommands = self.attackCommands
+                elif self.step == 2:
+                    self.activeCommands = self.tactCommands
+                elif self.step == 3:
+                    self.activeCommands = self.itemCommands
+                elif self.step == 4:
+                    self.activeCommands = self.techCommands
             elif self.step == 1:
                 self.character.command = self.attackCommands[self.index][1]
                 
@@ -95,6 +93,7 @@ class BattleMenu(MenuObj):
                     return
                 self.scene.selectTarget()
                 self.step = 5
+                self.activeCommands = self.scene.targetMenu
             elif self.step == 2:
                 if self.index == 2:   #flee
                     self.scene.flee()
@@ -111,52 +110,51 @@ class BattleMenu(MenuObj):
                 self.step = 5
             elif self.step == 5:
                 self.scene.select(self.index)
+            self.page = 0
             self.index = 0
+            self.makeMenu()
                 
         if key == Input.BButton:
             self.step = 0
             self.index = 0
+            self.page = 0
+            self.activeCommands = self.basicCommands
+            self.makeMenu()
+        
         
     def render(self, visibility):
         
-        if self.step == 3 or self.step == 4:
-            if self.step == 3:
-                commands = self.itemCommands
-            elif self.step == 4:
-                commands = self.techCommands
-                
-            self.commandWin.draw()
-            
-            for i, item in enumerate(commands):
-                position = ((self.engine.w/2 * i%2) + 10, 32.0 * int(i/2))
-                
-                if i == self.index:
-                    self.highlight.setPosition(position[0], position[1])
-                    
-                self.text.setText(item.name)
-                self.text.setPosition(position[0], position[1])
-                self.text.scaleHeight(28.0)
-                self.text.draw()
-                
-            self.highlight.draw()
-         
-        else:
-            self.back.draw()
-            
-            if self.step == 0:
-                commands = self.basicCommands
-            elif self.step == 1:
-                commands = self.attackCommands
-            elif self.step == 2:
-                commands = self.tactCommands
-            elif self.step == 5:
-                commands = self.scene.targetMenu
-
-            if self.step == 0 or self.step == 5:
-                self.text.setText(commands[self.index])
-            else:
-                self.text.setText(commands[self.index][0])
-            self.text.setPosition(self.back.position[0],self.back.position[1])
-            self.text.scaleHeight(24.0)
-            self.text.draw()
+        self.commandWin.draw()
         
+        commands = self.activeCommands
+        
+        for i, item in enumerate(commands[self.page:min(self.page+pageLength,len(commands))]):
+            position = (self.commandWin.position[0], self.commandWin.position[1] + (self.commandWin.scale[1]/2 - 20) - 32.0 * i)
+                
+            if i == self.index:
+                self.highlight.setPosition(position[0], position[1])
+                self.highlight.draw()
+        
+            if self.step == 0 or self.step == 5:
+                self.text.setText(item)
+            elif self.step == 3 or self.step == 4:
+                self.text.setText("%02d:%s" % (item[1], item[0].name))
+            else:
+                self.text.setText(item[0])     
+            self.text.setAlignment("center")
+            self.text.setPosition(position[0], position[1])
+            self.text.scaleHeight(28.0)
+            self.text.setScale(min(self.commandWin.scale[0], self.text.width), self.text.height)
+            self.text.draw()
+                
+        directions = ""
+        if len(commands) > self.page+pageLength:
+            directions += "^"
+        if self.page > 0:
+            directions += "v"
+            
+        self.text.setText(directions)
+        self.text.setPosition(self.commandWin.position[0], self.commandWin.position[1] + (self.commandWin.scale[1]/2 + 20))
+        self.text.draw()
+              
+            
