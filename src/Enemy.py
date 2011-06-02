@@ -78,11 +78,16 @@ class Enemy(Actor):
         self.drop = baseSection.__getattr__("drop")
         self.dropChance = baseSection.__getattr__("dropChance", int)
         
-        self.attackAnimation = ImgObj(Texture(os.path.join(path, "attack.png"),
-                                          fallback = Texture(os.path.join("animations", "attack.png"))), frameX = 9)
-        self.defendAnimation = ImgObj(Texture(os.path.join(path, "defend.png"),
-                                          fallback = Texture(os.path.join("animations", "defend.png"))), frameX = 10)
-
+        if os.path.exists(os.path.join(path, "attack.anim")):
+            self.attackAnimation = Animation(os.path.join(path, "attack"))
+        else:
+            self.attackAnimation = Animation(os.path.join("animations", "attack"))
+        
+        if os.path.exists(os.path.join(path, "defend.anim")):
+            self.defendAnimation = Animation(os.path.join(path, "defend"))
+        else:
+            self.defendAnimation = Animation(os.path.join("animations", "defend"))
+            
         path = os.path.join("..", "data", "items", self.drop)
         if os.path.exists(path):
             ini = Configuration(os.path.join("..", "data", "items", self.drop, "item.ini"))
