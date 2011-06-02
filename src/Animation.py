@@ -15,14 +15,15 @@ class Animation(object):
         self.currentFrame = 0                       #the current frame of animation
         self.frames = []                            #the frames of animation
         
+        lines = [l.rstrip("\n") for l in file.readlines() if l.rstrip("\n")]
         #reads in lines one at a time for the sequence file
-        for i, line in enumerate(file):
+        for i, line in enumerate(lines):
             #first line designates how many frames are in the image
             if i == 0:  
                 self.image = ImgObj(Texture(path + ".png"), frameX = int(line))
             #second line designates relation positioning
             elif i == 1:    
-                if line == "screen"
+                if line == "screen":
                     self.relation = "screen"
                 else:
                     self.relation = "parent"
@@ -33,8 +34,8 @@ class Animation(object):
             #   are set in the image.  Multiple sprites are divided by |.  Each sprite
             #   has 3 properties, 1) frame number, 2) x position, 3) y position
             else:   
-                self.frames.append([int(f) for f in l.split(",") for l in line.split("|")])
-     
+                self.frames.append([[float(f.strip()) for f in l.split(",")] for l in line.split("|")])
+        
     #sets the parent image which parent relation is associated with
     def setParent(self, image):
         self.parent = image
@@ -46,10 +47,12 @@ class Animation(object):
             return False
             
         frame = self.frames[self.currentFrame]
+        print frame
         
         #draw the multiple sprites to screen
         #positions are in terms of 0.0-1.0, not pixels
         for sprite in frame:
+            print sprite
             self.image.setFrame(x = sprite[0])
             if self.relation == "parent":
                 point = (self.parent.position[0] - self.parent.scale[0]/2,
