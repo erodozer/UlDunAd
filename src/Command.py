@@ -131,10 +131,22 @@ class ComboAttack(Command):
 	else:
             damage = "Miss"
 	self.parent.damage = damage
+
 	if isinstance(self.parent.target.command, Defend):
-	    self.animation = self.parent.equipment[self.parent.hand].defendAnimation
+	    if isinstance(self.parent, Character):
+		self.animation = self.parent.equipment[self.parent.hand].defendAnimation
+	    else:
+		self.animation = self.parent.defendAnimation
 	else:
-	    self.animation = self.parent.equipment[self.parent.hand].attackAnimation
+	    if isinstance(self.parent, Character):
+		self.animation = self.parent.equipment[self.parent.hand].attackAnimation
+	    else:
+		self.animation = self.parent.attackAnimation
+	self.animation.currentFrame = 0
+	self.animation.setParent(self.parent.target.getSprite())
+	if isinstance(self.parent, Character):
+	    anim = self.animation
+	    anim.image.setScale(-anim.image.width, anim.image.height, inPixels = True)
     
 #when a character defends they gain the normal amount of FP per turn (20%)
 #but their def is multiplied by 250%
