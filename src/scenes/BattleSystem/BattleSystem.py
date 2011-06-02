@@ -221,16 +221,13 @@ class BattleSystem(Scene):
         if self.displayDelay == 0:
             actor.turnStart()
             anim = actor.command.animation
-            if isinstance(anim, ImgObj):
-                anim.setFrame(x = 1)
-                if isinstance(actor, Enemy):
-                    anim.setScale(-anim.width, anim.height, inPixels = True)
-            self.displayDelay = 1
+            if anim:
+                self.displayDelay = 1
+            else:
+                self.displayDelay = 5
             
-        anim = actor.command.animation
-        if isinstance(anim, ImgObj):
-            if anim.currentFrame[0] < anim.frames[0]:
-                return
+        if self.displayDelay == 1:
+            return
         
         if actor.target != None:
             self.displayDelay += 5
@@ -388,14 +385,11 @@ class BattleSystem(Scene):
             self.additionHUD.draw()
             return
             
-        anim = actor.command.animation
-        if isinstance(anim, ImgObj):
-            if anim.currentFrame[0] < anim.frames[0]:
-                pos = actor.target.getSprite().position
-                anim.setPosition(pos[0], pos[1])
-                anim.setFrame(x = anim.currentFrame[0] + self.engine.clock.get_time()/(anim.frames[0]*5.0))
-                anim.draw()
+        if self.displayDelay == 1:
+            if actor.command.draw():
                 return
+            else:
+                self.displayDelay = 5
 
         if actor.target != None and self.displayDelay < 100:
             pos = actor.target.getSprite().position    
