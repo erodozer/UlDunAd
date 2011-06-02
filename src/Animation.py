@@ -49,12 +49,10 @@ class Animation(object):
             return False
             
         frame = self.frames[self.currentFrame]
-        print frame
         
         #draw the multiple sprites to screen
         #positions are in terms of 0.0-1.0, not pixels
         for sprite in frame:
-            print sprite
             self.image.setFrame(x = sprite[0])
             if self.relation == "parent":
                 point = (self.parent.position[0] - self.parent.scale[0]/2,
