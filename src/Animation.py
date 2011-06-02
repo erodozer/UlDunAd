@@ -32,7 +32,9 @@ class Animation(object):
             #   in different locations at the same time.  Additionally, the number
             #   of frames in the animation is dependent on lines, not how many frames
             #   are set in the image.  Multiple sprites are divided by |.  Each sprite
-            #   has 3 properties, 1) frame number, 2) x position, 3) y position
+            #   has 6 properties, 
+            #       1) frame number 2) x position   3) y position
+            #       4) width        5) height       6) rotate
             else:   
                 self.frames.append([[float(f.strip()) for f in l.split(",")] for l in line.split("|")])
         
@@ -61,6 +63,8 @@ class Animation(object):
                                        point[1] + sprite[2] * self.parent.scale[1])
             else:
                 self.image.setPosition(sprite[1], sprite[2])
+            self.image.setScale(sprite[3], sprite[4])
+            self.image.setAngle(sprite[5])
             self.image.draw()
             
         self.currentFrame += 1
