@@ -285,7 +285,6 @@ class BattleSystem(Scene):
     def next(self):
         if self.battling:
             self.additionHUD = None
-            self.activeActor.turnEnd()
             #if a character in the user's party just acted, then increment the number of total turns
             if isinstance(self.activeActor, Character):
                 self.totalTurns += 1
@@ -295,6 +294,11 @@ class BattleSystem(Scene):
                 self.battling = False
                 self.turn = 0
                 self.active = -1
+                for actor in self.party:
+                    actor.turnEnd()
+                for actor in self.formation:
+                    actor.turnEnd()
+                self.activeActor = None
                 self.next()
                 return
             self.activeActor = self.order[self.turn][0]
