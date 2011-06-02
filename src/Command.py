@@ -21,6 +21,12 @@ class Command(object):
     def reset(self):
 	self.parent.fp -= self.fpCost
 	
+    #will draw the corresponding animation for the command
+    # returning False signifies the animation is done
+    # returning True signifies the animation is still running
+    def draw(self):
+	return self.animation.draw()
+	
 class Attack(Command):
     def __init__(self, actor, style = 0):
 	super(Attack, self).__init__(actor)
@@ -72,7 +78,12 @@ class Attack(Command):
 		self.animation = self.parent.equipment[self.parent.hand].attackAnimation
 	    else:
 		self.animation = self.parent.attackAnimation
-	    
+	self.animation.currentFrame = 0
+	self.animation.setParent(self.parent.target.getSprite())
+	if isinstance(self.parent, Character):
+	    anim = self.animation
+	    anim.image.setScale(-anim.image.width, anim.image.height, inPixels = True)
+	
 class Cast(Command):
     def __init__(self, actor):
 	self.parent = actor
