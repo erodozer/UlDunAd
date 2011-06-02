@@ -22,3 +22,4 @@ from BarObj import BarObj
 from Texture import Texture
 from FontObj import FontObj
 from Audio import *
+from Animation import Animation
