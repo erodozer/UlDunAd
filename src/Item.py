@@ -29,14 +29,14 @@ class Weapon(Item):
             if os.path.exists(path):
                 path = os.path.join("items", name, "attack")
             else:
-                path = os.path.join("animations", "attack")
+                path = "attack"
             self.attackAnimation = Animation(path)
             
             path = os.path.join("items", name, "defend.anim")
             if os.path.exists(path):
                 path = os.path.join("items", name, "defend")
             else:
-                path = os.path.join("animations", "defend")
+                path = "defend"
             self.defendAnimation = Animation(path)
             
             self.str  = itemini.__getattr__("str", int)
@@ -58,8 +58,8 @@ class Weapon(Item):
             self.time = itemini.__getattr__("combotime", int)
         else:
             self.sprite = None
-            self.attackAnimation = Animation(os.path.join("animations", "attack"))
-            self.defendAnimation = Animation(os.path.join("animations", "defend"))
+            self.attackAnimation = Animation("attack")
+            self.defendAnimation = Animation("defend")
             self.type = "unknown"
             self.str  = 1
             self.attack = []

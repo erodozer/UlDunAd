@@ -81,12 +81,12 @@ class Enemy(Actor):
         if os.path.exists(os.path.join(path, "attack.anim")):
             self.attackAnimation = Animation(os.path.join(path, "attack"))
         else:
-            self.attackAnimation = Animation(os.path.join("animations", "attack"))
+            self.attackAnimation = Animation("attack")
         
         if os.path.exists(os.path.join(path, "defend.anim")):
             self.defendAnimation = Animation(os.path.join(path, "defend"))
         else:
-            self.defendAnimation = Animation(os.path.join("animations", "defend"))
+            self.defendAnimation = Animation("defend")
             
         path = os.path.join("..", "data", "items", self.drop)
         if os.path.exists(path):
