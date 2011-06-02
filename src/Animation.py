@@ -57,8 +57,8 @@ class Animation(object):
             if self.relation == "parent":
                 point = (self.parent.position[0] - self.parent.scale[0]/2,
                          self.parent.position[1] - self.parent.scale[1]/2)
-                self.image.setPosition(point[0] * sprite[1] * self.parent.scale[0],
-                                       point[1] * sprite[2] * self.parent.scale[1])
+                self.image.setPosition(point[0] + sprite[1] * self.parent.scale[0],
+                                       point[1] + sprite[2] * self.parent.scale[1])
             else:
                 self.image.setPosition(sprite[1], sprite[2])
             self.image.draw()
