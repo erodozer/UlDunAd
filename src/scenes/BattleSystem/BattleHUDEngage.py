@@ -34,20 +34,12 @@ class BattleHUDEngage:
         for bar in self.hpBar:
             bar.draw()
 
-        self.font.setText(self.actor.name)
+        self.font.setText("%s > %s" % (self.actor.name, self.actor.target.name))
         self.font.setAlignment('left')
         self.font.scaleHeight(32.0)
         self.font.setPosition(self.x + 5, self.y + 15)
         self.font.draw()        
 
-        self.setPosition(self.x + 300, self.y)
-        
         self.hpBar[1].setLength(self.hpBar[0].width*(float(self.actor.target.currentHP)/float(self.actor.target.hp)))
         for bar in self.hpBar:
-            bar.draw()
-
-        self.font.setText(self.actor.target.name)
-        self.font.setAlignment('left')
-        self.font.scaleHeight(32.0)
-        self.font.setPosition(self.x + 5, self.y + 15)
-        self.font.draw()        
+            bar.draw()     

@@ -292,13 +292,13 @@ class BattleSystem(Scene):
             self.turn += 1
             if self.turn >= len(self.order) or len(self.formation) == 0:
                 self.battling = False
-                self.turn = 0
                 self.active = -1
                 for actor in self.party:
                     actor.turnEnd()
                 for actor in self.formation:
                     actor.turnEnd()
                 self.activeActor = None
+                self.engageHud = None
                 self.next()
                 return
             self.activeActor = self.order[self.turn][0]
