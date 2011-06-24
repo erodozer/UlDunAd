@@ -14,6 +14,7 @@ class Animation(object):
         self.parent = None                          #parent image for positioning, if the animation is set to parent relation
         self.currentFrame = 0                       #the current frame of animation
         self.frames = []                            #the frames of animation
+        self.flip = 1
         
         lines = [l.rstrip("\n") for l in file.readlines() if l.rstrip("\n")]
         #reads in lines one at a time for the sequence file
@@ -61,7 +62,7 @@ class Animation(object):
                                        point[1] + sprite[2] * self.parent.scale[1])
             else:
                 self.image.setPosition(sprite[1], sprite[2])
-            self.image.setScale(sprite[3], sprite[4])
+            self.image.setScale(sprite[3]*self.flip, sprite[4])
             self.image.setAngle(sprite[5])
             self.image.draw()
             

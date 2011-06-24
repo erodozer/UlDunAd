@@ -80,10 +80,11 @@ class Attack(Command):
 		self.animation = self.parent.attackAnimation
 	self.animation.currentFrame = 0
 	self.animation.setParent(self.parent.target.getSprite())
-	if isinstance(self.parent, Character):
-	    anim = self.animation
-	    anim.image.setScale(-anim.image.width, anim.image.height, inPixels = True)
-	
+	if isinstance(self.parent.target, Character):
+	    self.animation.flip = -1
+	else:
+	    self.animation.flip = 1
+	    	    
 class Cast(Command):
     def __init__(self, actor):
 	self.parent = actor
@@ -144,10 +145,11 @@ class ComboAttack(Command):
 		self.animation = self.parent.attackAnimation
 	self.animation.currentFrame = 0
 	self.animation.setParent(self.parent.target.getSprite())
-	if isinstance(self.parent, Character):
-	    anim = self.animation
-	    anim.image.setScale(-anim.image.width, anim.image.height, inPixels = True)
-    
+	if isinstance(self.parent.target, Character):
+	    self.animation.flip = -1
+	else:
+	    self.animation.flip = 1
+	        
 #when a character defends they gain the normal amount of FP per turn (20%)
 #but their def is multiplied by 250%
 class Defend(Command):
