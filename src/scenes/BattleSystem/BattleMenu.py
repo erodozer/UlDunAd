@@ -26,12 +26,26 @@ class BattleMenu(MenuObj):
         self.page = 0           #offset index for grouping commands in sets
         
         self.basicCommands = ["Attack", "Tactical", "Item", "Spell/Tech"] #basic command menu
-        self.attackCommands = [["Normal"  ,Attack(self.character, 0)], 
-                               ["Accurate",Attack(self.character, 1)],
-                               ["Strong"  ,Attack(self.character, 2)]] #attack menu
+        weapon = self.character.equipment[character.hand]
         
-        if character.equipment[character.hand].attack:
-            self.attackCommands.append(["Combo", ComboAttack(self.character)])
+        #attack menu
+        if weapon.type == "gun" or weapon.type == "bow":
+            self.attackCommands = [["Single"  ,Shoot(self.character, 0)]]
+            if "double" in weapon.firingMode:
+                self.attackCommands.append(["Double", Shoot(self.character, 1])
+            else:
+                if weapon.type == "gun":
+                    if "burst" in weapon.firingMode:
+                        self.attackCommands.append(["Burst", Shoot(self.character, 2])
+                    if "auto" in weapon.firingMode:
+                        self.attackCommands.append(["Auto", Shoot(self.character, 3])
+        else:
+            self.attackCommands = [["Normal"  ,Attack(self.character, 0)], 
+                                   ["Accurate",Attack(self.character, 1)],
+                                   ["Strong"  ,Attack(self.character, 2)]]
+        
+            if weapon.attack:
+                self.attackCommands.append(["Combo", ComboAttack(self.character)])
             
         self.tactCommands = [["Boost" ,Boost(self.character)],
                              ["Defend",Defend(self.character)],

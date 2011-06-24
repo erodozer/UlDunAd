@@ -181,7 +181,7 @@ class Boost(Command):
 #Bows can also have Double
 #since this is heavily dependent on equipment, 
 #  only characters should use this command
-class Fire(Command):
+class Shoot(Command):
     def __init__(self, actor, style = 0):
 	super(Attack, self).__init__(actor)
 	
