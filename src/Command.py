@@ -175,3 +175,66 @@ class Boost(Command):
 	self.parent.fp = self.parent.maxFP
 	self.parent.defn *= 2
         	
+#Guns and Bows have 4 different firing modes
+#Single is default for all
+#Guns can have either Double shot or Burst+Auto firing modes
+#Bows can also have Double
+#since this is heavily dependent on equipment, 
+#  only characters should use this command
+class Fire(Command):
+    def __init__(self, actor, style = 0):
+	super(Attack, self).__init__(actor)
+	
+	self.animation = self.parent.equipment[self.parent.hand].attackAnimation
+	    
+	self.style = style	#4 different styles of attack
+				#  0 - single
+				#  1 - double, 50% accuracy but 200% stronger
+				#  2 - burst, 75% accuracy, 3 hits
+				#  3 - auto, 50% accuracy, 5 hits
+				#fp cost is not effected by style of attack
+	    
+    #get the amount of damage dealt per hit
+    def getDamage(self):
+	factor = (self.parent.proficiency*2)
+	if self.style == 1 or self.style == 3:
+	    hit = factor - self.parent.target.evd >= self.parent.target.evd*3
+	elif self.style == 2:
+	    hit = factor - self.parent.target.evd >= self.parent.target.evd*2
+	else:
+	    hit = factor - self.parent.target.evd >= self.parent.target.evd*1.5
+        
+	if hit:
+	    return self.parent.str - (self.parent.target.defn * 1.368295)
+	else:
+	    return 0
+	    
+    def execute(self):
+	
+	damage = 0
+	#double shot
+	if self.style == 1:
+	    damage += 2*self.getDamage()
+	#burst
+	elif self.style == 2:
+	    for i in range(3):
+		damage += self.getDamage()
+	#auto
+	elif self.style == 3:
+	    for i in range(5):
+		damage += self.getDamage()
+	#single
+	else:
+	    damage += self.getDamage()
+	damage = max(0, int(damage))
+	
+	self.parent.damage = damage
+	
+	self.animation = self.parent.equipment[self.parent.hand].attackAnimation
+	
+	self.animation.currentFrame = 0
+	self.animation.setParent(self.parent.target.getSprite())
+	if isinstance(self.parent.target, Character):
+	    self.animation.flip = -1
+	else:
+	    self.animation.flip = 1

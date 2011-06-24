@@ -41,27 +41,31 @@ class Weapon(Item):
             
             self.str  = itemini.__getattr__("str", int)
         
-            #weapons, if available, have the ability to perform special
-            #combo attacks where you input the specified keys in the amount of time
-            #specified (in milliseconds)
-            attack = itemini.__getattr__("combo").split(" ")
-            self.attack = []
-            for key in attack:
-                if key == "Up":     self.attack.append(Input.UpButton)
-                elif key == "Dn":   self.attack.append(Input.DnButton)
-                elif key == "Lt":   self.attack.append(Input.LtButton)
-                elif key == "Rt":   self.attack.append(Input.RtButton)
-                elif key == "A":    self.attack.append(Input.AButton)
-                elif key == "B":    self.attack.append(Input.BButton)
-                elif key == "C":    self.attack.append(Input.CButton)
-                else:               self.attack.append(Input.DButton)
-            self.time = itemini.__getattr__("combotime", int)
+            if self.type == "gun" or self.type == "bow":
+                self.firingModes = itemini.__getattr__("mode").split("|")
+            else:
+                #weapons, if available, have the ability to perform special
+                #combo attacks where you input the specified keys in the amount of time
+                #specified (in milliseconds)
+                attack = itemini.__getattr__("combo").split(" ")
+                self.attack = []
+                for key in attack:
+                    if key == "Up":     self.attack.append(Input.UpButton)
+                    elif key == "Dn":   self.attack.append(Input.DnButton)
+                    elif key == "Lt":   self.attack.append(Input.LtButton)
+                    elif key == "Rt":   self.attack.append(Input.RtButton)
+                    elif key == "A":    self.attack.append(Input.AButton)
+                    elif key == "B":    self.attack.append(Input.BButton)
+                    elif key == "C":    self.attack.append(Input.CButton)
+                    else:               self.attack.append(Input.DButton)
+                self.time = itemini.__getattr__("combotime", int)
         else:
             self.sprite = None
             self.attackAnimation = Animation("attack")
             self.defendAnimation = Animation("defend")
             self.type = "unknown"
             self.str  = 1
+            self.firingMode = []
             self.attack = []
             self.time = 0
             
