@@ -16,6 +16,8 @@ from Item import *
 import os
 from Actor import Actor
 
+from Bestiary import Bestiary
+        
 class Character(Actor):
     _LevelMax = 20      #this is the current level cap, I will adjust this with the number of content available
     #these mark the required amount of exp to level up
@@ -233,7 +235,6 @@ class Character(Actor):
         
         if proficiency == None:
             proficiency = eval(job+"()").proficiencies
-            print proficiency
         if equipment == None:
             equipment = [None for i in range(10)]
             
@@ -296,9 +297,11 @@ class Family:
         #all the members in your party
         path = os.path.join("..", path)
         members = [n.split("/")[-1] for n in glob.glob(os.path.join(path, "*.ini"))]
-        if "family.ini" in members:
-            members.remove("family.ini")
-        
+        exclude = ["family.ini", "bestiary.ini"]
+        for item in exclude:
+            if item in members:
+                members.remove(item)
+                
         self.members = [Character(name, n.replace(".ini", "")) for n in members]
 
         #the party used in battle is the first 3 members you have ordered
@@ -330,6 +333,9 @@ class Family:
         #gameplay difficulty (0 - easy, 1- normal, 2 - hard)
         self.difficulty = familyini.__getattr__("difficulty", int)  
        
+        
+        self.bestiary = Bestiary(self)
+        
     #creates a new family .ini 
     #by default a family starts with 100 gold and five potions and 1 ether
     def create(self, name, difficulty, gold = 100, inventory = [[Item("potion"), 5], [Item("ether"), 1]]):

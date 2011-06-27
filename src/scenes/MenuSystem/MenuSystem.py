@@ -123,11 +123,12 @@ class MenuSystem(Scene):
         #self.startIndex = 0
         #self.endIndex = min(4, len(self.members))
         
-        self.choices = ["Inventory",
+        self.choices = ["Family",
                         "Character",
                         "Settings", 
                         "Quit Game", 
                         "Exit Menu"]
+        self.familyChoices = ["Inventory", "Bestiary", "Order"]
         self.charChoices = ["Spells", "Equipment", "Status"]
         #helps captions for each menu choice
         #explains the purpose of each menu before selecting
@@ -138,6 +139,7 @@ class MenuSystem(Scene):
                      "Don't like the current feel of gameplay?  Change it up a bit to your preference",
                      "I guess you've had enough for today I suppose", "Return to your game"]
         self.menu   = Menu(self, self.choices, position = (0, self.engine.h - 24.0))
+        self.familyMenu = Menu(self, self.familyChoices, position = (0,self.engine.h-72.0))
         self.charMenu = Menu(self, self.charChoices, position = (0,self.engine.h-72.0))
         self.quitPrompt = MenuObj(self, ["No", "Yes"], position = (self.engine.w/2, self.engine.h/2))
         
@@ -152,14 +154,20 @@ class MenuSystem(Scene):
     def buttonClicked(self, image):
         pass
         
-    def keyPressed(self, key, char): 
+    def keyPressed(self, key, char):
         if self.dimension == 1:
-            self.charMenu.keyPressed(key)
+            self.familyMenu.keyPressed(key)
         
             #close the character submenu
             if key == Input.BButton:
                 self.dimension = 0
         elif self.dimension == 2:
+            self.charMenu.keyPressed(key)
+        
+            #close the character submenu
+            if key == Input.BButton:
+                self.dimension = 0
+        elif self.dimension == 3:
             self.quitPrompt.keyPressed(key)
             
             if key == Input.BButton:
@@ -173,26 +181,31 @@ class MenuSystem(Scene):
 
     def select(self, index):
         if self.dimension == 0:
-            if index == 0:      #inventory
-                self.engine.viewport.changeScene("InventoryScene")
-            elif index == 1:    #character
+            if index == 0:      #family
                 self.dimension = 1
+            elif index == 1:    #character
+                self.dimension = 2
             elif index == 2:    #settings
                 self.engine.viewport.changeScene("SettingsScene")
             elif index == 3:    #quit game
-                self.dimension = 2
+                self.dimension = 3
             elif index == 4:    #exit menu
                 self.engine.viewport.changeScene("Maplist")
-            
         elif self.dimension == 1:
+            if index == 0:      #inventory
+                self.engine.viewport.changeScene("InventoryScene")
+            elif index == 1:    #bestiary
+                self.engine.viewport.changeScene("BestiaryScene")
+            elif index == 2:    #order
+                self.engine.viewport.changeScene("OrderScene")
+        elif self.dimension == 2:
             if index == 0:      #spells/techniques
                 self.engine.viewport.changeScene("SpellScene")
             elif index == 1:    #equipment
                 self.engine.viewport.changeScene("EquipmentScene")
             elif index == 2:    #status
                 self.engine.viewport.changeScene("Status")
-                
-        elif self.dimension == 2:
+        elif self.dimension == 3:
             if index == 0:   #no
                 self.dimension = 0
             elif index == 1: #yes
@@ -207,6 +220,8 @@ class MenuSystem(Scene):
         self.background.draw()
         
         if self.dimension == 1:
+            self.familyMenu.render()
+        elif self.dimension == 2:
             self.charMenu.render()
         
         self.menu.render()
@@ -216,7 +231,7 @@ class MenuSystem(Scene):
             
         self.engine.drawText(self.font, "%i Available Characters" % (len(self.family.members)), (w*.5, 24.0)) 
         
-        if self.dimension == 2:
+        if self.dimension == 3:
             self.font.setText("Are you sure you wish to quit the game?")
             self.font.setPosition(self.engine.w/2, self.engine.h/2 + 40)
             self.font.draw()

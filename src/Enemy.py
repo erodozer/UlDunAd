@@ -48,7 +48,6 @@ class Enemy(Actor):
 
         self.level      = baseSection.__getattr__("level", int)
         self.exp        = Enemy._expCalc(self.level)
-        print self.exp
         
         #the amount of points added to each field
         # these are set upon the creation of the character
@@ -61,6 +60,8 @@ class Enemy(Actor):
         self.evd  = distSection.__getattr__("evd", int)
         self.mag  = distSection.__getattr__("mag", int)
         self.res  = distSection.__getattr__("res", int)
+        
+        self.stats = [self.hp, self.str, self.defn, self.spd, self.evd, self.mag, self.res]
         
         self.sprites = self.loadSprites(path)
         
