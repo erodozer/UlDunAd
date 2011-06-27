@@ -42,7 +42,7 @@ class Weapon(Item):
             self.str  = itemini.__getattr__("str", int)
         
             if self.type == "gun" or self.type == "bow":
-                self.firingModes = itemini.__getattr__("mode").split("|")
+                self.firingMode = itemini.__getattr__("mode").split("|")
             else:
                 #weapons, if available, have the ability to perform special
                 #combo attacks where you input the specified keys in the amount of time

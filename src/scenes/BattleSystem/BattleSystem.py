@@ -268,7 +268,7 @@ class BattleSystem(Scene):
     #generates the target list for allies
     def generateTargets(self, actor):
 
-        if isinstance(actor.command, Attack) or isinstance(actor.command, ComboAttack) or isinstance(actor.command, Cast):
+        if isinstance(actor, Character):
             targets = [enemy.name for enemy in self.formation]
         else:
             targets= [member.name for member in self.party]

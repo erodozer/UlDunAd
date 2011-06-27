@@ -30,15 +30,15 @@ class BattleMenu(MenuObj):
         
         #attack menu
         if weapon.type == "gun" or weapon.type == "bow":
-            self.attackCommands = [["Single"  ,Shoot(self.character, 0)]]
+            self.attackCommands = [["Single", Shoot(self.character, 0)]]
             if "double" in weapon.firingMode:
-                self.attackCommands.append(["Double", Shoot(self.character, 1])
+                self.attackCommands.append(["Double", Shoot(self.character, 1)])
             else:
                 if weapon.type == "gun":
                     if "burst" in weapon.firingMode:
-                        self.attackCommands.append(["Burst", Shoot(self.character, 2])
+                        self.attackCommands.append(["Burst", Shoot(self.character, 2)])
                     if "auto" in weapon.firingMode:
-                        self.attackCommands.append(["Auto", Shoot(self.character, 3])
+                        self.attackCommands.append(["Auto", Shoot(self.character, 3)])
         else:
             self.attackCommands = [["Normal"  ,Attack(self.character, 0)], 
                                    ["Accurate",Attack(self.character, 1)],

@@ -183,7 +183,7 @@ class Boost(Command):
 #  only characters should use this command
 class Shoot(Command):
     def __init__(self, actor, style = 0):
-	super(Attack, self).__init__(actor)
+	super(Shoot, self).__init__(actor)
 	
 	self.animation = self.parent.equipment[self.parent.hand].attackAnimation
 	    
