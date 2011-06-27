@@ -109,7 +109,11 @@ class FontObj:
         if type(text) == list:
             text = string.join(text, '')
         else:
-            text = str(text)       #converts any passed value into a string
+            #converts any passed value into a string
+            if text == None:
+                text = ""
+            else:
+                text = str(text)       
         
         #don't create new texture if the text is the same
         if text == self.text:
