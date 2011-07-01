@@ -31,6 +31,23 @@ from VictoryPanel import VictoryPanel
    
 from Command import *
 
+#scene graphics handling for the battle
+#terrains consist of a backdrop and platforms for characters to stand on
+class Terrain:
+    def __init__(self, scene, name):
+        self.scene = scene
+        self.engine = scene.engine
+        
+        self.background = ImgObj(Texture(os.path.join("terrain", name, "background.png")))
+        self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
+        self.background.setPosition(self.engine.w/2, self.engine.h/2)
+
+        self.hue = (1.0,1.0,1.0,1.0)
+        self.background.setColor(self.hue)
+        
+    def drawBackground(self):
+        self.background.draw()
+        
 #unlike most other scenes in this game, the battle scene 
 #is completely controlled by the keyboard instead of mouse
 class BattleSystem(Scene):
