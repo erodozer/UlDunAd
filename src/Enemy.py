@@ -160,10 +160,7 @@ class Formation:
         formationini = Configuration(os.path.join("..", path, name + ".ini")).formation
 
         #formation's name can come from it's ini or just the filename
-        try:
-            self.name = formationini.__getattr__("name")
-        except AttributeError:
-            self.name = name
+        self.name = formationini.__getattr__("name", default=name)
             
         self.enemies = []
         names = formationini.enemies.split("|")
