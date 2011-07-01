@@ -75,6 +75,12 @@ class testMode(argparse.Action):
         global startingScene
         startingScene = "TestScene"
 
+#sets the starting scene to be ParticleTest instead of MainMenu    
+class particleTestMode(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        global startingScene
+        startingScene = "ParticleTest"
+
 #allows you to turn off sound
 class disableSound(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -284,6 +290,8 @@ parser.add_argument('-t', '--test', nargs = '?', action = testMode,
                    help='Runs the test scene instead of the game')
 parser.add_argument('-s', '--sound', nargs = '?', action = disableSound,
                    help='Disables sound')
+parser.add_argument('-p', '--particleTest', nargs = '?', action = particleTestMode,
+                   help='Runs the particle test scene instead of the game')
 args = parser.parse_args()
 
 #main loop to run the program
