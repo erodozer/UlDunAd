@@ -70,8 +70,8 @@ class ResolutionMenu(MenuObj):
     def render(self):
         
         self.resBack.draw()
-        w = float(self.commands[self.index][0])/self.engine.w
-        h = float(self.commands[self.index][1])/self.engine.h
+        w = float(self.commands[self.index][0])/self.engine.viewport.resolution[0]
+        h = float(self.commands[self.index][1])/self.engine.viewport.resolution[1]
         
         self.res.setDimensions(320.0 * w, 240.0 * h)
         self.res.draw()
@@ -275,8 +275,8 @@ class SettingsScene(Scene):
 
     #closes the scene and saves options to the uldunad.ini
     def end(self):
-        Configuration(os.path.join("uldunad.ini")).save()
-        runini = Configuration(os.path.join("uldunad.ini"))
+        Configuration(os.path.join("..", "uldunad.ini")).save()
+        runini = Configuration(os.path.join("..", "uldunad.ini"))
         if self.fullscreen:
             f = "F"
         else:
