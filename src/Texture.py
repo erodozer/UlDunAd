@@ -4,6 +4,8 @@ import sys
 import pygame, pygame.image
 from pygame.locals import *
 
+from PIL import Image, ImageDraw
+
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
@@ -17,6 +19,8 @@ class Texture:
     def __init__(self, path = "", surface = pygame.Surface((1,1)), flip = True, fallback = None):
     
         self.id = glGenTextures(1)
+        
+        self.path = os.path.join("..", "data", path)
         
         if path != "":
             path = os.path.join("..", "data", path)
@@ -42,6 +46,11 @@ class Texture:
     #changes the texture without creating a new id to save on memory
     def changeTexture(self, texture, flip = True):
         self.textureSurface = texture
+        
+        #converts PIL images to pygame surfaces
+        if isinstance(texture, Image.Image):
+          self.textureSurface = pygame.image.fromstring(self.textureSurface.tostring('raw', 'RGBA', 0, -1), self.textureSurface.size, 'RGBA')
+        
         self.pixelSize = self.textureSurface.get_size()
         
         self.finalSurface = self.makePOT(flip)

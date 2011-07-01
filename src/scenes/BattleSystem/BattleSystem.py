@@ -121,7 +121,7 @@ class BattleSystem(Scene):
         self.pointer = ImgObj(Texture(os.path.join(battlepath, "pointer.png")), frameX = 2)
         
         self.displayDelay = 0   #little delay ticker for displaying damage dealt upon a target
-        self.introDelay = 500   #little intro rendering
+        self.introDelay = 100   #little intro rendering
         self.fade = ImgObj(Texture(surface = pygame.Surface((self.engine.w, self.engine.h))))
     
         #battle lost
@@ -132,6 +132,11 @@ class BattleSystem(Scene):
         self.victoryPanel = None
         
         self.additionHUD = None
+        
+        self.numbers = ImgObj(Texture(os.path.join(battlepath, "numbers.png")), frameX = 10)
+        self.hitImg = ImgObj(Texture(os.path.join(battlepath, "hit.png")))
+        self.hitImg.setAlignment("right")
+        self.hitImg.setPosition(self.engine.w*.9, self.engine.h*.8)
         
     #make the additionHUD if the active actor has selected to perform an addition
     def makeAdditionHUD(self):
@@ -350,18 +355,18 @@ class BattleSystem(Scene):
         if self.battling:
             for i, hud in enumerate(huds):
                 hud.scale = .5
-                hud.setPosition(0, (self.engine.h-32*i-48)*(1/hud.scale))
+                hud.setPosition(self.engine.w*.7 + self.engine.w*.1*i, self.engine.h*.115)
                 hud.draw()
         else:
             if self.active < len(self.party):
                 hud = huds.pop(self.active)
                 hud.scale = 1.0
-                hud.setPosition(0, self.engine.h - 40)
+                hud.setPosition(self.engine.w*.875, self.engine.h*.125)
                 hud.draw()
                 
             for i, hud in enumerate(huds):
                 hud.scale = .5
-                hud.setPosition(0, (self.engine.h-32*(i+1)-64)*(1/hud.scale))
+                hud.setPosition(self.engine.w*.7 + self.engine.w*.04*i, self.engine.h*.11 + (self.engine.h*.13)*i)
                 hud.draw()
            
     #draws the pointer arrows and the command menus
@@ -416,71 +421,45 @@ class BattleSystem(Scene):
             bounce = lambda t:(-.017*t**2 + .0134*t + pos[1])+50
             y = bounce(self.displayDelay-25)
             if self.displayDelay > 50:
-                color = (1,1,1, (250 - self.displayDelay)/250.0)
+                a = (250 - self.displayDelay)/250.0
             else:
-                color = (1,1,1,1)
-            self.engine.drawText(self.text, actor.damage, position = (pos[0], y), color = color)
+                a = 1
 
+            d = str(actor.damage)
+            if d is not "Miss":
+                for i, n in enumerate(d[::-1]):
+                    self.engine.drawImage(self.numbers, position = (pos[0]+3 + (self.numbers.width-25)*i, y-2), frameX = int(n), color = (0,0,0,a))
+                    self.engine.drawImage(self.numbers, position = (pos[0] + (self.numbers.width-25)*i, y), frameX = int(n), color = (1,1,1,a))
+                self.hitImg.draw()
+                
     #renders the spiffy intro animation
     def renderIntro(self, visibility):
-        if self.introDelay > 450:
-            zoom = 100*(1.0+3*(500.0-self.introDelay)/50.0)
-        elif self.introDelay > 150:
-            zoom = 400
-        elif self.introDelay > 100:
-            zoom = 100*(4.0-3.0*(150.0-self.introDelay)/50.0)
-        else:
-            zoom = 100
-                
-        if self.introDelay > 350:
-            pos = self.party[len(self.party)/2].getSprite().position
-            if self.introDelay > 450:
-                pos = (self.engine.w/2 + (pos[0]-self.engine.w/2)*((500.0-self.introDelay)/50.0),
-                        self.engine.h/2 + (pos[1]-self.engine.h/2)*((500.0-self.introDelay)/50.0))
-                    
-        elif self.introDelay > 250 and self.introDelay < 350:
-            aPos = self.party[len(self.party)/2].getSprite().position
-            bPos = self.formation[len(self.formation)/2].getSprite().position 
-            pos = (aPos[0]-(aPos[0]-bPos[0])*(1.0-abs(self.introDelay-250.0)/100.0),
-                    aPos[1]-(aPos[1]-bPos[1])*(1.0-abs(self.introDelay-250.0)/100.0))
-        elif self.introDelay > 100:
-            pos = self.formation[len(self.formation)/2].getSprite().position
-            if self.introDelay < 150:
-                pos = (self.engine.w/2 - (self.engine.w/2-pos[0])*(abs(self.introDelay-100.0)/50.0),
-                        self.engine.h/2 - (self.engine.h/2-pos[1])*(abs(self.introDelay-100.0)/50.0))
-            
-        if self.introDelay > 100:
-            self.camera.focus(pos[0], pos[1], zoom)
-        else:
-            self.camera.resetFocus()
-            
-        if self.introDelay > 0 and self.introDelay < 100:
-            alpha = 1.0
-            if self.introDelay < 20:
-                alpha = self.introDelay/20.0
-            self.engine.drawText(self.bigText, self.engine.formation.name, (self.engine.w/2, self.engine.h/2 + 30),
-                                    color = (1,1,1,alpha)) 
-            difficulty = self.engine.formation.getSelfDifficulty(self.party)
-            if difficulty > 0:
-                for i in range(int(difficulty)):
-                    pos = (self.engine.w/2 - (self.diffStar.width/2 + 10)*(difficulty-1) + (self.diffStar.width + 10) * i,
-                            self.engine.h/2 - 30)
-                    self.engine.drawImage(self.diffStar, position = pos)
+        alpha = 1.0
+        if self.introDelay < 20:
+            alpha = self.introDelay/20.0
+        self.engine.drawText(self.bigText, self.engine.formation.name, (self.engine.w/2, self.engine.h/2 + 30),
+                                color = (1,1,1,alpha)) 
+        difficulty = self.engine.formation.getSelfDifficulty(self.party)
+        if difficulty > 0:
+            for i in range(int(difficulty)):
+                pos = (self.engine.w/2 - (self.diffStar.width/2 + 10)*(difficulty-1) + (self.diffStar.width + 10) * i,
+                        self.engine.h/2 - 30)
+                self.engine.drawImage(self.diffStar, position = pos)
         self.introDelay -= 2
         
     def render(self, visibility):
-        self.background.draw()
         self.terrain.drawBackground()
         
+        if self.introDelay < 450 and self.introDelay > 400:
+            alpha = (450.0-self.introDelay)/50.0
+        elif self.introDelay >= 450:
+            alpha = 0.0
+        else:
+            alpha = 1.0
+            
         for i, member in enumerate(self.party):
             sprite = member.getSprite()
-            sprite.setPosition(self.engine.w*.8 - 20*i, self.engine.h*.4 + 65*i)
-            if self.introDelay < 450 and self.introDelay > 400:
-                alpha = (450.0-self.introDelay)/50.0
-            elif self.introDelay >= 450:
-                alpha = 0.0
-            else:
-                alpha = 1.0
+            sprite.setPosition(self.engine.w*.8 + 15*i, self.engine.h*.6 - 45*i)
             sprite.setColor((1,1,1, alpha))
             self.engine.drawAnimation(sprite, loop = True, reverse = False, delay = 20)
         
@@ -506,11 +485,11 @@ class BattleSystem(Scene):
             return
             
         if self.introDelay <= 0:
-            self.renderHUDS(visibility)
             if not self.battling:
                 self.renderInterface(visibility)
             else:
                 self.renderBattle(visibility)
+            self.renderHUDS(visibility)
         else:
             self.renderIntro(visibility)
     
