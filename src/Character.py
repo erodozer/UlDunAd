@@ -46,7 +46,10 @@ class Character(Actor):
         equipSection = playerini.equipment      #contains all the equipment being worn
         profSection  = playerini.proficiency    #contains information about the character's weapon proficency
         
-        self.spriteset = baseSection.__getattr__("spriteset")
+        
+        self.gender = baseSection.__getattr__("gender", default = "male")
+        self.spriteset = baseSection.__getattr__("spriteset", default = "01")
+          
         self.job  = eval(baseSection.__getattr__("job")+"()")
 
         self.level      = min(baseSection.__getattr__("level", int), Character._LevelMax)
@@ -129,9 +132,10 @@ class Character(Actor):
     #searches path for files with filetype or folder
     def loadSprites(self):
         sprites = {}
-        spritePath = os.path.join("actors", "jobs", self.job.name, self.spriteset)
+        spritePath = os.path.join("actors", self.gender, self.spriteset)
         sprites['standing'] = ImgObj(Texture(os.path.join(spritePath, "standing.png")), frameX = 4)
         sprites['profile'] = ImgObj(Texture(os.path.join(spritePath, "profile.png")))
+        sprites['face'] = ImgObj(Texture(os.path.join(spritePath, "face.png")))
 
         return sprites
     
@@ -220,10 +224,10 @@ class Character(Actor):
                 equipment.append(None)
         
         self.create(self.family, self.name, self.job.name, self.statDist, self.points, equipment, 
-                    self.baseProficiencies, self.spriteset, self.level, self.exp)
+                    self.baseProficiencies, self.gender, self.spriteset, self.level, self.exp)
                     
     #saves a new ini for the character to be used
-    def create(self, family, name, job, stats, points = 0, equipment = None, proficiency = None, sprite = "male", level = 1, exp = 0):
+    def create(self, family, name, job, stats, points = 0, equipment = None, proficiency = None, gender = "male", sprite = "01", level = 1, exp = 0):
         Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini")).save()
         ini = Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini"))
         
@@ -238,6 +242,7 @@ class Character(Actor):
         if equipment == None:
             equipment = [None for i in range(10)]
             
+        base.__setattr__("gender", gender)
         base.__setattr__("spriteset", sprite)
         base.__setattr__("job", job)      
         base.__setattr__("level", level)
