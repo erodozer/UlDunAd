@@ -183,7 +183,7 @@ class Formation:
             n = formationini.__getattr__("scale").split("|")[i]
             enemy.scale =  float(n)
 
-        self.terrain = ImgObj(Texture(os.path.join("terrain", formationini.__getattr__("terrain") + ".png")))
+        self.terrain = formationini.__getattr__("terrain")
    
     @staticmethod
     def getDifficulty(enemies, party):

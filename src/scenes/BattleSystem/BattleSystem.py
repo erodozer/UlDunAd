@@ -71,10 +71,6 @@ class BattleSystem(Scene):
             
         self.music = BGMObj(self.battleSong)
         
-        self.background = self.engine.formation.terrain
-        self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
-        self.background.setPosition(self.engine.w/2, self.engine.h/2)
-        
         battlepath = os.path.join("scenes", "battlesystem")
         self.activeHighlight = ImgObj(Texture(os.path.join(battlepath, "active_highlight.png")))
         
@@ -87,6 +83,8 @@ class BattleSystem(Scene):
         self.party = [m for m in self.engine.family.party.members]
         self.formation = [e for e in self.engine.formation.enemies]
 
+        self.terrain = Terrain(self, self.engine.formation.terrain)
+        
         self.incapParty = 0     #keeps track of how many in the party are incapacitated
                                 #when all members are then the battle is over
         
@@ -472,6 +470,7 @@ class BattleSystem(Scene):
         
     def render(self, visibility):
         self.background.draw()
+        self.terrain.drawBackground()
         
         for i, member in enumerate(self.party):
             sprite = member.getSprite()
