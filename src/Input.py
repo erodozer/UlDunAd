@@ -61,7 +61,7 @@ def processMouseMove(newpos):
     global mousepos
     displaySurface = pygame.display.get_surface()
     mousepos = (newpos[0]*(800.0/displaySurface.get_width()), 
-                newpos[1]*(600.0/displaySurface.get_height()))
+                600-newpos[1]*(600.0/displaySurface.get_height()))
 
 def processClick():
     clicks.append(mousepos)

@@ -195,8 +195,8 @@ class ImgObj:
         if not self.scale == (width/self.pixelSize[0], height):
             self.scale = (width/self.pixelSize[0], height)
             self.transformed = True
-            self.width = width
-
+            self.width = width*self.pixelSize[0]
+            
     #same as scaleWidth except that the value passed
     #is the height of the image instead of the width
     def scaleHeight(self, height, keep_aspect_ratio = True):
@@ -259,20 +259,18 @@ class ImgObj:
     #does not work with rotations
     def getCollision(self, point):
         
-        x1 = self.position[0]
-        if self.alignment == 0:
+        if self.alignment == 0:     #left
             x1 = self.position[0]
-        elif self.alignment == 2:
+        elif self.alignment == 2:   #right
             x1 = self.position[0] - self.width
-        else:
+        else:                       #center
             x1 = self.position[0] - self.width/2.0
         x2 = x1 + self.width
-        y1 = self.position[1] - self.height/2.0
-        y2 = self.position[1] + self.height/2.0
+        y = self.position[1] - self.height/2.0
         
         #print (x1, y2, x2-x1, y2-y1)
         #print (x1, x2, y1, y2)
-        rect = pygame.Rect(x1, 640.0-y2, x2-x1, y2-y1)
+        rect = pygame.Rect(x1, y, x2-x1, y+self.height)
         
         return rect.collidepoint(point)
         
