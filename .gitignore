@@ -1,3 +1,4 @@
 *.py[co]
 *.xcf
 uldunad.ini
+data/actors/families/*
