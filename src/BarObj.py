@@ -75,6 +75,9 @@ class BarObj:
         boarderH = self.pixelSize[1]
         
         xcoord = [0, boarderW, self.scale - boarderW, self.scale]
+        if self.scale < boarderW:
+            xcoord[2] = boarderW
+            xcoord[3] = 2*boarderW
         ycoord = [0, boarderH]
         index = 0
         for i in range(2):

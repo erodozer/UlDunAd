@@ -51,6 +51,8 @@ class Actor(object):
         
         self.damage = 0
         
+        self.position = (0,0)       #position where the sprite is set
+        
     def initForBattle(self):
         self.currentHP = self.hp
         self.fp = min(self.maxFP/3 + random.randint(0, self.maxFP), self.maxFP)

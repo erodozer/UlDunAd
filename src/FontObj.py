@@ -34,7 +34,7 @@ RIGHT  = 2
 # changing methods
 class FontObj:
     def __init__(self, path, text = "", size = 32, shadow = True):
-        self.font = pygame.font.Font(os.path.join("..", "data", "fonts", path), size)
+        self.font = pygame.font.Font(os.path.join("..", "data", "fonts", path), int(size))
         self.texture = Texture()
 
         #attributes
@@ -137,9 +137,9 @@ class FontObj:
         self.position = (x, y)
 
     #moves the image from its current position by x and y
-    def slide(self, x, y):
+    def slide(self, x = 0, y = 0):
         self.position = (self.position[0] + x, self.position[1] + y)
-
+ 
     #changes the size of the image and scales the surface
     def setScale(self, width, height):
         if self.scale[0] != width and self.scale[1] != height:

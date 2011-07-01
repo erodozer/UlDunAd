@@ -79,7 +79,7 @@ class PlayerStats:
         
         length = 200
         self.bars = [BarObj(Texture(os.path.join(scenepath, "bar_bottom.png")), length),
-                     BarObj(Texture(os.path.join(scenepath, "exp_bar.png")), length*(self.character.exp/Character._expCalc(character.level))),
+                     BarObj(Texture(os.path.join(scenepath, "exp_bar.png")), length*(character.exp/float(Character._expCalc(character.level)))),
                      BarObj(Texture(os.path.join(scenepath, "bar_top.png")), length)]
         for bar in self.bars:
             bar.setPosition(self.engine.w - 10 - length, self.position-10)

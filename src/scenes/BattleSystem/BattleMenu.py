@@ -55,13 +55,15 @@ class BattleMenu(MenuObj):
         
         self.activeCommands = self.basicCommands
         
+        self.pos = (self.engine.w*.25, self.engine.h*.3)
+        
         self.makeMenu()
         
     def makeMenu(self):
         commands = self.activeCommands
         self.commandWin = WinObj(Texture("window.png"), 200, 32 * min(5,len(commands)-self.page)+8)
-        self.commandWin.setPosition(self.engine.w - (self.commandWin.scale[0] + 10),
-                                    self.commandWin.scale[1]/2 + 10)
+        self.commandWin.setPosition(self.pos[0] - (self.commandWin.scale[0]/2 + 10),
+                                    self.pos[1] - self.commandWin.scale[1]/2 + 10)
         self.highlight.setScale(self.commandWin.scale[0] - 10, 32.0, inPixels = True)
         
     def keyPressed(self, key):
