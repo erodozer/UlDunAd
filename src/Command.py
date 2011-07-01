@@ -42,6 +42,8 @@ class Attack(Command):
 	#special attacks cost more fp
 	if self.style is not 0:
 	    self.fpCost = 45
+	else:
+	    self.fpCost = 30
 	    
     def execute(self):
 	#enemies need to be processed differently attack wise for determining chance of landing the blow
@@ -192,8 +194,19 @@ class Shoot(Command):
 				#  1 - double, 50% accuracy but 200% stronger
 				#  2 - burst, 75% accuracy, 3 hits
 				#  3 - auto, 50% accuracy, 5 hits
-				#fp cost is not effected by style of attack
-	    
+	
+	#because guns have a lot of recoil and bows you have to pull back hard on to fire
+	# on average they will use more energy to fight with than close range weapons
+	#additionally the different types of firing take more energy
+	if self.style == 1:
+	    self.fpCost = 50
+	elif self.style == 2:
+	    self.fpCost = 55
+	elif self.style == 3:
+	    self.fpCost = 65
+	else:
+	    self.fpCost = 40
+	
     #get the amount of damage dealt per hit
     def getDamage(self):
 	factor = (self.parent.proficiency*2)
