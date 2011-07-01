@@ -27,7 +27,7 @@ class Scene:
     # All images, sounds, fonts, and scene specific variables
     # should be initialized here, not later in the process or 
     # as local variables, it should be done HERE!!!
-    def __init__(self):
+    def __init__(self, engine):
         pass
 
     #if an image is clicked this should determine what should happen
@@ -51,9 +51,30 @@ class Scene:
     def run(self):
         pass
         
+#test scene for showing off the particle system
+class ParticleTest(Scene):
+    def __init__(self, engine):
+        self.engine = engine
+        scenepath = os.path.join("scenes", "particletest")
+        self.particle = [ImgObj(Texture(os.path.join(scenepath, "smoke.png"))),
+                         ImgObj(Texture(os.path.join(scenepath, "star.png")))]
+        
+        particles = []
+        for i in range(100):
+            pathA = lambda t: random.randint(0, 30)*sin(t*2*pi)
+            pathB = lambda t: t*random.randint(0,2)
+            scale = lambda t: random.randint(1,10)/10.0
+            particles.append(Particle(self.particle[i%2], pathX = pathA, pathY = pathB, velocity = random.randint(0,2), spin = random.randint(0,35), scale = scale))
+        self.particleSystem = ParticleSystem(particles, clock = self.engine.clock)
+
+    #anything that is 2d should be rendered during this process
+    def render(self, visibility):
+        self.particleSystem.draw()
+        if len(Input.clicks) > 0:
+            print Input.clicks[-1]
+            self.particleSystem.reset(start = Input.clicks[-1])
+
 #here's a little test scene to show how a scene may function
-# it draws 5 awesome smilies, where only the one in the middle 
-# reacts to being clicked
 class TestScene(Scene):
     def __init__(self, engine):
         self.engine = engine
@@ -300,6 +321,8 @@ class Viewport:
                 ImgObj.clickableObjs = []
                 if scene == "TestScene":
                     scene = TestScene(self.engine)
+                elif scene == "ParticleTest":
+                    scene = ParticleTest(self.engine)
                 else:
                     scene = WorldScenes.create(self.engine, scene)
                 self.scenes.append(scene)
@@ -326,6 +349,8 @@ class Viewport:
             ImgObj.clickableObjs = []
             if scene == "TestScene":
                 scene = TestScene(self.engine)
+            elif scene == "ParticleTest":
+                scene = ParticleTest(self.engine)
             else:
                 scene = WorldScenes.create(self.engine, scene)
             self.scenes.append(scene)
