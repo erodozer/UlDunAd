@@ -20,7 +20,7 @@ class Configuration:
         self.fileName = fileName
         self.revert()
 
-    def __getattr__ (self, name, type = None):
+    def __getattr__ (self, name, type = str, default = None):
         return Section(name, self.parser, type)
 
     def __delattr__ (self, name):
@@ -54,7 +54,7 @@ class Section:
         self.name = name
         self.parser = parser
 
-    def __getattr__ (self, name, type = None):
+    def __getattr__ (self, name, type = str, default = None):
         if not self.parser.has_section(self.name):
             raise AttributeError, 'No section "%s".' % self.name
         if self.parser.has_option(self.name, name):
@@ -67,7 +67,8 @@ class Section:
             else:
               return self.parser.get(self.name, name)
         else:
-            raise AttributeError, 'No option "%s" in section "%s".' % (name, self.name)
+            print 'No option "%s" in section "%s".' % (name, self.name)
+            return type(default)
 
     def __setattr__ (self, name, value):
         if name in ('name', 'parser') or name.startswith('__'):
