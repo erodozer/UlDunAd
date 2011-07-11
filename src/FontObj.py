@@ -28,15 +28,50 @@ LEFT   = 0
 CENTER = 1
 RIGHT  = 2
 
+   
+#object that has been cached
+class CacheElement(object):
+    def __init__(self,content):
+        self.content = content      #content of the element
+        self.accessed()             #gets the time of creation
+
+    #calls the engine's clock to determine last time the element was used
+    def accessed(self):
+        self.lastUse = pygame.time.get_ticks()
+
+#
+class Cache(object):
+    def __init__(self,maxCount=256):
+        self.elements = {}
+        self.maxCount = maxCount        #maximum number of elements
+
+    def get(self,key):
+        e = self.elements[key]
+        e.accessed()                    #updates the element's last use time
+        return e.content
+
+    def add(self,key,element):
+        self.elements[key] = CacheElement(element)
+        
+        #if the number of elements exceeds the maximum amount,
+        #the key(s) that has(have) the longest time since its last use
+        #are removed
+        if len(self.elements) > self.maxCount:
+            keys = self.elements.keys()
+            keys.sort(key=lambda e:-self.elements[e].lastUse)
+            for k in keys[self.maxCount:]:
+                del self.elements[k]
+
 #creates a texture from a font and string
 # it's an extension of the ImgObj class just so I can 
 # save on lines of code for the various attribute
 # changing methods
-class FontObj:
+class FontObj(object):
     def __init__(self, path, text = "", size = 32, shadow = True):
         self.font = pygame.font.Font(os.path.join("..", "data", "fonts", path), int(size))
         self.texture = Texture()
 
+        self.cache = Cache()
         #attributes
         self.scale     = (1.0, 1.0)             #image bounds (width, height)
         self.position  = (0,0)                  #where in the window it should render
@@ -45,11 +80,10 @@ class FontObj:
         self.rect      = (0.0,0.0,1.0,1.0)      #left, top, right, bottom, crops the texture
         self.alignment = 1                      #alignment of the text (left, center , right)
         self.shadow = True                      #does the font project a shadow
-        self.text = ""
+        self.text = None
         
         self.setText(text)                      #it is not necessary to enter a string upon initialization, 
                                                 #but it is upon time of rendering
-        
     def getDimensions(self):
         self.width = self.pixelSize[0]*self.scale[0]
         self.height = self.pixelSize[1]*self.scale[1]
@@ -106,21 +140,25 @@ class FontObj:
     #changes what the font is supposed to say
     def setText(self, text):
 
-        if type(text) == list:
-            text = string.join(text, '')
-        else:
-            #converts any passed value into a string
-            if text == None:
-                text = ""
+        #checks cache to see if the text had already been set before
+        #if so use that as the texture instead
+        try:
+            self.texture = self.cache.get(text)
+        except KeyError:
+            if type(text) == list:
+                text = string.join(text, '')
             else:
-                text = str(text)       
+                #converts any passed value into a string
+                if text == None:
+                    text = ""
+                else:
+                    text = str(text)       
         
-        #don't create new texture if the text is the same
-        if text == self.text:
-            return
-        
-        self.text = text
-        self.texture.changeTexture(self.font.render(self.text, True, (255,255,255)))
+            self.text = text
+            texture = Texture(surface = self.font.render(self.text, True, (255,255,255)))
+            self.cache.add(text, texture)
+            self.texture = self.cache.get(text)
+            
         self.pixelSize = self.texture.pixelSize
         self.setScale(1,1)  #makes sure the surface is resized because 
                             #the text is now different
@@ -130,7 +168,12 @@ class FontObj:
 
     def setAlignment(self, alignment):
         alignment = alignment.upper()
-        self.alignment = eval(alignment)
+        if alignment == "LEFT":
+            self.alignment = LEFT
+        elif alignment == "RIGHT":
+            self.alignment = RIGHT
+        else:
+            self.alignment = CENTER
         
     #changes the position of the image to x, y
     def setPosition(self, x, y):
@@ -220,4 +263,3 @@ class FontObj:
         if self.shadow:
             render(position = (self.position[0] + 1, self.position[1] - 2), color = (0,0,0,self.color[3]))
         render()    
-
