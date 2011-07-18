@@ -19,7 +19,7 @@ from ImgObj import ImgObj
 from WinObj import WinObj
 from TitledWinObj import TitledWinObj
 from BarObj import BarObj
-from Texture import Texture
+from Texture import loadTexture as Texture
 from FontObj import FontObj
 from Audio import *
 from Animation import Animation
