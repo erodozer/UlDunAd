@@ -11,6 +11,26 @@ from OpenGL.GLU import *
 
 from math import *
 
+from Cache import Cache
+
+textureCache = Cache(256)
+
+#cached texture loading
+def loadTexture(path = "", surface = pygame.Surface((1,1)), flip = True, fallback = None):
+    if path.strip() is "":
+        try:
+            return textureCache.get(surface)
+        except KeyError:
+            textureCache.add(surface, Texture(path, surface, flip, fallback))
+            print 'cache not used'
+            return textureCache.get(surface)
+    else:
+        try:
+            return textureCache.get(path)
+        except KeyError:
+            print 'cache not used'
+            return Texture(path, surface, flip, fallback)
+    
 #texture for the ImgObj
 # this is separate so then multiple objects
 # can be made using the same texture and use
