@@ -10,6 +10,7 @@ Licensed under the GNU General Public License V3
 '''
 
 import pygame
+from pygame.locals import *
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -21,6 +22,8 @@ import array
 
 from math import *
 
+from Texture import loadTexture
+
 LEFT   = 0
 CENTER = 1
 RIGHT  = 2
@@ -30,8 +33,13 @@ class ImgObj:
     clickableObjs = []  #images that are clickable
     
     def __init__(self, texture, boundable = False, frameX = 1, frameY = 1):
-        self.texture = texture
-
+        if isinstance(texture, str):
+            self.texture = loadTexture(path = texture)
+        elif isinstance(texture, pygame.Surface):
+            self.texture = loadTexture(surface = texture)
+        else:
+            self.texture = texture
+        
         #attributes
         self.scale       = (1.0, 1.0)               #image bounds (width, height)
         self.position    = (0,0)                    #where in the window it should render
