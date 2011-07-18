@@ -24,43 +24,13 @@ from Texture import Texture
 
 import string
 
+from Cache import *
+
 LEFT   = 0
 CENTER = 1
 RIGHT  = 2
 
-   
-#object that has been cached
-class CacheElement(object):
-    def __init__(self,content):
-        self.content = content      #content of the element
-        self.accessed()             #gets the time of creation
 
-    #calls the engine's clock to determine last time the element was used
-    def accessed(self):
-        self.lastUse = pygame.time.get_ticks()
-
-#
-class Cache(object):
-    def __init__(self,maxCount=256):
-        self.elements = {}
-        self.maxCount = maxCount        #maximum number of elements
-
-    def get(self,key):
-        e = self.elements[key]
-        e.accessed()                    #updates the element's last use time
-        return e.content
-
-    def add(self,key,element):
-        self.elements[key] = CacheElement(element)
-        
-        #if the number of elements exceeds the maximum amount,
-        #the key(s) that has(have) the longest time since its last use
-        #are removed
-        if len(self.elements) > self.maxCount:
-            keys = self.elements.keys()
-            keys.sort(key=lambda e:-self.elements[e].lastUse)
-            for k in keys[self.maxCount:]:
-                del self.elements[k]
 
 #creates a texture from a font and string
 # it's an extension of the ImgObj class just so I can 
