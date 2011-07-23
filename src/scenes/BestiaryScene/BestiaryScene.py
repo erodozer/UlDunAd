@@ -24,14 +24,16 @@ class Menu(MenuObj):
         
         bestiary = self.scene.family.bestiary
         self.commands = []
-        for i, beast in enumerate(bestiary.beasts):
+        for i, beast in enumerate(bestiary.beasts.keys()):
             name = "%03i: " % (i+1)
-            if beast[1] <= 0:
-                name += "---------"
-                beast[0] = None
+            count = bestiary.beasts[beast]
+            if count > 0:
+                name += beast
+                beast = Enemy(beast)
             else:
-                name += beast[0]
-            self.commands.append([name, beast[1], beast[0]])
+                name += "---------"
+                beast = None
+            self.commands.append([name, beast, count])
 
         scenepath = os.path.join("scenes", "menusystem", "bestiary")
         
@@ -48,7 +50,7 @@ class Menu(MenuObj):
         
         #the texture used for the buttons and the buttons themselves
         self.buttons  = [[FontObj(fontStyle, text = n[0], size = 24), 
-                          FontObj(fontStyle, text = n[1], size = 24)] 
+                          FontObj(fontStyle, text = n[2], size = 24)] 
                           for n in self.commands]
             
         self.index = 0                  #which button is selected
@@ -165,7 +167,7 @@ class BestiaryScene(Scene):
 
     def select(self, index):
         if self.menu.commands[index][1] is not None:
-             self.enemyStats = enemyStats(self, Enemy(self.menu.commands[index][2]))  
+             self.enemyStats = enemyStats(self, self.menu.commands[index][1])  
              self.active = True  
         
     def run(self):

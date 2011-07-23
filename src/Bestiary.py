@@ -8,6 +8,7 @@ class Bestiary:
         
         self.family = family        #save data for the bestiary
         
+        #gathers all the different enemy types
         path = os.path.join("..", "data", "actors", "enemies")
         enemies = os.listdir(path)
         enemies.sort()
@@ -21,15 +22,15 @@ class Bestiary:
        
         self.catalog = Configuration(path)
         
-        self.beasts = []
+        self.beasts = {}
         for beast in enemies:
             try:
-                self.beasts.append([beast, self.catalog.bestiary.__getattr__(beast, int)])
+                self.beasts[beast] = self.catalog.bestiary.__getattr__(beast, int)
             except:
                 self.catalog.bestiary.__setattr__(beast, 0)
                 self.catalog.save()
                 self.catalog = Configuration(path)
-                self.beasts.append([beast, self.catalog.bestiary.__getattr__(beast, int)])
+                self.beasts[beast] = self.catalog.bestiary.__getattr__(beast, int)
                 
               
     def __str__(self):
