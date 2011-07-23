@@ -28,6 +28,7 @@ def loadTexture(path = "", surface = pygame.Surface((1,1)), flip = True, fallbac
         try:
             return textureCache.get(path)
         except KeyError:
+            textureCache.add(path, Texture(path, surface, flip, fallback))
             print 'cache not used'
             return Texture(path, surface, flip, fallback)
     
