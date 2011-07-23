@@ -312,6 +312,9 @@ class Family:
         #the party used in battle is the first 3 members you have ordered
         if len(self.members) >= 3:
             self.party = Party(self.members[0:3])
+        #party should only be 0 during character creation
+        elif len(self.members) == 0:
+            self.party = None
         else:
             self.party = Party(self.members[0:len(self.members)])
 

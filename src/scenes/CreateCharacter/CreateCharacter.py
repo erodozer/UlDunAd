@@ -48,8 +48,8 @@ class CreateCharacter(Scene):
                                                     
         self.selectedSprite = 0                     #the sprite selected for the character
         self.gender = "male"
-        self.sprites = self.engine.listPath(os.path.join("actors", self.gender, self.job.name), flag="folder")
-        self.sprite = ImgObj(Texture(os.path.join("actors", "jobs", self.job.name, self.sprites[self.selectedSprite], "profile.png")))
+        self.sprites = self.engine.listPath(os.path.join("actors", self.gender), flag="folder")
+        self.sprite = ImgObj(Texture(os.path.join("actors", self.gender, self.sprites[self.selectedSprite], "profile.png")))
         
         #stat point distribution
         self.stats = ["Hit Points", "Strength", "Defense", "Agility", "Evasion", "Force", "Resistance"]

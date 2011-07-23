@@ -1,6 +1,7 @@
 import string
 import Input
 
+from sysobj import *
 from MenuObj import MenuObj
         
 #custom menu for character creation

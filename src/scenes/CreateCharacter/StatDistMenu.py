@@ -1,5 +1,6 @@
 import Input
 
+from sysobj import *
 from MenuObj import MenuObj
 
 class StatDistMenu(MenuObj):
