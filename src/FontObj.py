@@ -109,25 +109,25 @@ class FontObj(object):
 
     #changes what the font is supposed to say
     def setText(self, text):
-
+        if type(text) == list:
+            text = string.join(text, '')
+        else:
+            #converts any passed value into a string
+            if text == None:
+                text = ""
+            else:
+                text = str(text)       
+    
+        self.text = text
+        
         #checks cache to see if the text had already been set before
         #if so use that as the texture instead
         try:
-            self.texture = self.cache.get(text)
+            self.texture = self.cache.get(self.text)
         except KeyError:
-            if type(text) == list:
-                text = string.join(text, '')
-            else:
-                #converts any passed value into a string
-                if text == None:
-                    text = ""
-                else:
-                    text = str(text)       
-        
-            self.text = text
             texture = Texture(surface = self.font.render(self.text, True, (255,255,255)))
             self.cache.add(text, texture)
-            self.texture = self.cache.get(text)
+            self.texture = self.cache.get(self.text)
             
         self.pixelSize = self.texture.pixelSize
         self.setScale(1,1)  #makes sure the surface is resized because 
