@@ -7,6 +7,8 @@ from Cell import Cell
 from sysobj import *
 import os
 
+from operator import itemgetter
+
 #grid for the dungeon
 # this reads in the data file and creates a collection of cells and other values
 class Field(object):
@@ -23,23 +25,25 @@ class Field(object):
             if y == 0:
                 self.dimensions = [int(i) for i in line.split("x")]
             #skip one line, then the next y amount of lines is the grid
-            if y > 1 and y < self.dimensions[1]+2:
+            elif y > 1 and y < self.dimensions[1]+2:
                 for x in range(self.dimensions[0]):
-                    self.grid[(x,y)] = Cell(path, line[x])
+                    self.grid[(x+1,y-1)] = Cell(path, line[x])
             #2 lines after the grid is the player's position
-            elif y == self.dimensions[1] + 4:
+            elif y == self.dimensions[1] + 3:
                 self.playerPos = tuple([int(i) for i in line.split(",")])
             #3 lines after the grid is the boss's position
-            elif y == self.dimensions[1] + 5:
+            elif y == self.dimensions[1] + 4:
                 self.bossPos = tuple([int(i) for i in line.split(",")])
-                
+             
+        print self.grid
+        
         #player icon
         self.angel = ImgObj(os.path.join("scenes", "dungeon", "angel.png"))
         self.angel.setPosition(.5,.5)       #always in the center of the screen
                 
         #boss icon
-        self.angel = ImgObj(os.path.join("scenes", "dungeon", "devil.png"))
-        self.angel.setPosition(64.0*self.bossPos[0],16.0*self.bossPos[1], True)       
+        self.devil = ImgObj(os.path.join("scenes", "dungeon", "devil.png"))
+        self.devil.setPosition(64.0*self.bossPos[0],16.0*self.bossPos[1])       
                                             #depends on cell location
         
     def render(self):

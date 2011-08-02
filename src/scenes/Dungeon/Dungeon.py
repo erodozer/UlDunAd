@@ -23,7 +23,7 @@ class Dungeon(Scene):
         self.bigFont.setPosition(.8,.9)
         
     def render(self, visibility):
-        self.background.render()
+        self.background.draw()
         
         self.field.render()
         

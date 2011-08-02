@@ -76,3 +76,5 @@ class Cell(object):
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY) 
         glPopMatrix()
+
+        glPopMatrix()
