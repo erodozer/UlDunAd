@@ -32,7 +32,9 @@ class Maplist(Scene):
         self.menuButton = ImgObj(Texture(os.path.join(scenepath, "menubutton.png")), boundable = True)
         self.font   = FontObj("default.ttf")
 
-        self.maps   = self.engine.listPath("places", value = "town.ini", flag = "folderDeepSearch")
+        self.towns = self.engine.listPath("places", value = "town.ini", flag = "folderDeepSearch")
+        self.dungeons = self.engine.listPath("places", value = "dungeon.ini", flag = "folderDeepSearch")
+        self.maps = self.towns + self.dungeons
         self.startIndex = 0
         self.endIndex = min(10, len(self.maps))
         
@@ -80,7 +82,10 @@ class Maplist(Scene):
         else:
             if self.selectedMap == self.maps[self.startIndex + index-1]:
                 self.engine.town = self.selectedMap
-                self.engine.viewport.changeScene("Town")
+                if self.selectedMap in self.towns:
+                    self.engine.viewport.changeScene("Town")
+                elif self.selectedMap in self.dungeons:
+                    self.engine.viewport.changeScene("Dungeon")
             else:
                 self.selectedMap = self.maps[self.startIndex + index - 1]
                
