@@ -10,6 +10,7 @@ Licensed under the GNU General Public License V3
 '''
 
 from sysobj import *
+import numpy as np
 from numpy import float32, array
 
 from OpenGL.GL import *
@@ -127,7 +128,14 @@ class TestScene(Scene):
                             [Input.BButton, "Change window example scaling"],
                             [Input.CButton, "Scale the sprite"],
                             [Input.DButton, "Slides test image"]]
-                            
+                    
+        self.triangVtx = np.array([[ 0,  1, 0],
+                                   [-1, -1, 0],
+                                   [ 1, -1, 0]], dtype=np.float32)
+        self.triangTex = np.array([[ 0,  0],
+                                   [.5,  1],
+                                   [ 1,  0]], dtype=np.float32)
+ 
     def buttonPressed(self, image):
         if image == self.image2:
             print 1
@@ -235,7 +243,22 @@ class TestScene(Scene):
       
         self.titleWinEx.draw()
         self.titleWinEx2.draw()
-
+        
+        glPushMatrix()
+        glColor4f(.5,.5,.5,1.0)
+        glTranslatef(400,300.0,0)
+        glScalef(300.0,300.0,1.0)
+        # Draw triangle
+        #self.test[0].texture.bind()
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glVertexPointerf(self.triangVtx)
+        glTexCoordPointerf(self.triangTex)
+        glDrawArrays(GL_TRIANGLES, 0, self.triangVtx.shape[0])
+        glDisableClientState(GL_VERTEX_ARRAY)
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY)
+        glPopMatrix()
+        
 #this is the main viewport/engine
 #it handles the mouse input, the opengl window
 #and which scenes are being rendered.
@@ -243,22 +266,59 @@ class Viewport:
     def __init__(self, engine, resolution):
         self.engine = engine                    #the game engine and main values
         self.resolution = resolution            #width and height of the viewport
-        self.camera = Camera(resolution)        #viewport's opengl camera
+        self.width, self.height = self.resolution
+        self.camera = Camera((.5,.5,1),(0, 0,0))                  
+                                                #viewport's opengl camera
         self.scenes = []                        #scenes to render
-        self.visibility = []                    #visibility of the scenes
+        self.addScenes = None
         self.input = False                      #is the viewport in its mouse input cycle
         
-        self.transitionTime = 16.0             #time it takes to transition between scenes (milliseconds)
+        self.transitionTime = 32.0             #time it takes to transition between scenes (milliseconds)
         
-        self.fade = ImgObj(Texture(surface = pygame.Surface(resolution)))
-        self.fade.setPosition(.5, .5)
-        #creates an OpenGL Viewport
-        glViewport(0, 0, resolution[0], resolution[1])
+        self.fade = 0.0
 
         #images and text used for displaying the onscreen button help
         self.inputButtons = [ImgObj(Texture("inputButtons.png"), frameY = 5),
                              FontObj("default.ttf", size = 16)]
         self.inputButtons[0].setScale(32,32, inPixels = True)
+        
+        self.setupViewport()
+        
+    def setupViewport(self):
+        #creates an OpenGL Viewport
+        glViewport(0, 0, self.resolution[0], self.resolution[1])
+        glEnable (GL_DEPTH_TEST)
+        glEnable (GL_LIGHTING)
+        glEnable (GL_LIGHT0)
+        glShadeModel (GL_SMOOTH)
+        glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE )
+        glEnable ( GL_COLOR_MATERIAL )
+
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
+
+        glShadeModel(GL_SMOOTH)
+        glClearColor(0.0, 0.0, 0.0, 0.0)
+        glClearDepth(1.0)
+        glEnable(GL_DEPTH_TEST)
+        glDepthFunc(GL_LEQUAL)
+
+    #creates a projection with perspective
+    def setPerspectiveProjection(self):
+        glMatrixMode( GL_PROJECTION )
+        glLoadIdentity() 
+        gluPerspective(45, 1.0*self.width/self.height, -1.0, 250.0)
+        glMatrixMode( GL_MODELVIEW )
+                
+    #creates an orthographic projection
+    def setOrthoProjection(self):
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()                        
+        glOrtho(0, self.width, 0, self.height, -1.0, 250.0)
+        #glTranslatef(800.0/2, 600.0/2, 0.0)
+        glScalef((self.width/800.0), (self.height/600.0), 1.0)
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()        
         
     #if the scene has a list of buttons and their commands then they can be 
     #rendered to the screen if enabled in the uldunad.ini
@@ -325,9 +385,7 @@ class Viewport:
                     scene = ParticleTest(self.engine)
                 else:
                     scene = WorldScenes.create(self.engine, scene)
-                self.scenes.append(scene)
-                self.visibility.append(0.0)
-                self.hasTransitioned = True
+                self.addScene = scene
             except ImportError:
                 print scene + " has not yet been implemented or does not exist"
         else:
@@ -337,7 +395,6 @@ class Viewport:
     def popScene(self, scene):
         if scene in self.scenes:
             Input.resetKeyPresses()
-            self.visibility.pop(self.scenes.index(scene))
             self.scenes.remove(scene)
         else:
             print scene + " has not been pushed yet"
@@ -353,8 +410,7 @@ class Viewport:
                 scene = ParticleTest(self.engine)
             else:
                 scene = WorldScenes.create(self.engine, scene)
-            self.scenes.append(scene)
-            self.visibility.append(0.0)
+            self.addScene = scene
         except ImportError:
             print scene + " has not yet been implemented or does not exist"
             
@@ -390,43 +446,46 @@ class Viewport:
         self.renderInputHelp(scene)
         
     def run(self):
+        #clears the buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        if self.scenes:
-            #ticks/rate of change in time
-            t = 1.0 / self.transitionTime
+        #ticks/rate of change in time
+        t = 1.0 / self.transitionTime
 
-            #all scenes should be rendered but not checked for input
-            for i, scene in enumerate(self.scenes):
-                topmost = bool(i == len(self.scenes)-1)#is the scene the topmost scene
-                if not topmost:
-                    visibility = self.visibility[i] = self.visibility[i] - t
-                else:
-                    visibility = self.visibility[i] = min(1.0, self.visibility[i] + t)
+        if self.addScene:
+            self.fade = min(1.0, self.fade + t)
+            if self.fade >= 1.0:
+                if self.scenes:
+                    self.scenes.pop(-1)
+                self.scenes.append(self.addScene)
+                self.addScene = None
+        else:
+            self.fade = max(0.0, self.fade - t)                
+                
+        #fades the screen
+        glPushMatrix()
+        glColor4f(0,0,0,self.fade)
+            
+        #all scenes should be rendered but not checked for input
+        for i, scene in enumerate(self.scenes):
+            topmost = bool(scene == self.scenes[-1]) #is the scene the topmost scene
                     
-                if topmost:
-                    scene.run()                         #any calculations of interactions are processed from the
-                                                        # previous loop before anything new is rendered
+            if topmost:
+                scene.run()                         #any calculations of interactions are processed from the
+                                                    # previous loop before anything new is rendered
 
-                scene.render3D()                        #for anything in the scene that might need perspective
+            try:
+                self.setOrthoProjection()           #changes projection so the hud/menus can be drawn
+                self.render(scene, 1.0)             #renders anything to the scene that is 2D
+            finally:
+                self.setPerspectiveProjection()     #resets the projection to have perspective
+            scene.render3D()                        #for anything in the scene that might need perspective
 
-                try:
-                    self.camera.setOrthoProjection()    #changes projection so the hud/menus can be drawn
-                    self.render(scene, visibility)      #renders anything to the scene that is 2D
-                finally:
-                    self.camera.resetProjection()       #resets the projection to have perspective
-                
-            if len(self.scenes) > 1:
-                alpha = self.visibility[-2] - self.visibility[-1]
-                self.fade.setColor((0.0,0.0,0.0,alpha))
-                self.fade.draw()
-                
-            pygame.display.flip()               #switches back buffer to the front
-
-            if self.visibility[0] < 0.0:
-                self.scenes.pop(0)
-                self.visibility.pop(0)
-                
+        pygame.display.flip()                       #switches back buffer to the front
+        self.camera.update()                        #updates camera position and view
+            
+        if self.scenes:
             #only the topmost scene should be checked for input
-            if self.visibility[-1] >= 0.7:      #only detect when the scene is fully visible
-                self.detect(self.scenes[-1])    #checks to see if any object on the back buffer has been clicked
+            self.detect(self.scenes[-1])            #checks to see if any object on the back buffer has been clicked
+            
+        glPopMatrix()

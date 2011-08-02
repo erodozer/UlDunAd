@@ -12,63 +12,66 @@ Licensed under the GNU General Public License V3
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
+#system design based on Ian Mallett's glLib for pygame
+
 #an opengl camera object
 #it starts out with a view with perspective, 
 #but you can make it orthographic with one call
 class Camera:
-    def __init__(self, (width, height)):
-        self.width = float(width)
-        self.height = float(height)
-
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        gluPerspective(45, 1.0*self.width/self.height, .1, 250.0)
-
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
-
-        glEnable (GL_DEPTH_TEST)
-        glEnable (GL_LIGHTING)
-        glEnable (GL_LIGHT0)
-        glShadeModel (GL_SMOOTH)
-        glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE )
-        glEnable ( GL_COLOR_MATERIAL )
-
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
-
-        glShadeModel(GL_SMOOTH)
-        glClearColor(0.0, 0.0, 0.0, 0.0)
-        glClearDepth(1.0)
-        glEnable(GL_DEPTH_TEST)
-        glDepthFunc(GL_LEQUAL)
-        #glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
-
-        self.resetFocus()
+    def __init__(self,pos,center,upvec=[0,1,0]):
+        #camera's values
+        self.pos = pos                  #current position
+        self.center = center            #current center
+        self.upvec = upvec              #current up vector
         
-    def focus(self, x, y, zoom):
-        self.focusX = x
-        self.focusY = y
-        self.focusZ = zoom/100.0
+        #values to which the camera wants to obtain
+        self.targetpos = pos            #new position
+        self.targetcenter = center      #new center
+        self.targetupvec = upvec        #new up vector
         
-    def resetFocus(self):
-        self.focus(800/2, 600/2, 100)
+        
+        self.adjustRate = 0.1           #speed at which the camera will transition into 
+                                        # it's target values
+        
+    #sets the camera's target position
+    def setTargetPos(self, tP):
+        self.target = tP
+        
+    #sets the camera's target center
+    def setTargetCenter(self,tC):
+        self.targetcenter = tC
+        
+    #sets the camera's target up vector
+    def set_target_up_vector(self,new_target_up_vector):
+        self.targetupvec = new_target_up_vector
+       
+    #adjusts the change rate of the camera
+    def setAdjustRate(self,value):
+        self.adjust = value
+       
+    #updates the camera's values
+    def update(self):
+        #gets differences
+        diff = lambda i, n: [i[x] - n[x] for x in range(3)]  
+        
+        pos_diff = diff(self.pos, self.targetpos)
+        cen_diff = diff(self.center, self.targetcenter)
+        upv_diff = diff(self.upvec, self.targetupvec)
+              
+        #gets the adjusted values
+        adjust = lambda i, diff: [i[x]-(diff[x]*self.adjustRate) for x in range(3)]
+        
+        self.pos = adjust(self.pos, pos_diff)
+        self.center = adjust(self.center, cen_diff)
+        self.upvec = adjust(self.upvec, upv_diff)
+       
+        self.setCamera()
+        
+    #sets up the camera to show what it's looking at
+    def setCamera(self):
+        gluLookAt(self.pos[0],self.pos[1],self.pos[2],
+                  self.center[0],self.center[1],self.center[2],
+                  self.upvec[0],self.upvec[1],self.upvec[2])
 
-    #creates an orthographic projection
-    def setOrthoProjection(self):
-        glMatrixMode(GL_PROJECTION)
-        glPushMatrix()
-        glLoadIdentity()                        
-        glOrtho(self.focusX, self.width+self.focusX, self.focusY, self.height+self.focusY, -1.0, 1.0)
-        glTranslatef(800.0/2, 600.0/2, 0.0)
-        glScalef(self.focusZ*(self.width/800.0), self.focusZ*(self.height/600.0), 1.0)
-        glMatrixMode(GL_MODELVIEW)
-        glPushMatrix()
-        glLoadIdentity()
+
         
-    #resets the projection to have perspective
-    def resetProjection(self):
-        glMatrixMode( GL_PROJECTION )
-        glPopMatrix()
-        glMatrixMode( GL_MODELVIEW )
-        glPopMatrix()
