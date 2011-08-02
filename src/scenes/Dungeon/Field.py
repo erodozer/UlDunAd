@@ -13,13 +13,23 @@ from operator import itemgetter
 # this reads in the data file and creates a collection of cells and other values
 class Field(object):
     def __init__(self, path):
-        file = open(os.path.join(path, "field.udaf"))
+        file = open(os.path.join("..", "data", path, "field.udaf"))
                                             #udaf standard for uldunad field files
         
         self.grid = {}                      #cells (8x8 grid)
         self.playerPos = None               #player's position in the map
         self.bossPos = None                 #boss's position in the map
         self.dimensions = None
+        
+        #gets the height value from the character passed
+        #height ranges from 0-9 then a-f (lowercase)
+        def getHeight(h):
+            try:
+                h = int(h)
+            except:
+                h = ord(h) - 87
+            return h
+            
         for y, line in enumerate(file.readlines()):
             #first line reads in the dimensions of the grid
             if y == 0:
@@ -27,15 +37,15 @@ class Field(object):
             #skip one line, then the next y amount of lines is the grid
             elif y > 1 and y < self.dimensions[1]+2:
                 for x in range(self.dimensions[0]):
-                    self.grid[(x+1,y-1)] = Cell(path, line[x])
+                    h = getHeight(line[x])
+                    if h > 0:
+                        self.grid[(x+1,y-1)] = Cell(path, h)
             #2 lines after the grid is the player's position
             elif y == self.dimensions[1] + 3:
                 self.playerPos = tuple([int(i) for i in line.split(",")])
             #3 lines after the grid is the boss's position
             elif y == self.dimensions[1] + 4:
                 self.bossPos = tuple([int(i) for i in line.split(",")])
-             
-        print self.grid
         
         #player icon
         self.angel = ImgObj(os.path.join("scenes", "dungeon", "angel.png"))
@@ -49,12 +59,14 @@ class Field(object):
     def render(self):
         
         glPushMatrix()
-        glTranslatef(64.0*self.playerPos[0], 16.0*self.grid[self.playerPos].height, 64.0*self.playerPos[1])
+        #glScalef(3,3,1)
+        #glTranslatef(-64*self.playerPos[0], 16*self.grid[self.playerPos].height, 64*self.playerPos[1])
+        #glTranslatef(0,300,0)
         for cell in self.grid.keys():
             glPushMatrix()
-            glTranslatef(64.0*cell[0],0,64.0*cell[1])
+            glTranslatef(32.0*cell[0],0,32*cell[1])
             self.grid[cell].draw()
             glPopMatrix()
-        self.devil.draw()
+        #self.devil.draw()
         glPopMatrix()
-        self.angel.draw()
+        #self.angel.draw()
