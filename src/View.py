@@ -261,7 +261,7 @@ class Viewport:
         self.engine = engine                    #the game engine and main values
         self.resolution = resolution            #width and height of the viewport
         self.width, self.height = self.resolution
-        self.camera = Camera((.5,.5,1),(0, 0,0))                  
+        self.camera = Camera((0, 0), 100)                  
                                                 #viewport's opengl camera
         self.scenes = []                        #scenes to render
         self.addScenes = None
@@ -281,36 +281,44 @@ class Viewport:
     def setupViewport(self):
         #creates an OpenGL Viewport
         glViewport(0, 0, self.resolution[0], self.resolution[1])
-        glEnable (GL_DEPTH_TEST)
+
         glEnable (GL_LIGHTING)
         glEnable (GL_LIGHT0)
-        glShadeModel (GL_SMOOTH)
         glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE )
         glEnable ( GL_COLOR_MATERIAL )
-
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
-
         glShadeModel(GL_SMOOTH)
+        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
+        glEnable(GL_BLEND)
         glClearColor(0.0, 0.0, 0.0, 0.0)
         glClearDepth(1.0)
         glEnable(GL_DEPTH_TEST)
+        glEnable(GL_ALPHA_TEST)
         glDepthFunc(GL_LEQUAL)
+        glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+        glAlphaFunc(GL_NOTEQUAL,0.0)
 
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
+        glEnable(GL_TEXTURE_2D)
+        glEnable(GL_FOG)
+        glEnable(GL_LIGHTING)
+        
     #creates a projection with perspective
     def setPerspectiveProjection(self):
         glMatrixMode( GL_PROJECTION )
         glLoadIdentity() 
-        gluPerspective(45, 1.0*self.width/self.height, -1.0, 250.0)
+        gluPerspective(45, 1.0*self.width/self.height, -9999.0, 9990.0)
         glMatrixMode( GL_MODELVIEW )
-                
+        glLoadIdentity()  
+
     #creates an orthographic projection
     def setOrthoProjection(self):
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()                        
-        glOrtho(0, self.width, 0, self.height, -1.0, 250.0)
+        glOrtho(0, self.width, 0, self.height, -9999.0, 9999.0)
         #glTranslatef(800.0/2, 600.0/2, 0.0)
         glScalef((self.width/800.0), (self.height/600.0), 1.0)
+        glTranslatef(-self.camera.focusx, -self.camera.focusy, 1.0)
+        glScalef(self.camera.zoom/100.0, self.camera.zoom/100.0, 1.0)
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()        
         
@@ -411,10 +419,6 @@ class Viewport:
     #checks to see where the position of the mouse is over 
     #an object and if that object has been clicked
     def detect(self, scene):
-        glDisable(GL_TEXTURE_2D)
-        glDisable(GL_FOG)
-        glDisable(GL_LIGHTING)
-
         for key, char in Input.getKeyPresses():
             scene.keyPressed(key, char)
 
@@ -425,17 +429,10 @@ class Viewport:
                 scene.buttonClicked(ImgObj.clickableObjs[x])
             except ValueError:
                 continue
-                
-        #resets the input after every detection cycle
-        Input.resetClick()
-        Input.resetKeyPresses()
-        
+
+
     #renders a scene fully textured
     def render(self, scene, visibility):
-        glEnable(GL_TEXTURE_2D)
-        glEnable(GL_FOG)
-        glEnable(GL_LIGHTING)
-
         scene.render(visibility)
         self.renderInputHelp(scene)
         
@@ -458,7 +455,7 @@ class Viewport:
                 
         #fades the screen
         glPushMatrix()
-        glColor4f(0,0,0,self.fade)
+        glColor4f(1,1,1,1-self.fade)
             
         #all scenes should be rendered but not checked for input
         for i, scene in enumerate(self.scenes):
@@ -476,7 +473,6 @@ class Viewport:
             scene.render3D()                        #for anything in the scene that might need perspective
 
         pygame.display.flip()                       #switches back buffer to the front
-        self.camera.update()                        #updates camera position and view
             
         if self.scenes:
             #only the topmost scene should be checked for input
