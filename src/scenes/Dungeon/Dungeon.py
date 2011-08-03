@@ -50,8 +50,13 @@ class Dungeon(Scene):
         w,h = self.engine.w, self.engine.h        
         
         self.background.draw()
+                
+        self.bigFont.setText("%iH" % self.field.grid[self.field.playerPos].height)
+        self.bigFont.draw()
         
-        
+        self.font.setText(self.field.playerPos)
+        self.font.draw()
+
         self.engine.viewport.setOrthoProjection()
         glTranslatef(w/2,h/2,1)
         glScalef(1,1,1)
@@ -64,11 +69,3 @@ class Dungeon(Scene):
                 self.field.angle = self.angle
         self.field.render()
         self.engine.viewport.resetProjection()
-                
-        self.bigFont.setText("%iH" % self.field.grid[self.field.playerPos].height)
-        self.bigFont.draw()
-        
-        self.font.setText(self.field.playerPos)
-        self.font.draw()
-
-    
