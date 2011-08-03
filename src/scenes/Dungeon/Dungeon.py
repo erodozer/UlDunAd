@@ -46,6 +46,11 @@ class Dungeon(Scene):
             if self.selectedAngle < 0:
                self.selectedAngle = len(self.angles)-1
           
+        #leave dungeon
+        if key == Input.BButton:
+            self.engine.town = None
+            self.engine.viewport.changeScene("Maplist")
+            
     def render(self, visibility):
         w,h = self.engine.w, self.engine.h        
         

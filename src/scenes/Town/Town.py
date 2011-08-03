@@ -48,6 +48,11 @@ class Town(Scene):
     def keyPressed(self, key, char):
         self.menu.keyPressed(key)
         
+        #leave town
+        if key == Input.BButton:
+            self.engine.town = None
+            self.engine.viewport.changeScene("Maplist")
+                
     def select(self, index):
         if self.choices[index] == "Wilderness":
             self.engine.formation = Formation(random.choice(self.enemies))
