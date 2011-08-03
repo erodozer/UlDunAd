@@ -56,27 +56,28 @@ class Field(object):
         
         #player icon
         self.angel = ImgObj(os.path.join("scenes", "dungeon", "angel.png"))
-        self.angel.setPosition(.5,.5)       #always in the center of the screen
                 
         #boss icon
         self.devil = ImgObj(os.path.join("scenes", "dungeon", "devil.png"))
-        self.devil.setPosition(64.0*self.bossPos[0],16.0*self.bossPos[1])       
-                                            #depends on cell location
         
-        #generates a glList of all the cubes so it only has to recall the list whenever it has to render
-        self.displayList = glGenLists(1)                
-        glNewList(self.displayList, GL_COMPILE)
-        for cell in self.grid.keys():
-            glPushMatrix()
-            glTranslatef(64.0*cell[0],0,64.0*cell[1])
-            self.grid[cell].draw()
-            glPopMatrix()
-        glEndList()
+        self.updateList()
             
         self.angle = 45
         
     def rotateTo(self, newangle):
         self.rotX -= (self.rotX-newangle)*.05
+        
+    #generates a glList of all the cubes so it only has to recall the list whenever it has to render
+    def updateList(self):
+        self.displayList = glGenLists(1)                
+        glNewList(self.displayList, GL_COMPILE)
+        for cell in self.grid.keys():
+                
+            glPushMatrix()
+            glTranslatef(64.0*cell[0],0,64.0*cell[1])
+            self.grid[cell].draw()
+            glPopMatrix()
+        glEndList()        
         
     def render(self):
         
@@ -87,5 +88,17 @@ class Field(object):
         glTranslatef(-32.0*self.dimensions[0]/2.0, -16.0*self.highestPoint/2.0, -32.0*self.dimensions[1])
         #calls the generated opengl grid
         glCallList(self.displayList)
+        glPushMatrix()
+        cell = self.playerPos
+        glScalef(32.0,32.0,0)
+        glTranslatef(64.0*cell[0], 16.0*self.grid[cell].height,64.0*cell[1])
+        self.angel.draw()
+        glPopMatrix()
+        glPushMatrix()
+        cell = self.playerPos
+        glScalef(32.0,32.0,0)
+        glTranslatef(64.0*cell[0], 16.0*self.grid[cell].height,64.0*cell[1])
+        self.devil.draw()
+        glPopMatrix()
         glPopMatrix()
         
