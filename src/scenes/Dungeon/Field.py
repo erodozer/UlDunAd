@@ -5,6 +5,7 @@ from OpenGL.GLU import *
 from Cell import Cell
     
 from sysobj import *
+
 import os
 
 from operator import itemgetter
@@ -20,6 +21,10 @@ class Field(object):
         self.playerPos = None               #player's position in the map
         self.bossPos = None                 #boss's position in the map
         self.dimensions = None
+        self.highestPoint = 0
+        self.displayList = None
+        self.rotX = 45
+        self.rotY = 35
         
         #gets the height value from the character passed
         #height ranges from 0-9 then a-f (lowercase)
@@ -28,6 +33,8 @@ class Field(object):
                 h = int(h)
             except:
                 h = ord(h) - 87
+            if h > self.highestPoint:
+               self.highestPoint = h
             return h
             
         for y, line in enumerate(file.readlines()):
@@ -56,17 +63,29 @@ class Field(object):
         self.devil.setPosition(64.0*self.bossPos[0],16.0*self.bossPos[1])       
                                             #depends on cell location
         
-    def render(self):
-        
-        glPushMatrix()
-        #glScalef(3,3,1)
-        #glTranslatef(-64*self.playerPos[0], 16*self.grid[self.playerPos].height, 64*self.playerPos[1])
-        #glTranslatef(0,300,0)
+        #generates a glList of all the cubes so it only has to recall the list whenever it has to render
+        self.displayList = glGenLists(1)                
+        glNewList(self.displayList, GL_COMPILE)
         for cell in self.grid.keys():
             glPushMatrix()
-            glTranslatef(32.0*cell[0],0,32*cell[1])
+            glTranslatef(64.0*cell[0],0,64.0*cell[1])
             self.grid[cell].draw()
             glPopMatrix()
-        #self.devil.draw()
+        glEndList()
+            
+        self.angle = 45
+        
+    def rotateTo(self, newangle):
+        self.rotX -= (self.rotX-newangle)*.05
+        
+    def render(self):
+        
+            
+        glPushMatrix()
+        glRotatef(-self.rotY,1,0,0)
+        glRotatef(-self.rotX,0,1,0)
+        glTranslatef(-32.0*self.dimensions[0]/2.0, -16.0*self.highestPoint/2.0, -32.0*self.dimensions[1])
+        #calls the generated opengl grid
+        glCallList(self.displayList)
         glPopMatrix()
-        #self.angel.draw()
+        
