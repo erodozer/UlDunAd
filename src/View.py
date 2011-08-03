@@ -132,10 +132,7 @@ class TestScene(Scene):
         self.triangVtx = np.array([[ 0,  1, 0],
                                    [-1, -1, 0],
                                    [ 1, -1, 0]], dtype=np.float32)
-        self.triangTex = np.array([[ 0,  0],
-                                   [.5,  1],
-                                   [ 1,  0]], dtype=np.float32)
- 
+        
     def buttonPressed(self, image):
         if image == self.image2:
             print 1
@@ -244,20 +241,17 @@ class TestScene(Scene):
         self.titleWinEx.draw()
         self.titleWinEx2.draw()
         
+        glDisable(GL_TEXTURE_2D)
         glPushMatrix()
-        glColor4f(.5,.5,.5,1.0)
-        glTranslatef(400,300.0,0)
-        glScalef(300.0,300.0,1.0)
-        # Draw triangle
-        #self.test[0].texture.bind()
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+        glColor4f(1,.5,.5,1.0)
+        glTranslatef(400,40.0,0)
+        glScalef(30.0,30.0,1.0)
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointerf(self.triangVtx)
-        glTexCoordPointerf(self.triangTex)
         glDrawArrays(GL_TRIANGLES, 0, self.triangVtx.shape[0])
         glDisableClientState(GL_VERTEX_ARRAY)
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY)
         glPopMatrix()
+        glEnable(GL_TEXTURE_2D)
         
 #this is the main viewport/engine
 #it handles the mouse input, the opengl window
