@@ -24,18 +24,9 @@ class Cell(object):
         
         self.base = Texture(os.path.join(path, "base.png"))
         self.side = Texture(os.path.join(path, "side.png"))
-        
-    def show(self):
-        self.hidden = False
-        
-    def hide(self):
-        self.hidden = True
-    
-    def draw(self):
-        
-        glPushMatrix()
-        glScale(64.0,16.0*self.height,64.0)
-        
+
+        self.displayList = glGenLists(1)                
+        glNewList(self.displayList, GL_COMPILE)
         self.side.bind()
         
         for i in range(4):
@@ -62,6 +53,19 @@ class Cell(object):
         glTexCoord2f (0.0, 1.0)
         glVertex3fv(_vertices[_indices[19]])
         glEnd()
-                
+        glEndList()  
+                                
+    def show(self):
+        self.hidden = False
+        
+    def hide(self):
+        self.hidden = True
+    
+    def draw(self):
+        
+        glPushMatrix()
+        glScale(64.0,16.0*self.height,64.0)
+        glColor4f(1.0,1.0,1.0,1.0)
+        glCallList(self.displayList)
         glPopMatrix()
 
