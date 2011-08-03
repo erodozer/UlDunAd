@@ -23,8 +23,8 @@ class Field(object):
         self.dimensions = None
         self.highestPoint = 0
         self.displayList = None
-        self.rotX = 45
         self.rotY = 35
+        self.angle = 45
         
         #gets the height value from the character passed
         #height ranges from 0-9 then a-f (lowercase)
@@ -53,6 +53,8 @@ class Field(object):
             #3 lines after the grid is the boss's position
             elif y == self.dimensions[1] + 4:
                 self.bossPos = tuple([int(i) for i in line.split(",")])
+        self.grid[self.playerPos].show()
+        self.grid[self.bossPos].show()
         
         #player icon
         self.angel = ImgObj(os.path.join("scenes", "dungeon", "angel.png"))
@@ -62,10 +64,11 @@ class Field(object):
         
         self.updateList()
             
-        self.angle = 45
-        
     def rotateTo(self, newangle):
-        self.rotX -= (self.rotX-newangle)*.05
+        if self.angle is not newangle:
+            self.angle -= (self.angle-newangle)*.05
+            return True
+        return False
         
     #generates a glList of all the cubes so it only has to recall the list whenever it has to render
     def updateList(self):
@@ -83,22 +86,33 @@ class Field(object):
         
             
         glPushMatrix()
-        glRotatef(-self.rotY,1,0,0)
-        glRotatef(-self.rotX,0,1,0)
-        glTranslatef(-32.0*self.dimensions[0]/2.0, -16.0*self.highestPoint/2.0, -32.0*self.dimensions[1])
-        #calls the generated opengl grid
+        #angles the grid
+        glRotatef(self.rotY,1,0,0)
+        glRotatef(-self.angle,0,1,0)
+        #centers the grid
+        glTranslatef(-64.0*self.dimensions[0]/2.0, 0, -64.0*(self.dimensions[1]))
+        
+        #renders the generated opengl grid
+        glPushMatrix()
         glCallList(self.displayList)
+        glPopMatrix()
+        
+        #renders the player's position
         glPushMatrix()
         cell = self.playerPos
-        glScalef(32.0,32.0,0)
-        glTranslatef(64.0*cell[0], 16.0*self.grid[cell].height,64.0*cell[1])
+        glTranslatef(64.0*cell[0]+32.0, 16.0*self.grid[cell].height+32.0,64.0*cell[1]+32.0)
+        glScalef(.25,.25,0)
         self.angel.draw()
         glPopMatrix()
+        
+        #renders the boss's position
         glPushMatrix()
         cell = self.playerPos
-        glScalef(32.0,32.0,0)
+        #glScalef(32.0,32.0,0)
         glTranslatef(64.0*cell[0], 16.0*self.grid[cell].height,64.0*cell[1])
+        glTranslatef(-32.0, 0, -32.0)
         self.devil.draw()
         glPopMatrix()
+        
         glPopMatrix()
         

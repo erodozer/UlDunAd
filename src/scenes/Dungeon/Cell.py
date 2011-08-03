@@ -4,17 +4,6 @@ from OpenGL.GLU import *
 
 from sysobj import *
 import os
-
-_vertices = [[0,0,0],[1,0,0],[1,1,0],[0,1,0],
-             [0,0,1],[1,0,1],[1,1,1],[0,1,1]]
-                         
-_texArray = [[0.0, 0.0], [0.0,1.0], [1.0,1.0], [1.0,0.0]]
-        
-_indices = [0,1,2,3,
-            1,5,6,2,
-            5,4,7,6,
-            4,0,3,7,
-            4,5,1,0]
     
 class Cell(object):
     def __init__(self, path, height):
@@ -27,34 +16,46 @@ class Cell(object):
 
         self.displayList = glGenLists(1)                
         glNewList(self.displayList, GL_COMPILE)
-        self.side.bind()
-        
-        for i in range(4):
-            glBegin(GL_QUADS)
-            glTexCoord2f (0.0, 0.0)
-            glVertex3fv(_vertices[_indices[i*4+0]])
-            glTexCoord2f (1.0, 0.0)
-            glVertex3fv(_vertices[_indices[i*4+1]])
-            glTexCoord2f (1.0, 1.0)
-            glVertex3fv(_vertices[_indices[i*4+2]])
-            glTexCoord2f (0.0, 1.0)
-            glVertex3fv(_vertices[_indices[i*4+3]])
-            glEnd()
-            
-        self.base.bind()
-        
-        glBegin(GL_QUADS)
-        glTexCoord2f (0.0, 0.0)
-        glVertex3fv(_vertices[_indices[16]])
-        glTexCoord2f (1.0, 0.0)
-        glVertex3fv(_vertices[_indices[17]])
-        glTexCoord2f (1.0, 1.0)
-        glVertex3fv(_vertices[_indices[18]])
-        glTexCoord2f (0.0, 1.0)
-        glVertex3fv(_vertices[_indices[19]])
-        glEnd()
+        self.genCube()
         glEndList()  
-                                
+        
+    def genCube(self):
+        glPushMatrix()
+        glScale(64.0,16.0*self.height,64.0)
+        self.side.bind()
+        glBegin(GL_QUADS)
+        #Front Face
+        glTexCoord2f(0.0, 0.0); glVertex3f(0.0, 0.0,  1.0)
+        glTexCoord2f(1.0, 0.0); glVertex3f( 1.0, 0.0,  1.0)
+        glTexCoord2f(1.0, 1.0); glVertex3f( 1.0,  1.0,  1.0)
+        glTexCoord2f(0.0, 1.0); glVertex3f(0.0,  1.0,  1.0)
+        #Back Face
+        glTexCoord2f(1.0, 0.0); glVertex3f(0.0, 0.0, 0.0)
+        glTexCoord2f(1.0, 1.0); glVertex3f(0.0,  1.0, 0.0)
+        glTexCoord2f(0.0, 1.0); glVertex3f( 1.0,  1.0, 0.0)
+        glTexCoord2f(0.0, 0.0); glVertex3f( 1.0, 0.0, 0.0)
+        #Right face
+        glTexCoord2f(1.0, 0.0); glVertex3f( 1.0, 0.0, 0.0)
+        glTexCoord2f(1.0, 1.0); glVertex3f( 1.0,  1.0, 0.0)
+        glTexCoord2f(0.0, 1.0); glVertex3f( 1.0,  1.0,  1.0)
+        glTexCoord2f(0.0, 0.0); glVertex3f( 1.0, 0.0,  1.0)
+        #Left Face
+        glTexCoord2f(0.0, 0.0); glVertex3f(0.0, 0.0, 0.0)
+        glTexCoord2f(1.0, 0.0); glVertex3f(0.0, 0.0,  1.0)
+        glTexCoord2f(1.0, 1.0); glVertex3f(0.0,  1.0,  1.0)
+        glTexCoord2f(0.0, 1.0); glVertex3f(0.0,  1.0, 0.0)
+        glEnd()
+        
+        self.base.bind()
+        #Top Face
+        glBegin(GL_QUADS)
+        glTexCoord2f(0.0, 1.0); glVertex3f(0.0,  1.0, 0.0)
+        glTexCoord2f(0.0, 0.0); glVertex3f(0.0,  1.0,  1.0)
+        glTexCoord2f(1.0, 0.0); glVertex3f( 1.0,  1.0,  1.0)
+        glTexCoord2f(1.0, 1.0); glVertex3f( 1.0,  1.0, 0.0)
+        glEnd()
+        glPopMatrix()
+
     def show(self):
         self.hidden = False
         
@@ -64,8 +65,10 @@ class Cell(object):
     def draw(self):
         
         glPushMatrix()
-        glScale(64.0,16.0*self.height,64.0)
-        glColor4f(1.0,1.0,1.0,1.0)
+        if self.hidden:
+            glColor4f(.8,.8,.8,1.0)
+        else:
+            glColor4f(1.0,1.0,1.0,1.0)
         glCallList(self.displayList)
         glPopMatrix()
-
+        

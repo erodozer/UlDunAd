@@ -31,20 +31,15 @@ class Dungeon(Scene):
         self.bigFont = FontObj("default.ttf", size = 72)
         self.bigFont.setPosition(w*.8,h*.9)
         
-        self.angles = [45.0, 135.0, 225.0, 315.0]
-        self.selectedAngle = 0
+        self.angle = 45.0
         
     def keyPressed(self, key, char):
         if key == Input.RtButton:
-            self.selectedAngle += 1
-            if self.selectedAngle >= len(self.angles):
-               self.selectedAngle = 0
+            self.angle += 90.0
         
         
         if key == Input.LtButton:
-            self.selectedAngle -= 1
-            if self.selectedAngle < 0:
-               self.selectedAngle = len(self.angles)-1
+            self.angle -= 90.0
           
         #leave dungeon
         if key == Input.BButton:
@@ -56,13 +51,20 @@ class Dungeon(Scene):
         
         self.background.draw()
         
-        glPushMatrix()
-        glTranslatef(w/2,h/2,-.1)
-        glScalef(1,1,1)
-        self.field.rotateTo(self.angles[self.selectedAngle])
-        self.field.render()
-        glPopMatrix()
         
+        self.engine.viewport.setOrthoProjection()
+        glTranslatef(w/2,h/2,1)
+        glScalef(1,1,1)
+        if not self.field.rotateTo(self.angle):
+            if self.angle > 360:
+                self.angle %= 360
+                self.field.angle = self.angle
+            if self.angle < 0:
+                self.angle += 360
+                self.field.angle = self.angle
+        self.field.render()
+        self.engine.viewport.resetProjection()
+                
         self.bigFont.setText("%iH" % self.field.grid[self.field.playerPos].height)
         self.bigFont.draw()
         
