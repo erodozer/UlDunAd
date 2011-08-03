@@ -305,23 +305,25 @@ class Viewport:
     #creates a projection with perspective
     def setPerspectiveProjection(self):
         glMatrixMode( GL_PROJECTION )
-        glLoadIdentity() 
+        glLoadIdentity()
+        glPushMatrix()
         gluPerspective(45, 1.0*self.width/self.height, -9999.0, 9990.0)
-        glMatrixMode( GL_MODELVIEW )
-        glLoadIdentity()  
-
+        
     #creates an orthographic projection
     def setOrthoProjection(self):
         glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()                        
+        glLoadIdentity()
+        glPushMatrix()                   
         glOrtho(0, self.width, 0, self.height, -9999.0, 9999.0)
         #glTranslatef(800.0/2, 600.0/2, 0.0)
         glScalef((self.width/800.0), (self.height/600.0), 1.0)
         glTranslatef(-self.camera.focusx, -self.camera.focusy, 1.0)
         glScalef(self.camera.zoom/100.0, self.camera.zoom/100.0, 1.0)
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()        
         
+    def resetProjection(self):
+        glMatrixMode( GL_PROJECTION )
+        glPopMatrix()
+              
     #if the scene has a list of buttons and their commands then they can be 
     #rendered to the screen if enabled in the uldunad.ini
     def renderInputHelp(self, scene):
@@ -439,7 +441,9 @@ class Viewport:
     def run(self):
         #clears the buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
+        #reset matrix every frame
+        glLoadIdentity()
+        
         #ticks/rate of change in time
         t = 1.0 / self.transitionTime
 
@@ -454,8 +458,7 @@ class Viewport:
             self.fade = max(0.0, self.fade - t)                
                 
         #fades the screen
-        glPushMatrix()
-        glColor4f(1,1,1,1-self.fade)
+        #glColor4f(1,1,1,1-self.fade)
             
         #all scenes should be rendered but not checked for input
         for i, scene in enumerate(self.scenes):
@@ -468,14 +471,15 @@ class Viewport:
             try:
                 self.setOrthoProjection()           #changes projection so the hud/menus can be drawn
                 self.render(scene, 1.0)             #renders anything to the scene that is 2D
+                self.resetProjection()
             finally:
                 self.setPerspectiveProjection()     #resets the projection to have perspective
-            scene.render3D()                        #for anything in the scene that might need perspective
-
+                scene.render3D()                    #for anything in the scene that might need perspective
+                self.resetProjection()
+                
         pygame.display.flip()                       #switches back buffer to the front
             
         if self.scenes:
             #only the topmost scene should be checked for input
             self.detect(self.scenes[-1])            #checks to see if any object on the back buffer has been clicked
             
-        glPopMatrix()
