@@ -107,10 +107,10 @@ class Field(object):
         
         #renders the boss's position
         glPushMatrix()
-        cell = self.playerPos
+        cell = self.bossPos
         #glScalef(32.0,32.0,0)
-        glTranslatef(64.0*cell[0], 16.0*self.grid[cell].height,64.0*cell[1])
-        glTranslatef(-32.0, 0, -32.0)
+        glTranslatef(64.0*cell[0]+32.0, 16.0*self.grid[cell].height+32.0,64.0*cell[1]+32.0)
+        glScalef(.25,.25,0)
         self.devil.draw()
         glPopMatrix()
         

@@ -66,7 +66,7 @@ class Cell(object):
         
         glPushMatrix()
         if self.hidden:
-            glColor4f(.8,.8,.8,1.0)
+            glColor4f(.3,.3,.3,1.0)
         else:
             glColor4f(1.0,1.0,1.0,1.0)
         glCallList(self.displayList)

@@ -23,6 +23,14 @@ class Dungeon(Scene):
         self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
         self.background.setPosition(w/2,h/2)
         
+        #displays the current map direction
+        self.compassbase = ImgObj(os.path.join("scenes", "dungeon", "compassbase.png"))
+        self.compassbase.setPosition(w*.1, h*.1)
+        self.compassbase.setScale(256, 256, True)
+        self.compass = ImgObj(os.path.join("scenes", "dungeon", "compass.png"))
+        self.compass.setPosition(w*.1, h*.1)
+        self.compass.setScale(256, 256, True)
+        
         #displays coordinates of the player
         self.font = FontObj("default.ttf", size = 32)
         self.font.setPosition(w*.5,h*.1)
@@ -57,6 +65,10 @@ class Dungeon(Scene):
         self.font.setText(self.field.playerPos)
         self.font.draw()
 
+        self.compassbase.draw()
+        self.compass.setAngle(self.field.angle)
+        self.compass.draw()
+        
         self.engine.viewport.setOrthoProjection()
         glTranslatef(w/2,h/2,1)
         glScalef(1,1,1)
