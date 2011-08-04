@@ -93,13 +93,16 @@ class Texture:
         return surface 
 
     #binds the texture to the 3d plane
-    def bind(self):
+    def bind(self, repeat=False):
 
         glBindTexture(GL_TEXTURE_2D, self.id)
         
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-
+        
+        if repeat:
+            glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+            
     #deletes the OpenGL texture
     def __del__(self):
         glDeleteTextures(self.id)

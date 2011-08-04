@@ -24,7 +24,7 @@ class Cell(object):
     def genCube(self):
         glPushMatrix()
         glScale(64.0,16.0*self.height,64.0)
-        self.side.bind()
+        self.side.bind(repeat=True)
         glBegin(GL_QUADS)
         #Front Face
         glTexCoord2f(0.0, 0.0); glVertex3f(0.0, 0.0,  1.0)
