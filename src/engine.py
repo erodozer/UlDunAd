@@ -116,6 +116,7 @@ class Main:
         self.family = None      #your selected family and party
         self.formation = None   #current battling formation
         self.town = None        #current town/location
+        self.dungeon = None     #current dungeon
         
     def run(self):
         global finished

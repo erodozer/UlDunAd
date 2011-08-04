@@ -14,7 +14,7 @@ class Dungeon(Scene):
     def __init__(self, engine):
         self.engine = engine
         
-        name = self.engine.town
+        name = self.engine.dungeon
         path = os.path.join("places", name)
         
         self.dungeonini = Configuration(os.path.join("..", "data", path, "dungeon.ini")).dungeon

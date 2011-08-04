@@ -81,10 +81,14 @@ class Maplist(Scene):
                 self.startIndex = min(self.startIndex+10, len(self.maps)-11)
         else:
             if self.selectedMap == self.maps[self.startIndex + index-1]:
-                self.engine.town = self.selectedMap
+                
                 if self.selectedMap in self.towns:
+                    self.engine.town = self.selectedMap
+                    self.engine.dungeon = None
                     self.engine.viewport.changeScene("Town")
                 elif self.selectedMap in self.dungeons:
+                    self.engine.town = None
+                    self.engine.dungeon = self.selectedMap
                     self.engine.viewport.changeScene("Dungeon")
             else:
                 self.selectedMap = self.maps[self.startIndex + index - 1]
