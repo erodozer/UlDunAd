@@ -75,7 +75,10 @@ class Field(object):
   
     def rotateTo(self, newangle):
         if self.angle is not newangle:
-            self.angle -= (self.angle-newangle)*.05
+            if abs(newangle - self.angle) > .5:
+                self.angle += (newangle-self.angle)*.05
+            else:
+                self.angle = newangle
             return True
         return False
         

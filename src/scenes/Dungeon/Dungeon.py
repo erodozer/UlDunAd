@@ -63,24 +63,21 @@ class Dungeon(Scene):
     # down is towards the camera, up is away
     def updateKeys(self):
         if self.angle == 45.0 or self.angle == 305.0:
-            self.moveKeys[Input.UpButton] = lambda: self.selectedPos[1] = min(self.selectedPos[1] + 1, self.field.playerPos[1]+1)
-            self.moveKeys[Input.DnButton] = lambda: self.selectedPos[1] = max(self.selectedPos[1] - 1, self.field.playerPos[1]-1)
+            self.moveKeys[Input.DnButton] = [self.field.playerPos[0], min(self.selectedPos[1] + 1, self.field.playerPos[1]+1)]
+            self.moveKeys[Input.UpButton] = [self.field.playerPos[0], max(self.selectedPos[1] - 1, self.field.playerPos[1]-1)]
         else:
-            self.moveKeys[Input.DnButton] = lambda: self.selectedPos[1] = min(self.selectedPos[1] + 1, self.field.playerPos[1]+1)
-            self.moveKeys[Input.UpButton] = lambda: self.selectedPos[1] = max(self.selectedPos[1] - 1, self.field.playerPos[1]-1)
+            self.moveKeys[Input.UpButton] = [self.field.playerPos[0], min(self.selectedPos[1] + 1, self.field.playerPos[1]+1)]
+            self.moveKeys[Input.DnButton] = [self.field.playerPos[0], max(self.selectedPos[1] - 1, self.field.playerPos[1]-1)]
         
         if self.angle == 45.0 or self.angle == 215.0:
-            self.moveKeys[Input.RtButton] = lambda: self.selectedPos[0] = min(self.selectedPos[0] + 1, self.field.playerPos[0]+1)
-            self.moveKeys[Input.LtButton] = lambda: self.selectedPos[0] = max(self.selectedPos[0] - 1, self.field.playerPos[0]-1)
+            self.moveKeys[Input.RtButton] = [min(self.selectedPos[0] + 1, self.field.playerPos[0]+1), self.field.playerPos[1]]
+            self.moveKeys[Input.LtButton] = [max(self.selectedPos[0] - 1, self.field.playerPos[0]-1), self.field.playerPos[1]]
         else:
-            self.moveKeys[Input.LtButton] = lambda: self.selectedPos[0] = min(self.selectedPos[0] + 1, self.field.playerPos[0]+1)
-            self.moveKeys[Input.RtButton] = lambda: self.selectedPos[0] = max(self.selectedPos[0] - 1, self.field.playerPos[0]-1)
+            self.moveKeys[Input.LtButton] = [min(self.selectedPos[0] + 1, self.field.playerPos[0]+1), self.field.playerPos[1]]
+            self.moveKeys[Input.RtButton] = [max(self.selectedPos[0] - 1, self.field.playerPos[0]-1), self.field.playerPos[1]]
           
         
     def keyPressed(self, key, char):
-        #don't allow input while the map is being transformed
-        if self.cameraMotion:
-            return
       
         #view mode
         #  allows panning and rotating of the map
@@ -90,9 +87,7 @@ class Dungeon(Scene):
         
             if key == Input.DButton:
                 self.angle -= 90.0
-            
-            if key in self.moveKeys:
-                self.pan
+
             if key == Input.RtButton:
                 self.panX += _panRate
             if key == Input.LtButton:
@@ -104,35 +99,38 @@ class Dungeon(Scene):
             
             self.updateKeys()
                 
+            #don't allow input while the map is being transformed
+            if self.cameraMotion:
+                return
+
             #open action menu
             if key == Input.AButton:
                 self.mode = 1
                 
-            #leave dungeon
-            if key == Input.BButton:
-                self.engine.town = None
-                self.engine.viewport.changeScene("Maplist")
                 
         #selecting action
         elif self.mode == 1:
             self.actionMenu.keyPressed(key)
             
+            if key == Input.BButton:
+                self.mode = 0
+                
         #selecting tile to move to
         elif self.mode == 2:
             oldpos = self.selectedPos[:]
                 
             if key in self.moveKeys.keys():
-                self.moveKeys[key]()
+                self.selectedPos = self.moveKeys[key]
             
             #try to detect if the tile exists by checking its properties
             #  if it doesn't reset the selected position to the previously selected one
             try:
-                cell = self.field.grid[tuple(self.selectedPos)].height
+                cellheight = self.field.grid[tuple(self.selectedPos)].height
             except:
                 self.selectedPos = oldpos
                 return
                 
-            if cell.height - self.field.grid[self.field.playerPos].height > 1:
+            if cellheight - self.field.grid[self.field.playerPos].height > 1:
                 self.selectedPos = oldpos
                 return
                 
@@ -151,22 +149,31 @@ class Dungeon(Scene):
             if key == Input.BButton:
                 self.selectedPos = list(self.field.playerPos)
                 self.field.deselect()
+                self.field.updateList()
                 self.mode = 1
 
             
     def select(self, index):
         if index == 0:
             self.mode = 2
-        elif index == 1:
-            self.engine.viewport.addScene("MenuSystem")
-    
+        #leave dungeon
+        elif index == 2:
+            self.engine.dungeon = None
+            self.engine.viewport.changeScene("Maplist")
+            
     def panTo(self, newPosition):
         self.cameraMotion = False
-        if self.position[0] is not newPosition[1]:
-            self.position[0] -= (self.position[0]-newPosition[0])*.05
+        if self.position[0] is not newPosition[0]:
+            if abs(newPosition[0] - self.position[0]) > .5:
+              self.position[0] += (newPosition[0]-self.position[0])*.05
+            else:
+              self.position[0] = newPosition[0]
             self.cameraMotion = True
         if self.position[1] is not newPosition[1]:
-            self.position[1] -= (self.position[1]-newPosition[1])*.05
+            if abs(newPosition[1] - self.position[1]) > .5:
+                self.position[1] += (newPosition[1]-self.position[1])*.05
+            else:
+                self.position[1] = newPosition[1]
             self.cameraMotion = True
         
     def render(self, visibility):
@@ -180,16 +187,17 @@ class Dungeon(Scene):
         glPopMatrix()
                 
         glPushMatrix()
-        glTranslatef(self.position[0],self.position[1],100)
+        glTranslatef(self.position[0],self.position[1],-100)
         glScalef(1,1,1)
         if not self.field.rotateTo(self.angle):
-            self.cameraMotion = True
             if self.angle > 360:
                 self.angle %= 360
                 self.field.angle = self.angle
             if self.angle < 0:
                 self.angle += 360
                 self.field.angle = self.angle
+        else:
+            self.cameraMotion = True
         self.field.render()
         glPopMatrix()
         
