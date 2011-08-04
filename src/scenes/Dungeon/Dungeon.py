@@ -45,7 +45,14 @@ class Dungeon(Scene):
         self.bigFont = FontObj("default.ttf", size = 72)
         self.bigFont.setPosition(w*.8,h*.9)
         
-        #map viewing angle
+        self.selectedPos = self.field.playerPos       #selected position for movement
+        self.distance = 0
+        
+        #camera controls
+        self.position = [w/2,h/2]
+        self.panX = w/2
+        self.panY = h/2
+        self.cameraMotion = False
         self.angle = 135.0
         
         self.mode = 0                                 #0 = view, 1 = action menu, 2 = move
@@ -55,31 +62,24 @@ class Dungeon(Scene):
         self.moveKeys = {}                            #keys used for tile selection
         self.updateKeys()
         
-        self.selectedPos = list(self.field.playerPos) #selected position for movement
-        
-        #camera controls
-        self.position = [w/2,h/2]
-        self.panX = w/2
-        self.panY = h/2
-        self.cameraMotion = False
         
     #makes sure to flip input keys for selecting a tile when the map is rotated
     # so it makes sense
     # down is towards the camera, up is away
     def updateKeys(self):
         if self.angle == 45.0 or self.angle == 305.0:
-            self.moveKeys[Input.DnButton] = [self.field.playerPos[0], min(self.selectedPos[1] + 1, self.field.playerPos[1]+1)]
-            self.moveKeys[Input.UpButton] = [self.field.playerPos[0], max(self.selectedPos[1] - 1, self.field.playerPos[1]-1)]
+            self.moveKeys[Input.DnButton] = [(self.selectedPos[0], self.selectedPos[1] + 1), 1]
+            self.moveKeys[Input.UpButton] = [(self.selectedPos[0], self.selectedPos[1] - 1),-1]
         else:
-            self.moveKeys[Input.UpButton] = [self.field.playerPos[0], min(self.selectedPos[1] + 1, self.field.playerPos[1]+1)]
-            self.moveKeys[Input.DnButton] = [self.field.playerPos[0], max(self.selectedPos[1] - 1, self.field.playerPos[1]-1)]
+            self.moveKeys[Input.UpButton] = [(self.selectedPos[0], self.selectedPos[1] + 1), 1]
+            self.moveKeys[Input.DnButton] = [(self.selectedPos[0], self.selectedPos[1] - 1),-1]
         
         if self.angle == 45.0 or self.angle == 215.0:
-            self.moveKeys[Input.RtButton] = [min(self.selectedPos[0] + 1, self.field.playerPos[0]+1), self.field.playerPos[1]]
-            self.moveKeys[Input.LtButton] = [max(self.selectedPos[0] - 1, self.field.playerPos[0]-1), self.field.playerPos[1]]
+            self.moveKeys[Input.RtButton] = [(self.selectedPos[0] + 1, self.selectedPos[1]), 1]
+            self.moveKeys[Input.LtButton] = [(self.selectedPos[0] - 1, self.selectedPos[1]),-1]
         else:
-            self.moveKeys[Input.LtButton] = [min(self.selectedPos[0] + 1, self.field.playerPos[0]+1), self.field.playerPos[1]]
-            self.moveKeys[Input.RtButton] = [max(self.selectedPos[0] - 1, self.field.playerPos[0]-1), self.field.playerPos[1]]
+            self.moveKeys[Input.LtButton] = [(self.selectedPos[0] + 1, self.selectedPos[1]), 1]
+            self.moveKeys[Input.RtButton] = [(self.selectedPos[0] - 1, self.selectedPos[1]),-1]
           
         
     def keyPressed(self, key, char):
@@ -123,29 +123,24 @@ class Dungeon(Scene):
                 
         #selecting tile to move to
         elif self.mode == 2:
-            oldpos = self.selectedPos[:]
-                
             if key in self.moveKeys.keys():
-                self.selectedPos = self.moveKeys[key]
-            
-            #try to detect if the tile exists by checking its properties
-            #  if it doesn't reset the selected position to the previously selected one
-            try:
-                cellheight = self.field.grid[tuple(self.selectedPos)].height
-            except:
-                self.selectedPos = oldpos
-                return
-                
-            if cellheight - self.field.grid[self.field.playerPos].height > 1:
-                self.selectedPos = oldpos
-                return
+                try:
+                    heightdiff = self.field.grid[self.moveKeys[key][0]].height - self.field.grid[self.field.playerPos].height
+                    newDistance = self.distance + self.moveKeys[key][1]
+                    if not (abs(heightdiff) > 1 or abs(newDistance) > 1):
+                        self.selectedPos = self.moveKeys[key][0]
+                        self.distance = newDistance
+                except:
+                    return
                 
             self.field.setSelected(self.selectedPos)
             self.field.updateList()
+            self.updateKeys()
                                
             #move player to selected position
             if key == Input.AButton:
-                self.field.playerPos = tuple(self.selectedPos)
+                self.distance = 0
+                self.field.playerPos = self.selectedPos
                 self.field.grid[self.field.playerPos].show()
                 self.field.deselect()
                 self.field.updateList()
@@ -153,7 +148,7 @@ class Dungeon(Scene):
                 
             #cancel movement
             if key == Input.BButton:
-                self.selectedPos = list(self.field.playerPos)
+                self.selectedPos = self.field.playerPos
                 self.field.deselect()
                 self.field.updateList()
                 self.mode = 1
@@ -162,12 +157,18 @@ class Dungeon(Scene):
     def select(self, index):
         if index == 0:
             self.mode = 2
+            self.field.setSelected(self.selectedPos)
+            self.field.updateList()
+            
         #leave dungeon
         elif index == 2:
             self.engine.dungeon = None
             self.engine.viewport.changeScene("Maplist")
             
     def panTo(self, newPosition):
+        #maker sure new position is a list, not tuple
+        newPosition = list(newPosition)
+        
         #force to new position when selecting tiles
         if self.mode == 2:
             self.position = newPosition
@@ -217,11 +218,11 @@ class Dungeon(Scene):
         self.field.render()
         glPopMatrix()
         
-        self.bigFont.setText("%iH" % self.field.grid[self.field.playerPos].height)
+        self.bigFont.setText("%iH" % self.field.grid[self.selectedPos].height)
         self.bigFont.draw()
         
         if self.mode == 2:
-            location = "%s > %s" % (str(self.field.playerPos), str(tuple(self.selectedPos)))
+            location = "%s > %s" % (str(self.field.playerPos), str(self.selectedPos))
         else:
             location = "%s" % str(self.field.playerPos)
         self.font.setText(location)
