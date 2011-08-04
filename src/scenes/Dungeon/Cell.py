@@ -9,11 +9,13 @@ class Cell(object):
     def __init__(self, path, height):
         
         self.height = height         #height of the cell
-        self.hidden = True
+        self.hidden = True           #whether or not the player has uncovered it
+        self.selected = False        #selected for move space
         
         self.base = Texture(os.path.join(path, "base.png"))
         self.side = Texture(os.path.join(path, "side.png"))
 
+        
         self.displayList = glGenLists(1)                
         glNewList(self.displayList, GL_COMPILE)
         self.genCube()
@@ -65,7 +67,9 @@ class Cell(object):
     def draw(self):
         
         glPushMatrix()
-        if self.hidden:
+        if self.selected:
+            glColor4f(1.0,0.0,0.0,1.0)
+        elif self.hidden:
             glColor4f(.3,.3,.3,1.0)
         else:
             glColor4f(1.0,1.0,1.0,1.0)

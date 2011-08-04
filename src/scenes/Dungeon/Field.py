@@ -25,6 +25,7 @@ class Field(object):
         self.displayList = None
         self.rotY = 35
         self.angle = 45
+        self.selected = None
         
         #gets the height value from the character passed
         #height ranges from 0-9 then a-f (lowercase)
@@ -64,6 +65,14 @@ class Field(object):
         
         self.updateList()
             
+    def deselect(self):
+        self.selected = None
+        
+    def setSelected(self, position):
+        if self.selected is not tuple(position):
+          self.selected = tuple(position)
+          self.updateList()
+  
     def rotateTo(self, newangle):
         if self.angle is not newangle:
             self.angle -= (self.angle-newangle)*.05
@@ -75,7 +84,13 @@ class Field(object):
         self.displayList = glGenLists(1)                
         glNewList(self.displayList, GL_COMPILE)
         for cell in self.grid.keys():
-                
+            if self.selected:
+                if self.selected[0] == cell[0] and self.selected[1] == cell[1]:
+                    self.grid[cell].selected = True
+                else:
+                    self.grid[cell].selected = False
+            else:
+                self.grid[cell].selected = False
             glPushMatrix()
             glTranslatef(64.0*cell[0],0,64.0*cell[1])
             self.grid[cell].draw()
