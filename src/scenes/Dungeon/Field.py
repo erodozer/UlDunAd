@@ -17,16 +17,25 @@ class Field(object):
         file = open(os.path.join("..", "data", path, "field.udaf"))
                                             #udaf standard for uldunad field files
         
-        self.grid = {}                      #cells (8x8 grid)
+        self.grid = {}                      #the grid of cells
+        self.displayList = None             #the grid saved as an opengl list
         self.playerPos = None               #player's position in the map
         self.bossPos = None                 #boss's position in the map
-        self.dimensions = None
-        self.highestPoint = 0
-        self.displayList = None
-        self.rotY = 35
-        self.angle = 45
-        self.selected = None
+        self.dimensions = None              #grid's dimensions
+        self.selected = None                #the currently selected cell
+        self.highestPoint = 0               #the highest point on the map
+        self.rotY = 35                      #the rotate angle along the x axis
+        self.angle = 45                     #the angle at which the user is viewing it along its y axis
+        self.center = (0,0)                 #the map's center point
+
+
+        #player icon
+        self.angel = ImgObj(os.path.join("scenes", "dungeon", "angel.png"))
+                
+        #boss icon
+        self.devil = ImgObj(os.path.join("scenes", "dungeon", "devil.png"))
         
+                
         #gets the height value from the character passed
         #height ranges from 0-9 then a-f (lowercase)
         def getHeight(h):
@@ -38,6 +47,7 @@ class Field(object):
                self.highestPoint = h
             return h
             
+        #reads the field file
         for y, line in enumerate(file.readlines()):
             #first line reads in the dimensions of the grid
             if y == 0:
@@ -54,25 +64,31 @@ class Field(object):
             #3 lines after the grid is the boss's position
             elif y == self.dimensions[1] + 4:
                 self.bossPos = tuple([int(i) for i in line.split(",")])
-        self.grid[self.playerPos].show()
-        self.grid[self.bossPos].show()
+        self.grid[self.playerPos].show()      #make sure the player's cell is not hidden
+        self.grid[self.bossPos].show()        #make sure the boss's cell is not hidden
         
-        #player icon
-        self.angel = ImgObj(os.path.join("scenes", "dungeon", "angel.png"))
-                
-        #boss icon
-        self.devil = ImgObj(os.path.join("scenes", "dungeon", "devil.png"))
-        
+        self.setCenter()
         self.updateList()
-            
+        
+    #sets which cell is the center of the map focus
+    def setCenter(self, cell = None):
+        if cell:
+            self.center = cell
+        else:
+            self.center = self.playerPos
+        
+    ###For movement selection
+    #deselects all tiles
     def deselect(self):
         self.selected = None
         
+    #highlights the currently selected tile
     def setSelected(self, position):
         if self.selected is not tuple(position):
-          self.selected = tuple(position)
-          self.updateList()
+            self.selected = tuple(position)
+            self.updateList()
   
+    #smoothly rotates the map to a new angle along its y-axis
     def rotateTo(self, newangle):
         if self.angle is not newangle:
             if abs(newangle - self.angle) > .5:
@@ -102,13 +118,13 @@ class Field(object):
         
     def render(self):
         
-            
         glPushMatrix()
+        
         #angles the grid
         glRotatef(self.rotY,1,0,0)
         glRotatef(-self.angle,0,1,0)
         #centers the grid
-        glTranslatef(-64.0*self.dimensions[0]/2.0, 0, -64.0*(self.dimensions[1]))
+        glTranslatef(-64.0*self.center[0], 0, -64.0*self.center[1])
         
         #renders the generated opengl grid
         glPushMatrix()

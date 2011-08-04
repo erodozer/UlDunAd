@@ -14,16 +14,17 @@ class Dungeon(Scene):
     def __init__(self, engine):
         self.engine = engine
         
-        name = self.engine.dungeon
-        path = os.path.join("places", name)
+        name = self.engine.dungeon                    #name of the dungeon
+        path = os.path.join("places", name)           #path to the dungeon
         
         self.dungeonini = Configuration(os.path.join("..", "data", path, "dungeon.ini")).dungeon
-                                                    #config file
+                                                      #config file
         
-        self.field = Field(path)                    #the field data (grid)
+        self.field = Field(path)                      #the field data (grid)
         
         w,h = self.engine.w, self.engine.h        
         
+        #background image
         self.background = ImgObj(os.path.join(path, "background.png"))
         self.background.setScale(self.engine.w, self.engine.h, inPixels = True)
         self.background.setPosition(w/2,h/2)
@@ -44,15 +45,19 @@ class Dungeon(Scene):
         self.bigFont = FontObj("default.ttf", size = 72)
         self.bigFont.setPosition(w*.8,h*.9)
         
+        #map viewing angle
         self.angle = 135.0
         
-        self.mode = 0     #0 = view, 1 = action menu, 2 = move
+        self.mode = 0                                 #0 = view, 1 = action menu, 2 = move
         
         self.actionMenu = MenuObj(self, ["Move", "Menu", "Escape"], (w*.8, h*.25), window = "window.png")
         
-        self.moveKeys = {}
+        self.moveKeys = {}                            #keys used for tile selection
+        self.updateKeys()
         
-        self.selectedPos = list(self.field.playerPos)    #selected position for movement
+        self.selectedPos = list(self.field.playerPos) #selected position for movement
+        
+        #camera controls
         self.position = [w/2,h/2]
         self.panX = w/2
         self.panY = h/2
@@ -84,10 +89,12 @@ class Dungeon(Scene):
         if self.mode == 0:
             if key == Input.CButton:
                 self.angle += 90.0
-        
+                self.updateKeys()
+            
             if key == Input.DButton:
                 self.angle -= 90.0
-
+                self.updateKeys()
+            
             if key == Input.RtButton:
                 self.panX += _panRate
             if key == Input.LtButton:
@@ -97,17 +104,16 @@ class Dungeon(Scene):
             if key == Input.DnButton:
                 self.panY -= _panRate
             
-            self.updateKeys()
-                
-            #don't allow input while the map is being transformed
-            if self.cameraMotion:
-                return
-
+            
             #open action menu
             if key == Input.AButton:
                 self.mode = 1
                 
-                
+            #resets pan position to center
+            if key == Input.BButton:
+                self.panX = w/2
+                self.panY = h/2
+                                
         #selecting action
         elif self.mode == 1:
             self.actionMenu.keyPressed(key)
@@ -152,7 +158,7 @@ class Dungeon(Scene):
                 self.field.updateList()
                 self.mode = 1
 
-            
+    #menu input
     def select(self, index):
         if index == 0:
             self.mode = 2
@@ -162,6 +168,10 @@ class Dungeon(Scene):
             self.engine.viewport.changeScene("Maplist")
             
     def panTo(self, newPosition):
+        #force to new position when selecting tiles
+        if self.mode == 2:
+            self.position = newPosition
+            
         self.cameraMotion = False
         if self.position[0] is not newPosition[0]:
             if abs(newPosition[0] - self.position[0]) > .5:
@@ -180,7 +190,14 @@ class Dungeon(Scene):
         w,h = self.engine.w, self.engine.h        
         
         self.panTo((self.panX, self.panY))
-        
+        if not self.mode == 0:
+            self.panX = w/2
+            self.panY = h/2
+        if self.mode == 2:
+            self.field.setCenter(self.selectedPos)
+        else:
+            self.field.setCenter()
+                
         glPushMatrix()
         glTranslatef(1,1,-1000)
         self.background.draw()
@@ -188,7 +205,6 @@ class Dungeon(Scene):
                 
         glPushMatrix()
         glTranslatef(self.position[0],self.position[1],-100)
-        glScalef(1,1,1)
         if not self.field.rotateTo(self.angle):
             if self.angle > 360:
                 self.angle %= 360
