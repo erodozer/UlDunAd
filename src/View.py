@@ -307,15 +307,14 @@ class Viewport:
         glMatrixMode( GL_PROJECTION )
         glLoadIdentity()
         glPushMatrix()
-        gluPerspective(45, 1.0*self.width/self.height, -9999.0, 9990.0)
+        gluPerspective(45, 1.0*self.width/self.height, -500.0, 1000.0)
         
     #creates an orthographic projection
     def setOrthoProjection(self):
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         glPushMatrix()                   
-        glOrtho(0, self.width, 0, self.height, -9999.0, 9999.0)
-        #glTranslatef(800.0/2, 600.0/2, 0.0)
+        glOrtho(0, self.width, 0, self.height, -500.0, 1000.0)
         glScalef((self.width/800.0), (self.height/600.0), 1.0)
         glTranslatef(-self.camera.focusx, -self.camera.focusy, 1.0)
         glScalef(self.camera.zoom/100.0, self.camera.zoom/100.0, 1.0)
@@ -340,6 +339,7 @@ class Viewport:
         self.inputButtons[1].setAlignment("left")
         
         for help in scene.helpButtons:
+            
             #draw the help test
             self.inputButtons[1].setText(help[1])
             x -= self.inputButtons[1].width+10
