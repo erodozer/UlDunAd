@@ -54,6 +54,17 @@ class Dungeon(Scene):
         self.panY = h/2
         self.cameraMotion = False
         self.angle = 135.0
+        if self.field.playerPos[0] > self.field.dimensions[0]/2:
+            if self.field.playerPos[1] > self.field.dimensions[1]/2:
+                self.angle = 225.0
+            else:
+                self.angle = 135.0
+        else:
+            if self.field.playerPos[1] > self.field.dimensions[1]/2:
+                self.angle = 45.0
+            else:
+                self.angle = 315.0
+          
         
         self.mode = 0                                 #0 = view, 1 = action menu, 2 = move
         
@@ -205,7 +216,7 @@ class Dungeon(Scene):
         glPopMatrix()
                 
         glPushMatrix()
-        glTranslatef(self.position[0],self.position[1],-100)
+        glTranslatef(self.position[0],self.position[1],-32.0*(max(self.field.dimensions[0],self.field.dimensions[1])+max(self.field.playerPos[0], self.field.playerPos[1])))
         if not self.field.rotateTo(self.angle):
             if self.angle > 360:
                 self.angle %= 360
@@ -221,13 +232,15 @@ class Dungeon(Scene):
         self.bigFont.setText("%iH" % self.field.grid[self.selectedPos].height)
         self.bigFont.draw()
         
+        '''Debug Position
         if self.mode == 2:
             location = "%s > %s" % (str(self.field.playerPos), str(self.selectedPos))
         else:
             location = "%s" % str(self.field.playerPos)
         self.font.setText(location)
         self.font.draw()
-
+        '''
+        
         self.compassbase.draw()
         self.compass.setAngle(self.field.angle)
         self.compass.draw()
