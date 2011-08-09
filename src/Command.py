@@ -27,6 +27,10 @@ class Command(object):
     def draw(self):
 	return self.animation.draw()
 	
+    #returns a string representation of the command for use in menus
+    def __str__(self):
+	return "command FP: %i" % self.fpCost
+	
 class Attack(Command):
     def __init__(self, actor, style = 0):
 	super(Attack, self).__init__(actor)
@@ -86,6 +90,15 @@ class Attack(Command):
 	    self.animation.flip = -1
 	else:
 	    self.animation.flip = 1
+	    
+    def __str__(self):
+	if self.style == 1:
+	    name = "Accurate"
+	elif self.style == 2:
+	    name = "Strong"
+	else:
+	    name = "Normal"
+	return "%s FP: %i" % (name, self.fpCost)	
 	    	    
 class Cast(Command):
     def __init__(self, actor):
@@ -152,6 +165,9 @@ class ComboAttack(Command):
 	else:
 	    self.animation.flip = 1
 	        
+    def __str__(self):
+	return "%s FP: %i" % ("Combo", self.fpCost)
+	
 #when a character defends they gain the normal amount of FP per turn (20%)
 #but their def is multiplied by 250%
 class Defend(Command):
@@ -163,6 +179,9 @@ class Defend(Command):
 	
     def reset(self):
 	self.parent.defn /= 2.5
+	
+    def __str__(self):
+	return "Defend (Def * 2.5)"
 	
 #when an actor boosts instead of defends,
 #their def is halved but they get full FP the next turn
@@ -176,7 +195,10 @@ class Boost(Command):
     def reset(self):
 	self.parent.fp = self.parent.maxFP
 	self.parent.defn *= 2
-        	
+	
+    def __str__(self):
+	return "Boost (Full FP)"
+	        	
 #Guns and Bows have 4 different firing modes
 #Single is default for all
 #Guns can have either Double shot or Burst+Auto firing modes
@@ -251,3 +273,14 @@ class Shoot(Command):
 	    self.animation.flip = -1
 	else:
 	    self.animation.flip = 1
+
+    def __str__(self):
+	if self.style == 1:
+	    name = "Double"
+	elif self.style == 2:
+	    name = "Burst"
+	elif self.style == 3:
+	    name = "Auto"
+	else:
+	    name = "Single"
+	return "%s FP: %i" % (name, self.fpCost)
