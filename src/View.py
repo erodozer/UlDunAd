@@ -404,7 +404,7 @@ class Viewport:
             print scene + " has not been pushed yet"
 
     #adds the passed scene
-    def addScene(self, scene):
+    def pushScene(self, scene):
         try:
             Input.resetKeyPresses()
             ImgObj.clickableObjs = []

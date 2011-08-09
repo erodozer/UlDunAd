@@ -111,7 +111,7 @@ class Main:
         
         self.data = Data()
 
-        self.viewport.addScene(startingScene)
+        self.viewport.pushScene(startingScene)
 
         self.family = None      #your selected family and party
         self.formation = None   #current battling formation

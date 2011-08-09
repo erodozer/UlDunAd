@@ -65,7 +65,7 @@ class Maplist(Scene):
         if key == Input.DButton and len(self.engine.family.members) > 0:
             from Enemy import Formation
             self.engine.formation = Formation("formation001")
-            self.engine.viewport.changeScene("BattleSystem")
+            self.engine.viewport.pushScene("BattleSystem")
         
         self.menu.keyPressed(key)   
              
