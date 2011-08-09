@@ -55,15 +55,19 @@ class SoundObj:
 
 #an object for background music
 class BGMObj:
-    def __init__(self, AudioFile, volume = 10, queue = False):
+    def __init__(self, AudioFile, volume = 10, queue = False, fullpath = False):
+        
         #the music file
-        audiopath = os.path.join("..", "data", "audio", "music", AudioFile)
+        
+        #fullpath assumes that the file is not located in the audio>music folder 
+        #and is instead elsewhere in the data subdirectory
+        if fullpath:                
+            audiopath = os.path.join("..", "data", AudioFile)
+        else:
+            audiopath = os.path.join("..", "data", "audio", "music", AudioFile)
 
         self.volume = 10            #volume of the song (0-10 scale)
         self.loop = -1              #how many times it will loop (default = forever)
-
-        if not enabled:
-            return
         
         #checks if the file exists and if it does then it should play it
         if os.path.exists(os.path.join(audiopath)):
@@ -74,7 +78,7 @@ class BGMObj:
                 pygame.mixer.music.load(audiopath)
                 pygame.mixer.music.play(self.loop)
         else:
-            return
+            return None
   
     #changes how many times the song will loop
     def setLoop(loop = -1):
