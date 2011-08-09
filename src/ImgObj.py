@@ -238,8 +238,7 @@ class ImgObj:
     def fade(self, color, milliseconds):
         color = [float(c) for c in color]   #makes sure the color is an array of floats
         if list(self.color) != color:
-            for i in range(len(self.color)):
-                self.color[i] = self.color[i] + (color[i] - self.color[i])/milliseconds
+            self.color = [self.color[i] + (color[i] - self.color[i])/milliseconds for i in range(len(self.color))]
             return True
         return False
         
