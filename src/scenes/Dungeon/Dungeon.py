@@ -20,6 +20,11 @@ class Dungeon(Scene):
         self.dungeonini = Configuration(os.path.join("..", "data", path, "dungeon.ini")).dungeon
                                                       #config file
         
+        #ogg or mp3 support for background music
+        self.music = BGMObj(os.path.join(path, "bgm.mp3"), fullpath = True)
+        if not self.music:
+            self.music = BGMObj(os.path.join(path, "bgm.ogg"), fullpath = True)
+            
         self.field = Field(path)                      #the field data (grid)
         
         w,h = self.engine.w, self.engine.h        
