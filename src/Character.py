@@ -17,6 +17,7 @@ import os
 from Actor import Actor
 
 from Bestiary import Bestiary
+from Inventory import Inventory
         
 class Character(Actor):
     _LevelMax = 20      #this is the current level cap, I will adjust this with the number of content available
@@ -302,7 +303,7 @@ class Family:
         #all the members in your party
         path = os.path.join("..", path)
         members = [n.split("/")[-1] for n in glob.glob(os.path.join(path, "*.ini"))]
-        exclude = ["family.ini", "bestiary.ini"]
+        exclude = ["family.ini", "bestiary.ini", "inventory.ini"]
         for item in exclude:
             if item in members:
                 members.remove(item)
@@ -319,52 +320,34 @@ class Family:
             self.party = Party(self.members[0:len(self.members)])
 
         #the items your family has
-        self.inventory = []
-        inv = [n.strip().split(":") for n in familyini.__getattr__("inventory").split("|")]
-        for n in inv:
-            if not len(n) == 2:
-                continue
-
-            path = os.path.join("..", "data", "items", n[0])
-            if os.path.exists(path):
-                ini = Configuration(os.path.join(path, "item.ini"))
-                #detecting what type of item it is
-                if ini.parser.has_section("weapon"):
-                    self.inventory.append([Weapon(n[0]), int(n[1])])
-                elif ini.parser.has_section("armor"):
-                    self.inventory.append([Armor(n[0]), int(n[1])])
-                else:
-                    self.inventory.append([Item(n[0]), int(n[1])])
+        self.inventory = Inventory(self)
+        print self.inventory
         
         #amount of money your family possesses
         self.gold = familyini.__getattr__("gold", int)
         #gameplay difficulty (0 - easy, 1- normal, 2 - hard)
         self.difficulty = familyini.__getattr__("difficulty", int)  
        
-        
+        #family bestiary
         self.bestiary = Bestiary(self)
         
     #creates a new family .ini 
     #by default a family starts with 100 gold and five potions and 1 ether
-    def create(self, name, difficulty, gold = 100, inventory = [[Item("potion"), 5], [Item("ether"), 1]]):
+    def create(self, name, difficulty, gold = 100):
         path = os.path.join("..", "data", "actors", "families", name)
         if not os.path.exists(path):
             os.mkdir(path)
         Configuration(os.path.join(path, "family.ini")).save()
         familyini = Configuration(os.path.join(path, "family.ini"))
         familyini.family.__setattr__("difficulty", difficulty)
-        
         familyini.family.__setattr__("gold", int(gold))
-        inv = []
-        for i in inventory:
-            inv.append(":".join([i[0].name, "%i"%i[1]]))
-        familyini.family.__setattr__("inventory", "|".join(inv))
-
         familyini.save()
 
     #this updates the family's .ini file
     def update(self):
-        self.create(self.name, self.difficulty, self.gold, self.inventory)
+        self.create(self.name, self.difficulty, self.gold)
+        self.inventory.update()
+        self.bestiary.update()
         
     def refresh(self):
         self.__init__(self.name)
