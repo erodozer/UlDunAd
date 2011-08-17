@@ -32,7 +32,12 @@ class Bestiary:
                 self.catalog = Configuration(path)
                 self.beasts[beast] = self.catalog.bestiary.__getattr__(beast, int)
                 
-              
+    def update(self):
+        for beast in self.beasts:
+            self.catalog.bestiary.__setattr__(beast[0], beast[1])
+        self.catalog.save()
+        self.catalog = Configuration(path)     
+             
     def __str__(self):
         str = ""
         for i, beast in enumerate(self.beasts):
