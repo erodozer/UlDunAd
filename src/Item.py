@@ -2,6 +2,7 @@ from Config import Configuration
 import os
 import Input
 from sysobj import *
+from Skill import *
 
 class Item:
     def __init__(self, name):
@@ -89,3 +90,15 @@ class Armor(Item):
             self.evd  = 0
             self.mag  = 0
             self.res  = 0
+
+class Usable(Item):
+    def __init__(self, name):
+        self.name = name
+        
+        if name and not name == "None":
+            self.sprite = ImgObj(Texture(os.path.join("items", name, "item.png")))
+            itemini = Configuration(os.path.join("..", "data", "items", name, "item.ini")).item
+            self.function = eval(itemini.__getattr__("function"))
+        else:
+            self.sprite = None
+            self.function = None
