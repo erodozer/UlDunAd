@@ -69,15 +69,25 @@ class BattleSystem(Scene):
         if len(victorySongs) > 0:
             self.victorySong = os.path.join("victory", random.choice(victorySongs))
             
-        self.music = BGMObj(self.battleSong)
+        if not pygame.mixer.music.get_busy():
+            self.music = BGMObj(self.battleSong)
         
         battlepath = os.path.join("scenes", "battlesystem")
         self.activeHighlight = ImgObj(Texture(os.path.join(battlepath, "active_highlight.png")))
         
         self.diffStar = ImgObj(Texture(os.path.join(battlepath, "star.png")))
         
+        self.header = ImgObj(os.path.join(battlepath, "header.png"))
+        self.footer = ImgObj(os.path.join(battlepath, "footer.png"))
+        self.infohud = ImgObj(os.path.join(battlepath, "infohud.png"))
+        self.vs = ImgObj(os.path.join(battlepath, "vs.png"))
+        self.boost = ImgObj(os.path.join(battlepath, "boost.png"))
+        self.defend = ImgObj(os.path.join(battlepath, "defend.png"))
+        
+        
         fontStyle = self.engine.data.defaultFont
         self.text = FontObj(fontStyle, size = 32)
+        self.smtext = FontObj(fontStyle, size = 14)
         self.bigText = FontObj(fontStyle, size = 64)
 
         self.party = [m for m in self.engine.family.party.members]
@@ -91,7 +101,7 @@ class BattleSystem(Scene):
         #self.start = ImgObj(Texture("start.png"))
         #self.start.setPosition(self.engine.w / 2, self.engine.h / 2)
 
-        self.huds = [BattleHUDCharacter(character) for character in self.party] #player huds
+        self.huds = [BattleHUDCharacter(character, scale = .5) for character in self.party] #player huds
         self.eHuds = [BattleHUDEnemy(enemy) for enemy in self.formation]        #enemy hud
         self.engageHud = None                                                   #battle engage hud
         self.commandMenu = BattleMenu(self, self.party[0])                     #player's commands
@@ -137,6 +147,8 @@ class BattleSystem(Scene):
         self.hitImg = ImgObj(Texture(os.path.join(battlepath, "hit.png")))
         self.hitImg.setAlignment("right")
         self.hitImg.setPosition(self.engine.w*.9, self.engine.h*.8)
+        
+        self.fade = 0
         
     #make the additionHUD if the active actor has selected to perform an addition
     def makeAdditionHUD(self):
@@ -238,21 +250,19 @@ class BattleSystem(Scene):
         if actor.incap:
             self.next()
         
-        if self.displayDelay == 0:
+        '''
+        if self.displayDelay >= 100:
             actor.turnStart()
             anim = actor.command.animation
             if anim:
-                self.displayDelay = 1
+                self.displayDelay = 100
             else:
-                self.displayDelay = 5
-            
-        if self.displayDelay == 1:
+                self.displayDelay = 110
+        '''    
+        if self.displayDelay <= 110:
             return
-        
-        if actor.target != None:
-            self.displayDelay += 5
-            
-            if self.displayDelay >= 100:
+        if self.displayDelay >= 360:
+            if actor.target != None:
                 if not actor.damage == "Miss":
                     actor.target.currentHP -= actor.damage
                 if actor.target.currentHP <= 0:
@@ -270,8 +280,11 @@ class BattleSystem(Scene):
                                 self.turn -= 1
                             break
                 self.next()
-        else:
-            self.next()
+            else:
+                if isinstance(actor.command, Flee):
+                    if actor.command.success:
+                        self.end()
+                self.next()
 
     #generates the target list for enemies and auto-targetting
     def generateEnemyTargets(self, actor):
@@ -347,98 +360,108 @@ class BattleSystem(Scene):
                 self.commandMenu = None
                 self.battleStart()
             self.targeting = False
-    
-    #renders the character huds
-    def renderHUDS(self, visibility):
-        huds = [h for h in self.huds]
-
+       
+    def renderBase(self, visibility):
+        self.header.setPosition(self.engine.w/2, self.engine.h-self.header.height/2)
+        self.header.draw()
+        
         if self.battling:
-            for i, hud in enumerate(huds):
-                hud.scale = .5
-                hud.setPosition(self.engine.w*.7 + self.engine.w*.1*i, self.engine.h*.115)
-                hud.draw()
+            self.text.setText("Fight it out")
+        elif self.targeting:
+            self.text.setText("Select your target")
         else:
-            if self.active < len(self.party):
-                hud = huds.pop(self.active)
-                hud.scale = 1.0
-                hud.setPosition(self.engine.w*.875, self.engine.h*.125)
-                hud.draw()
-                
-            for i, hud in enumerate(huds):
-                hud.scale = .5
-                hud.setPosition(self.engine.w*.7 + self.engine.w*.04*i, self.engine.h*.11 + (self.engine.h*.13)*i)
-                hud.draw()
-           
-    #draws the pointer arrows and the command menus
-    def renderInterface(self, visibility):
-        if self.active < len(self.party):
-            sprite = self.party[self.active].getSprite()
-            self.pointer.setScale(32,32,inPixels = True)
-            self.pointer.setPosition(sprite.position[0], sprite.position[1] + sprite.height/2 + 20)
-            self.pointer.setFrame(x = 1)
-            self.pointer.draw()
-                
-            if self.targeting:
-                self.eHuds[self.commandMenu.index].update()
-                self.eHuds[self.commandMenu.index].draw()
-                target = self.formation[self.commandMenu.index].getSprite()
-                self.pointer.setPosition(target.position[0], target.position[1] + target.height/2 + 20)
-                self.pointer.setFrame(x = 2)
-                self.pointer.draw()
-            self.commandMenu.render(visibility)
-            
-    #renders the active highlight and damage
-    def renderBattle(self, visibility):
-        #draws order of the next 2 turns
-        for i in range(min(3, len(self.order)-self.turn)):
-            self.engine.drawText(self.text, self.order[self.turn+i][0].name, position = (self.engine.w*.75, self.engine.h *.9 - 45*i), color = (1,1,1,1-(.33*i)))
-
+            self.text.setText("Choose a command")
+        
+        self.text.setAlignment("left")
+        self.text.setPosition(32.0, self.engine.h-self.header.height/2)
+        self.text.draw()
+        
+        self.footer.setPosition(self.engine.w/2, self.footer.height/2)
+        self.footer.draw()
+    
+    def renderBattleInterface(self, visibility):
         actor = self.activeActor
+        target = actor.target
+        
+        y = self.footer.height/2
+        
+        self.text.setAlignment("center")
+        self.text.setText(actor.name)
+        self.text.setPosition(self.engine.w/8, y+16)
+        self.text.draw()
+        self.text.setText("HP: %s" % actor.hp)
+        self.text.setPosition(self.engine.w/8+16, y-24)
+        self.text.draw()
+        
+        if target is not actor and target is not None:
+            self.text.setText(target.name)
+            self.text.setPosition(self.engine.w/8*7, y+16)
+            self.text.draw()
+            self.text.setText("HP: %s" % actor.hp)
+            self.text.setPosition(self.engine.w/8*7-16, y-24)
+            self.text.draw()
             
-        #eyecandy highlight for who is currently attacking
-        pos = (actor.getSprite().position[0], actor.getSprite().position[1] - actor.getSprite().height/2)
-        self.activeHighlight.setPosition(pos[0], pos[1])
-        self.activeHighlight.setScale(actor.getSprite().width, 16, True)
-        self.activeHighlight.draw()
+            self.vs.setPosition(self.engine.w/2, self.footer.height/2)
+            self.vs.draw()
+        else:
+            if isinstance(actor.command, Boost):
+                self.boost.setPosition(self.engine.w/8*5, y)
+                self.boost.draw()
+            elif isinstance(actor.command, Defend):
+                self.defend.setPosition(self.engine.w/8*5, y)
+                self.defend.draw()
             
-      
-        if self.engageHud:
-            self.engageHud.draw()
-            
-        if self.additionHUD:
-            self.additionHUD.draw()
-            return
-            
-        if self.displayDelay == 1:
-            if actor.command.draw():
-                return
-            else:
-                self.displayDelay = 5
-
-        if actor.target != None and self.displayDelay < 100:
-            pos = actor.target.getSprite().position    
-            #draws the damage on screen
-            bounce = lambda t:(-.017*t**2 + .0134*t + pos[1])+50
-            y = bounce(self.displayDelay-25)
-            if self.displayDelay > 50:
-                a = (250 - self.displayDelay)/250.0
-            else:
-                a = 1
-
-            d = str(actor.damage)
-            if d is not "Miss":
-                for i, n in enumerate(d[::-1]):
-                    self.engine.drawImage(self.numbers, position = (pos[0]+3 + (self.numbers.width-25)*i, y-2), frameX = int(n), color = (0,0,0,a))
-                    self.engine.drawImage(self.numbers, position = (pos[0] + (self.numbers.width-25)*i, y), frameX = int(n), color = (1,1,1,a))
-                self.hitImg.draw()
+    def renderCommandInterface(self, visibility):
+        actor = self.party[self.active]
+        sprite = actor.getSprite()
+        
+        if self.targeting:
+            actor = self.formation[self.commandMenu.index]
+            sprite = actor.getSprite()
+            align = "right"
+            x = self.engine.w
+            y = self.footer.height+self.infohud.height/2
                 
+            self.infohud.setAlignment(align)
+            self.infohud.setPosition(x, y)
+            self.infohud.setScale(1,1)
+            self.infohud.draw()
+        
+            self.smtext.setText(actor.name)
+            self.smtext.setAlignment(align)
+            self.smtext.setPosition(x, y+16)
+            self.smtext.draw()
+            self.smtext.setText("HP: %s" % actor.hp)
+            self.smtext.setAlignment(align)
+            self.smtext.setPosition(x, y)
+            self.smtext.draw()
+
+        for i, hud in enumerate(self.huds):
+            hud.setPosition(20, self.engine.h - self.header.height - 50 - 110*i)
+            hud.draw()
+            
+        self.commandMenu.render(visibility)
+            
     #renders the spiffy intro animation
     def renderIntro(self, visibility):
-        alpha = 1.0
+      
+        for i, member in enumerate(self.party):
+            sprite = member.getSprite()
+            sprite.setPosition(self.engine.w*.8 + 15*i, self.engine.h*.6 - 45*i)
+            self.engine.drawAnimation(sprite, loop = True, reverse = False, delay = 20)
+        
+        for enemy in self.formation:
+            sprite = enemy.getSprite()
+            sprite.draw()
+            
+        self.bigText.setText(self.engine.formation.name)
+        self.bigText.setPosition(self.engine.w/2, self.engine.h/2 + 30)
         if self.introDelay < 20:
-            alpha = self.introDelay/20.0
-        self.engine.drawText(self.bigText, self.engine.formation.name, (self.engine.w/2, self.engine.h/2 + 30),
-                                color = (1,1,1,alpha)) 
+            self.bigText.fade((1,1,1,0), 20)
+        else:
+            self.bigText.fade((1,1,1,1), 60)
+        self.bigText.draw()
+         
         difficulty = self.engine.formation.getSelfDifficulty(self.party)
         if difficulty > 0:
             for i in range(int(difficulty)):
@@ -447,33 +470,54 @@ class BattleSystem(Scene):
                 self.engine.drawImage(self.diffStar, position = pos)
         self.introDelay -= 2
         
+    def renderBattle(self, visibility):
+        actor = self.activeActor
+        target = actor.target
+        spriteA = actor.getSprite()
+        spriteA.setPosition(self.engine.w*.25+20*min(self.displayDelay/100.0,1), self.engine.h*.5)
+        spriteA.setScale(-1,1)
+        spriteA.setColor((1,1,1,self.displayDelay/100.0))
+        self.engine.drawAnimation(spriteA)
+
+        if target is not actor and target is not None:
+            spriteB = target.getSprite()
+            spriteB.setPosition(self.engine.w*.75-20*min(self.displayDelay/100.0,1), self.engine.h*.5)
+            spriteB.setScale(1,1)
+            spriteB.setColor((1,1,1,self.displayDelay/100.0))
+            self.engine.drawAnimation(spriteB)
+        else:
+            spriteB = spriteA
+            
+        self.displayDelay += 5
+        '''
+        if self.displayDelay >= 100 and self.displayDelay < 110:
+            if actor.command.draw():
+                self.displayDelay = 100
+                return
+            else:
+                self.displayDelay = 110
+        '''
+        if target != None and self.displayDelay >= 110:
+            
+            #draws the damage on screen
+            if self.displayDelay > 300:
+                a = (360 - self.displayDelay)/60.0
+            else:
+                a = 1
+
+            d = str(actor.damage)
+            if d is not "Miss":
+                x = self.hitImg.position[0]
+                y = self.hitImg.position[1]
+                for i, n in enumerate(d[::-1]):
+                    self.engine.drawImage(self.numbers, position = (x - self.hitImg.width - 3 + (self.numbers.width-25)*i+2, y-2), frameX = int(n), color = (0,0,0,a))
+                    self.engine.drawImage(self.numbers, position = (x - self.hitImg.width - 3 + (self.numbers.width-25)*i, y), frameX = int(n), color = (1,1,1,a))
+                self.engine.drawImage(self.hitImg, position = (x+2, y-2), color = (0,0,0,a))
+                self.engine.drawImage(self.hitImg, position = (x, y), color = (1,1,1,a))
+
     def render(self, visibility):
         self.terrain.drawBackground()
         
-        if self.introDelay < 450 and self.introDelay > 400:
-            alpha = (450.0-self.introDelay)/50.0
-        elif self.introDelay >= 450:
-            alpha = 0.0
-        else:
-            alpha = 1.0
-            
-        for i, member in enumerate(self.party):
-            sprite = member.getSprite()
-            sprite.setPosition(self.engine.w*.8 + 15*i, self.engine.h*.6 - 45*i)
-            sprite.setColor((1,1,1, alpha))
-            self.engine.drawAnimation(sprite, loop = True, reverse = False, delay = 20)
-        
-        if self.introDelay < 250 and self.introDelay > 200:
-            alpha = (250.0-self.introDelay)/50.0
-        elif self.introDelay >= 250:
-            alpha = 0.0
-        else:
-            alpha = 1.0
-        for enemy in self.formation:
-            sprite = enemy.getSprite()
-            sprite.setColor((1,1,1,alpha))
-            sprite.draw()
-            
         #if the battle is lost nothing else needs to be drawn or processed
         if self.lose:
             self.loseMenu.render(visibility)
@@ -485,11 +529,12 @@ class BattleSystem(Scene):
             return
             
         if self.introDelay <= 0:
-            if not self.battling:
-                self.renderInterface(visibility)
-            else:
+            self.renderBase(visibility)
+            if self.battling:
                 self.renderBattle(visibility)
-            self.renderHUDS(visibility)
+                self.renderBattleInterface(visibility)
+            else:
+                self.renderCommandInterface(visibility)
         else:
             self.renderIntro(visibility)
     
@@ -497,19 +542,8 @@ class BattleSystem(Scene):
     def victory(self):
         self.victoryPanel = VictoryPanel(self, self.totalTurns)
         self.music = BGMObj(self.victorySong)
-        
-    def flee(self):
-        #chance of fleeing should be determined by comparing party's stat's to the formations
-        #it should be harder to flee when the party is almost dead and easier to flee when the
-        #enemies formation is almost vanquished
-        diff = Formation.getDifficulty(self.formation, self.party.getAlive())
-        chance = random.randint(self.party.avgSpd, 100) / diff 
-        if chance > 50: #successful escape
-            self.end()
-        
+                
     def end(self):
-        if self.engine.town:
-            self.engine.viewport.changeScene("Town")
-        else:
-            self.engine.viewport.changeScene("Maplist")
         self.music.fadeToStop()
+        self.engine.viewport.pop(self)
+        

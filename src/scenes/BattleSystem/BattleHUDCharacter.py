@@ -1,7 +1,4 @@
 from sysobj import *
-from OpenGL.GL import glPushMatrix, glPopMatrix, glScalef
-
-from PIL import Image, ImageDraw
 
 import math
 
@@ -22,38 +19,10 @@ class BattleHUDCharacter:
         self.scale = scale
         
         self.drawing = ImgObj(Texture(os.path.join(scenepath, "circle.png")))
-        
-        #these determine the size of the PIL pie-slice
-        self.centerX   = self.drawing.width/2
-        self.centerY   = self.drawing.height/2
-        self.inRadius  = 0
-        self.outRadius = self.drawing.width/2
     
-        self.hpMeter = self.generateCircle(self.drawing)
-        self.fpMeter = self.generateCircle(self.drawing)
-        
+        self.back = ImgObj(os.path.join(scenepath, "hud.png"))
         self.face = self.character.sprites['face']
-        
-    #generates all the images needed for the circle
-    def generateCircle(self, base):
-        drawnOverlays = {}
-        baseFillImageSize = base.pixelSize
-        for degrees in range(0, 361, 5):
-            image = Image.open(base.texture.path)
-            mask = Image.new('RGBA', baseFillImageSize)
-            overlay = Image.new('RGBA', baseFillImageSize)
-            draw = ImageDraw.Draw(mask)
-            draw.pieslice((self.centerX-self.outRadius, self.centerY-self.outRadius,
-                     self.centerX+self.outRadius, self.centerY+self.outRadius),
-                     -90, degrees-90, outline=(255,255,255,255), fill=(255,255,255,255))
-            draw.ellipse((self.centerX-self.inRadius, self.centerY-self.inRadius,
-                    self.centerX+self.inRadius, self.centerY+self.inRadius),
-                    outline=(0, 0, 0, 0), fill=(0, 0, 0, 0))
-            r,g,b,a = mask.split()
-            overlay.paste(image, mask=a)
-            dispOverlay = ImgObj(Texture(surface = overlay))
-            drawnOverlays[degrees] = dispOverlay
-        return drawnOverlays
+        self.font = FontObj("default.ttf", size = 24)
         
     def update(self):
         pass
@@ -66,34 +35,30 @@ class BattleHUDCharacter:
         
         s = self.scale
         
-        self.face.setPosition(self.x, self.y-(15*s))
-        self.face.setScale(140*s, 70*s, inPixels = True)
-        self.face.setRect((0.0,0.5,1.0,1.0))
+        self.back.setAlignment("left")
+        self.back.setPosition(self.x-20, self.y)
+        self.back.draw()
+        
+        self.face.setPosition(self.x+180, self.y)
+        self.face.setScale(80, 80, inPixels = True)
         self.face.draw()
         
-        self.drawing.setPosition(self.x, self.y)
-        self.drawing.setScale(150*s,150*s,inPixels = True)
-        self.drawing.setColor((0,0,0,1.0))
-        self.drawing.draw()
+        self.font.setAlignment("left")
         
-        degrees = lambda ratio: int(180*ratio) - (int(180*ratio) % 5)
-        
-        circle = self.hpMeter[degrees(self.character.currentHP/float(self.character.hp))]
-        circle.setPosition(self.x, self.y)
-        circle.setScale(-150*s, 150*s, inPixels = True)
-        circle.setColor((0,1.0,0,1.0))
-        circle.setAngle(-45)
-        circle.draw()
-
-        circle = self.fpMeter[degrees(self.character.fp/float(self.character.maxFP))]
-        circle.setPosition(self.x, self.y)
-        circle.setScale(150*s, 150*s, inPixels = True)
-        circle.setColor((1.0,1.0,0,1.0))
-        circle.setAngle(45)
-        circle.draw()
-        
-        self.face.setPosition(self.x, self.y+(55*s))
-        self.face.setScale(140*s, 70*s, inPixels = True)
-        self.face.setRect((0.0,0.0,1.0,0.5))
-        self.face.draw()
+        self.font.setColor((1,1,1,1))
+        self.font.setText(self.character.name)
+        self.font.setPosition(self.x, self.y-24)
+        self.font.draw()
+        self.font.setColor((.65,.5,0,1.0))
+        self.font.setText("HP")
+        self.font.setPosition(self.x+5, self.y+10)
+        self.font.draw()
+        self.font.setText("/%4i" % self.character.hp)
+        self.font.setPosition(self.x + 110, self.y+10)
+        self.font.draw()
+        if (self.character.currentHP < self.character.hp):
+            self.font.setColor((1,1,1,1))
+        self.font.setText(self.character.currentHP)
+        self.font.setPosition(self.x+60, self.y+10)
+        self.font.draw()
         
