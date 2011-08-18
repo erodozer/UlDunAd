@@ -124,6 +124,7 @@ class Character(Actor):
         self.loadProficiency()
         
         self.skills = self.job.skills
+        self.battleSkills = [s for s in self.skills if s.active]
         
         #this marks for the end of the battle if the character leveled up
         self.leveledUp = False
