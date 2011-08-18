@@ -50,7 +50,7 @@ class BattleMenu(MenuObj):
             
         self.tactCommands = [Boost(self.character),
                              Defend(self.character),
-                             Flee(self.scene.party, self.scene.formation)] #tactical menu
+                             Flee(self.character, self.scene.party, self.scene.formation)] #tactical menu
         self.itemCommands = self.engine.family.inventory.battle().values()    
                                                             #item menu
         self.techCommands = character.battleSkills          #character's list of skills
@@ -84,12 +84,14 @@ class BattleMenu(MenuObj):
                 
         #overrides default a button pressing
         if key == Input.AButton:
-            if self.step == 0:
+            if self.step == 1:
+                self.scene.select(self.index)
+            elif self.activeCommands == self.basicCommands:
                 #1 - attacking menu
                 #2 - tactical menu
                 #3 - item menu
                 #4 - skill menu
-                self.activeCommands = self.basicCommands[self.step]
+                self.activeCommands = self.basicCommands[self.index][1]
             elif self.activeCommands == self.attackCommands:
                 self.character.command = self.attackCommands[self.index]
                 
@@ -101,10 +103,7 @@ class BattleMenu(MenuObj):
                 self.step = 1
                 self.activeCommands = self.scene.targetMenu
             elif self.activeCommands == self.tactCommands:
-                if self.index == 2:   #flee
-                    self.scene.flee()
-                else:
-                    self.character.command = self.tactCommands[self.index]
+                self.character.command = self.tactCommands[self.index]
                 self.scene.next()
             elif self.activeCommands == self.itemCommands:
                 self.character.command = UseItem(self.character, self.itemCommands[self.index][0])
@@ -114,8 +113,7 @@ class BattleMenu(MenuObj):
                 self.character.command = Cast(self.character, self.techCommands[self.index])
                 self.scene.selectTarget()
                 self.step = 1
-            elif self.step == 1:
-                self.scene.select(self.index)
+
             self.page = 0
             self.index = 0
                 
@@ -138,7 +136,10 @@ class BattleMenu(MenuObj):
             self.button.setPosition(position[0]-50.0, position[1])
             self.button.draw()
             
-            self.text.setText(item)
+            if commands is self.basicCommands:
+                self.text.setText(item[0])
+            else:
+                self.text.setText(item)
               
             self.text.setAlignment("left")
             self.text.setPosition(*position)

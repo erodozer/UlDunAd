@@ -291,17 +291,25 @@ class Shoot(Command):
 	return "%s FP: %i" % (name, self.fpCost)
 
 class Flee(Command):
-    def __init__(self, party, formation):
+    def __init__(self, actor, party, formation):
+	super(Flee, self).__init__(actor)
 	self.success = False
 	
 	self.party = party
 	self.formation = formation
+	
+	self.fpCost = 50	#takes 50 fp investment to flee
 	
     #chance of fleeing should be determined by comparing party's stat's to the formations
     #it should be harder to flee when the party is almost dead and easier to flee when the
     #enemies formation is almost vanquished
     def execute(self):
 	self.success = (random.randint(self.party.avgSpd, 100) / Formation.getDifficulty(self.formation, self.party.getAlive())) > 50
+	
+    #costs all fp if not successful
+    def reset(self):
+	if not self.success:
+	    self.parent.fp = 0
 	
     def __str__(self):
 	return "Flee"

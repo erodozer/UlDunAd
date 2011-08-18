@@ -83,10 +83,12 @@ class BattleSystem(Scene):
         self.vs = ImgObj(os.path.join(battlepath, "vs.png"))
         self.boost = ImgObj(os.path.join(battlepath, "boost.png"))
         self.defend = ImgObj(os.path.join(battlepath, "defend.png"))
+        self.flee = ImgObj(os.path.join(battlepath, "flee.png"))
         
         
         fontStyle = self.engine.data.defaultFont
         self.text = FontObj(fontStyle, size = 32)
+        self.hudtext = FontObj(fontStyle, size = 32)
         self.smtext = FontObj(fontStyle, size = 14)
         self.bigText = FontObj(fontStyle, size = 64)
 
@@ -385,31 +387,40 @@ class BattleSystem(Scene):
         
         y = self.footer.height/2
         
-        self.text.setAlignment("center")
-        self.text.setText(actor.name)
-        self.text.setPosition(self.engine.w/8, y+16)
-        self.text.draw()
-        self.text.setText("HP: %s" % actor.hp)
-        self.text.setPosition(self.engine.w/8+16, y-24)
-        self.text.draw()
+        f = self.hudtext
+        
+        f.setColor((1,1,1,self.activeActor.getSprite().color[3]))
+            
+        f.setAlignment("center")
+        f.setText(actor.name)
+        f.setPosition(self.engine.w/8, y+16)
+        f.draw()
+        f.setText("HP: %s" % actor.hp)
+        f.setPosition(self.engine.w/8+16, y-24)
+        f.draw()
         
         if target is not actor and target is not None:
-            self.text.setText(target.name)
-            self.text.setPosition(self.engine.w/8*7, y+16)
-            self.text.draw()
-            self.text.setText("HP: %s" % actor.hp)
-            self.text.setPosition(self.engine.w/8*7-16, y-24)
-            self.text.draw()
+            f.setText(target.name)
+            f.setPosition(self.engine.w/8*7, y+16)
+            f.draw()
+            f.setText("HP: %s" % actor.hp)
+            f.setPosition(self.engine.w/8*7-16, y-24)
+            f.draw()
             
+            self.vs.setColor((1,1,1,self.activeActor.getSprite().color[3]))
             self.vs.setPosition(self.engine.w/2, self.footer.height/2)
             self.vs.draw()
         else:
             if isinstance(actor.command, Boost):
-                self.boost.setPosition(self.engine.w/8*5, y)
-                self.boost.draw()
+                drawing = self.boost
             elif isinstance(actor.command, Defend):
-                self.defend.setPosition(self.engine.w/8*5, y)
-                self.defend.draw()
+                drawing = self.defend
+            elif isinstance(actor.command, Flee):
+                drawing = self.flee
+            drawing.setColor((1,1,1,self.activeActor.getSprite().color[3]))
+            drawing.setPosition(self.engine.w/8*5, y)
+            drawing.draw()
+            
             
     def renderCommandInterface(self, visibility):
         actor = self.party[self.active]
