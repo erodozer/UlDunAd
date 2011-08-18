@@ -101,13 +101,18 @@ class Attack(Command):
 	return "%s FP: %i" % (name, self.fpCost)	
 	    	    
 class Cast(Command):
-    def __init__(self, actor):
+    def __init__(self, actor, skill):
 	self.parent = actor
-	#self.animation = self.parent.command.animation
+	self.skill = skill
 	
     def execute(self):
-        self.parent.damage = (self.mag + self.command.damage) - (self.parent.target.res * 1.368295)
-            
+        self.parent.damage = (self.mag + self.skill.damage) - (self.parent.target.res * 1.368295)
+
+#difference between UseItem and Cast is UseItem's damage is constant
+class UseItem(Cast):
+    def execute(self):
+	self.parent.damage = self.skill.damage
+	
 class ComboAttack(Command):
     def __init__(self, actor):
 	super(ComboAttack, self).__init__(actor)
