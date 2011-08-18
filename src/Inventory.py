@@ -2,6 +2,7 @@
 import os
 
 from Config import Configuration
+from Item import *
 
 _itemMax = 99       #maximum amount of one item the family can hold
 
@@ -36,7 +37,10 @@ class Inventory:
                     elif ini.parser.has_section("armor"):
                         item = Armor(i)
                     else:
-                        item = Item(i)
+                        if ini.parser.has_key("function"):
+                            item = Usable(i)
+                        else:
+                            item = Item(i)
                     self.items[i] = [item, self.catalog.inventory.__getattr__(i, int)]
                 except:
                     self.catalog.inventory.__setattr__(i, 0)
@@ -60,8 +64,30 @@ class Inventory:
             str += "%03i: %-16s%02i\n" % (i+1, self.items[item][0].name, self.items[item][1])
         return str
     
+    #saves the updated inventory
     def update(self):
         for item in self.items.keys():
             self.catalog.inventory.__setattr__(item, self.items[item][1])
         self.catalog.save()
         self.catalog = Configuration(path)
+        
+    #all usable items for battle
+    def battle(self):
+        available = {}
+        items = self.available()
+        for item in items:
+            if isinstance(items[item], Usable):
+                available[item] = items[item]
+        return available
+        
+    #items that the party possesses
+    def available(self):
+        available = {}
+        for item in self.items.keys():
+            if self.items[item][1] > 0:
+                available[item] = self.items[item]
+        return available
+        
+    #number of different items the party possesses
+    def __len__(self):
+        return len(self.available())
