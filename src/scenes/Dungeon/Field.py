@@ -10,10 +10,12 @@ import os
 
 from operator import itemgetter
 
+_encounterMin = .5    #percentage of cells that must be encounters
+
 #grid for the dungeon
 # this reads in the data file and creates a collection of cells and other values
 class Field(object):
-    def __init__(self, path):
+    def __init__(self, scene, path):
         file = open(os.path.join("..", "data", path, "field.udaf"))
                                             #udaf standard for uldunad field files
         
@@ -57,7 +59,7 @@ class Field(object):
                 for x in range(self.dimensions[0]):
                     h = getHeight(line[x])
                     if h > 0:
-                        self.grid[(x+1,y-1)] = Cell(path, h)
+                        self.grid[(x+1,y-1)] = Cell(scene.engine, path, h)
             #2 lines after the grid is the player's position
             elif y == self.dimensions[1] + 3:
                 self.playerPos = tuple([int(i) for i in line.split(",")])
@@ -66,7 +68,28 @@ class Field(object):
                 self.bossPos = tuple([int(i) for i in line.split(",")])
         self.grid[self.playerPos].show()      #make sure the player's cell is not hidden
         self.grid[self.bossPos].show()        #make sure the boss's cell is not hidden
+              
+        requiredEncounter = len(self) * _encounterMin
+        encounterCells = 0
         
+        cellsNeedingEvents = self.grid.keys()[:]
+        cellsNeedingEvents.remove(self.playerPos)
+        cellsNeedingEvents.remove(self.bossPos)
+        while len(cellsNeedingEvents) > 0:
+            cell = random.choice(cellsNeedingEvents)
+            #place encounters first
+            if encounterCells < requiredEncounter:
+                self.grid[cell].setEvent("Formation:" + random.choice(scene.formations))
+            #then other random events
+            else:
+                #greater chance to get in an encounter than to find an item/gold
+                if random.randint(0, 50) < 35 or len(scene.otherevents) == 0:
+                    self.grid[cell].setEvent("Formation:" + random.choice(scene.formations))
+                else:
+                    self.grid[cell].setEvent(random.choice(scene.otherevents))
+            cellsNeedingEvents.remove(cell)
+            print cellsNeedingEvents
+                
         self.setCenter()
         self.updateList()
         
@@ -150,3 +173,5 @@ class Field(object):
         
         glPopMatrix()
         
+    def __len__(self):
+        return len(self.grid.keys())-1
