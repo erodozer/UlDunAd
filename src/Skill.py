@@ -8,8 +8,13 @@
 #   or attack magic.
 class Skill:
     def __init__(self, job, lvl = 0):
-        pass
-
+        self.job = job
+        
+        self.name = ""
+        self.level = lvl
+        
+        self.active = False
+        
 #increases one's sword proficency
 class SwordMastery(Skill):
     def __init__(self, job, lvl = 0):
@@ -49,5 +54,15 @@ class Hiding(Skill):
         
         self.active = False #the skill is passive
         
+   
+#restores the target's hp
+class Healing(Skill):
+    def __init__(self, job, lvl = 0):
+    
+        self.name = "Healing"
+        self.level = lvl
+
+        self.damage = -50*self.level
         
+        self.active = True
         
