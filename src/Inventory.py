@@ -29,7 +29,7 @@ class Inventory:
         def loadList():
             changeMade = False
             for i in items:
-                try:
+                if self.catalog.parser.has_option("inventory", i):
                     ini = Configuration(os.path.join("..", "data", "items", i, "item.ini"))
                     #detecting what type of item it is
                     if ini.parser.has_section("weapon"):
@@ -37,12 +37,12 @@ class Inventory:
                     elif ini.parser.has_section("armor"):
                         item = Armor(i)
                     else:
-                        if ini.parser.has_key("function"):
+                        if ini.parser.has_option("item", "function"):
                             item = Usable(i)
                         else:
                             item = Item(i)
                     self.items[i] = [item, self.catalog.inventory.__getattr__(i, int)]
-                except:
+                else:
                     self.catalog.inventory.__setattr__(i, 0)
                     self.catalog.save()
                 
@@ -76,7 +76,7 @@ class Inventory:
         available = {}
         items = self.available()
         for item in items:
-            if isinstance(items[item], Usable):
+            if isinstance(items[item][0], Usable):
                 available[item] = items[item]
         return available
         

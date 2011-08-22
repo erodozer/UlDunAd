@@ -166,7 +166,7 @@ class BattleMenu(MenuObj):
     def render(self, visibility):
         commands = self.activeCommands
         
-        if self.step == 3 or self.step == 4:
+        if commands == self.itemCommands or commands == self.techCommands:
             self.renderItems(commands) 
         else:
             self.renderCommands(commands)
