@@ -4,6 +4,8 @@ import os
 from Config import Configuration
 from Item import *
 
+import math
+
 _itemMax = 99       #maximum amount of one item the family can hold
 
 class Inventory:
@@ -51,11 +53,11 @@ class Inventory:
     #adds the amount of said item to the inventory
     # do not use negative numbers to remove item, use removeItem method instead
     def addItem(self, name, amount):
-        self.items[name][1] = Math.max(_itemMax, self.items[name][1]+amount)
+        self.items[name][1] = math.max(_itemMax, self.items[name][1]+amount)
         
     #removes the amount of said item from the inventory
     def removeItem(self, name, amount):
-        self.items[name][1] = Math.max(_itemMax, self.items[name][1]-amount)
+        self.items[name][1] = math.max(_itemMax, self.items[name][1]-amount)
         
     #creates string rep of the inventory
     def __str__(self):

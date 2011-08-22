@@ -36,7 +36,7 @@ class Character(Actor):
         
         super(Character, self).__init__(name)
 
-        playerini = Configuration(os.path.join("..", "data", "actors", "families", family, name + ".ini"))
+        playerini = Configuration(os.path.join("..", "data", "actors", "families", family.name, name + ".ini"))
         
         self.name = name
         self.family = family
@@ -309,7 +309,7 @@ class Family:
             if item in members:
                 members.remove(item)
                 
-        self.members = [Character(name, n.replace(".ini", "")) for n in members]
+        self.members = [Character(self, n.replace(".ini", "")) for n in members]
 
         #the party used in battle is the first 3 members you have ordered
         if len(self.members) >= 3:
