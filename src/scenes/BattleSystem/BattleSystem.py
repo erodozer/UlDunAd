@@ -337,7 +337,6 @@ class BattleSystem(Scene):
                 self.next()
                 return
             self.activeActor = self.order[self.turn][0]
-            
             #should be performed before the turn officially executes
             if self.activeActor.target != None:
                 #if the actor's target was knocked out during this phase then a new target
@@ -350,10 +349,7 @@ class BattleSystem(Scene):
                     self.activeActor.target = random.choice(targets)
 
             self.makeAdditionHUD()
-            if self.activeActor.target:
-                self.engageHud = BattleHUDEngage(self.activeActor)
-            else:
-                self.engageHud = None
+            
         else:
             self.active += 1
             if self.active < len(self.party):
@@ -403,7 +399,7 @@ class BattleSystem(Scene):
             f.setText(target.name)
             f.setPosition(self.engine.w/8*7, y+16)
             f.draw()
-            f.setText("HP: %s" % actor.hp)
+            f.setText("HP: %s" % target.hp)
             f.setPosition(self.engine.w/8*7-16, y-24)
             f.draw()
             

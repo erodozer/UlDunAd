@@ -88,7 +88,6 @@ class Field(object):
                 else:
                     self.grid[cell].setEvent(random.choice(scene.otherevents))
             cellsNeedingEvents.remove(cell)
-            print cellsNeedingEvents
                 
         self.setCenter()
         self.updateList()
