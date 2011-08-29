@@ -3,6 +3,7 @@ import Input
 
 from MenuObj import MenuObj
 from Command import *
+from Item import Usable
 
 pageLength = 5     #length of each set of commands
 
@@ -51,7 +52,7 @@ class BattleMenu(MenuObj):
         self.tactCommands = [Boost(self.character),
                              Defend(self.character),
                              Flee(self.character, self.scene.party, self.scene.formation)] #tactical menu
-        self.itemCommands = self.engine.family.inventory.battle().values()    
+        self.itemCommands = self.engine.family.inventory.getByType(Usable).values()    
                                                             #item menu
         self.techCommands = character.battleSkills          #character's list of skills
         
