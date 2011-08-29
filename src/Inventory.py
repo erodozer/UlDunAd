@@ -73,13 +73,16 @@ class Inventory:
         self.catalog.save()
         self.catalog = Configuration(path)
         
-    #all usable items for battle
-    def battle(self):
+    #all items by type
+    def getByType(self, type = None):
         available = {}
         items = self.available()
-        for item in items:
-            if isinstance(items[item][0], Usable):
-                available[item] = items[item]
+        if type == None:
+            return items
+        else:
+            for item in items:
+                if isinstance(items[item][0], type):
+                    available[item] = items[item]
         return available
         
     #items that the party possesses
