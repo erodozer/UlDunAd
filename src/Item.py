@@ -4,6 +4,9 @@ import Input
 from sysobj import *
 from Skill import *
 
+_sellRate = .33
+
+#basic items template
 class Item:
     def __init__(self, name):
         if (not name) or name == "None":
@@ -102,3 +105,15 @@ class Usable(Item):
         else:
             self.sprite = None
             self.function = None
+            
+#foods can function like usable items but only from the inventory
+class Food(Usable):
+    pass
+    
+#loot are items found in dungeons or are drops from specific monsters
+#loot selling price is the same as it's worth which is different from 
+# generic items where the selling price is 1/3.
+# loot can not be bought from stores.
+class Loot(Item):
+    pass
+    
