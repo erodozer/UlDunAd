@@ -12,7 +12,7 @@ class Skill:
         
         self.name = ""
         self.level = lvl
-        
+        self.fpCost = 0
         self.active = False
         
 #increases one's sword proficency
@@ -57,12 +57,13 @@ class Hiding(Skill):
    
 #restores the target's hp
 class Healing(Skill):
-    def __init__(self, job, lvl = 0):
+    def __init__(self, job, lvl = 0, attr = "HP"):
     
         self.name = "Healing"
         self.level = lvl
-
+        self.attr = attr
         self.damage = -50*self.level
         
+        self.fpCost = 50
         self.active = True
         
