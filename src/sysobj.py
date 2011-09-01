@@ -24,3 +24,4 @@ from FontObj import FontObj
 from Audio import *
 from Animation import Animation
 from Particle import *
+from ButtonObj import *

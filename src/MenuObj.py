@@ -38,8 +38,7 @@ class MenuObj:
         #the texture used for the buttons and the buttons themselves
         if buttonStyle == None:
             buttonStyle = self.engine.data.defaultButton  
-        self.buttons  = [ImgObj(buttonStyle, boundable = True, frameY = 2)
-                         for n in range(len(self.commands))]
+        self.buttons  = [ButtonObj(n) for n in self.commands]
                    
         #where on the screen should the menu be displayed
         #  verticle is positioned from the top
@@ -125,15 +124,10 @@ class MenuObj:
         if draw:
             for i, button in enumerate(self.buttons):
                 if i == self.index:
-                    button.setFrame(y = 2)
+                    button.setActive(True)
                 else:
-                    button.setFrame(y = 1)
-                self.engine.drawImage(button)
-            
-                self.text.setText(self.commands[i]) 
-                self.text.setPosition(button.position[0], button.position[1])
-                self.text.scaleHeight(36.0)
-                self.text.draw()
+                    button.setActive(False)
+                button.draw()
         
                 
                 

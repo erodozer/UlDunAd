@@ -29,7 +29,7 @@ CENTER = 1
 RIGHT  = 2
 
 #an Image Object for rendering and collision detection (mouse)
-class ImgObj:
+class ImgObj(object):
     clickableObjs = []  #images that are clickable
     
     def __init__(self, texture, boundable = False, frameX = 1, frameY = 1):
