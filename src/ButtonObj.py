@@ -8,7 +8,10 @@ class ButtonObj(ImgObj):
     def __init__(self, text, style = None, fontStyle = None):
         
         if style:
-            self.texture = Texture(style)
+            if isinstance(style, Texture):
+                self.texture = style
+            else:
+                self.texture = Texture(style)
         else:
             self.texture = Texture("button.png")
             
