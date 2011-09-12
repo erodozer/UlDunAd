@@ -38,11 +38,12 @@ class Inventory:
                         item = Weapon(i)
                     elif ini.parser.has_section("armor"):
                         item = Armor(i)
+                    elif ini.parser.has_section("loot"):
+                        item = Loot(i)
+                    elif ini.parser.has_section("usuable"):
+                        item = Usable(i)
                     else:
-                        if ini.parser.has_option("item", "function"):
-                            item = Usable(i)
-                        else:
-                            item = Item(i)
+                        item = Item(i)
                     self.items[i] = [item, self.catalog.inventory.__getattr__(i, int)]
                 else:
                     self.catalog.inventory.__setattr__(i, 0)
