@@ -40,7 +40,7 @@ class Inventory:
                         item = Armor(i)
                     elif ini.parser.has_section("loot"):
                         item = Loot(i)
-                    elif ini.parser.has_section("usuable"):
+                    elif ini.parser.has_section("usable"):
                         item = Usable(i)
                     else:
                         item = Item(i)
