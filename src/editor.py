@@ -1,6 +1,6 @@
 import wx
 
-from ItemFrame import ItemFrame
+from editor.ItemFrame import ItemFrame
 
 class MainWindow(wx.Frame):
   
@@ -27,7 +27,6 @@ class MainWindow(wx.Frame):
         sizer = wx.BoxSizer()
         sizer.Add(tabs, -1, wx.EXPAND)
         self.SetSizer(sizer)
-        
         
 #tab controlling the creation of new enemies
 class EnemyFrame(wx.Panel):
