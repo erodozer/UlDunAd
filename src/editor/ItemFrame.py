@@ -1,30 +1,33 @@
 import os
 import wx
 from Item import *
-from Data import listpath
+from Data import listPath
 
 #Tab controlling the creation of new items
 class ItemFrame(wx.Panel):
     def __init__(self, parent):
         super(ItemFrame, self).__init__(parent, style = wx.EXPAND)
         
+        self.items = []
         self.item = None
         self.InitUI()
+        self.updateList()
         self.Show()
     
     def loadItem(self, name):
-        ini = Configuration(os.path.join("..", "data", "items", i, "item.ini"))
+        ini = Configuration(os.path.join("..", "data", "items", name, "item.ini"))
         #detecting what type of item it is
         if ini.parser.has_section("weapon"):
-            item = Weapon(i)
+            item = Weapon(name)
         elif ini.parser.has_section("armor"):
-            item = Armor(i)
+            item = Armor(name)
         elif ini.parser.has_section("loot"):
-            item = Loot(i)
-        elif ini.parser.has_section("usuable"):
-            item = Usable(i)
+            item = Loot(name)
+        elif ini.parser.has_section("usable"):
+            item = Usable(name)
         else:
-            item = Item(i)  
+            item = Item(name)  
+        return item
                   
     def InitUI(self):
         self.itemType = ItemTypePanel(self)
@@ -42,7 +45,11 @@ class ItemFrame(wx.Panel):
         self.restoreButton = wx.Button(self, -1, "Restore", pos = (380, 320), size = (120, 28))
         self.saveButton = wx.Button(self, -1, "Save", pos = (520, 320), size = (120, 28))
 
-        self.Bind(wx.EVT_LISTBOX, self.refreshItem, id=self.list.GetId())
+        self.Bind(wx.EVT_LISTBOX, self.Refresh, id=self.list.GetId())
+        self.Bind(wx.EVT_BUTTON, self.Refresh, id=self.restoreButton.GetId())
+        self.Bind(wx.EVT_BUTTON, self.Save, id=self.saveButton.GetId())
+        self.Bind(wx.EVT_BUTTON, self.newItem, id=self.addButton.GetId())
+        self.Bind(wx.EVT_BUTTON, self.removeItem, id=self.removeButton.GetId())
         
         #name
         wx.StaticText(self, -1, "Name: ", pos = (180, 16))
@@ -50,12 +57,24 @@ class ItemFrame(wx.Panel):
         
         #worth
         wx.StaticText(self, -1, "Worth: ", pos = (470, 16))
-        self.worthWheel = wx.SpinCtrl(self, -1, '', pos = (520, 10), size = (100, 28))
+        self.worthWheel = wx.SpinCtrl(self, -1, '', pos = (520, 10), size = (100, 28), max = 99999)
 
         self.showEquip(None)
         
+    def Clear(self):
+        self.nameBox.SetValue("")
+        self.worthWheel.SetValue(0)
+        self.itemType.Clear()
+        self.equipType.Clear()
+        self.projectile.Clear()
+        self.weapAttr.Clear()
+        self.armrAttr.Clear()
+        self.weapSpec.Clear()
+        self.projSpec.Clear()
+        self.showEquip(None)
+        
     #show equipment interface
-    def showEquip(self, event = None):
+    def showEquip(self, event):
         self.equipType.Show()
         if self.equipType.weaponType.GetValue():
             self.showWeapon(None)
@@ -122,9 +141,13 @@ class ItemFrame(wx.Panel):
         self.hideEquip()
         self.hideLoot()
         
+    def hideUsable(self):
+        pass
+        
     #show loot interface
     def showLoot(self, event):
-        pass
+        self.hideEquip()
+        self.hideUsable()
         
     #hide loot interface
     def hideLoot(self):
@@ -132,14 +155,110 @@ class ItemFrame(wx.Panel):
      
     #update the list of items
     def updateList(self):
-        self.list.clear()
-        for i, item in enumaerate(listPath(os.path.join("data", "items"), "item.ini", "folderDeepSearch")):
-            self.list.add("%03i: %s" % (i, item))
+        self.list.Clear()
+        if len(self.items) == 0:
+            self.items = listPath("items", "item.ini", "folderDeepSearch")
+            
+        for i, item in enumerate(self.items):
+            self.list.Append("%03i: %s" % (i, item))
      
-    #update the interface with the currently selected item
-    def refreshItem(self):
-        self.list.GetSelection()
+    #start creation for new item
+    def newItem(self, event):
+        self.item = None
+        self.list.SetSelection(-1)
+        self.Clear()
         
+    #removes the item completely
+    def removeItem(self, event):
+        if self.item:
+            #TODO delete the directory and item from the list
+            pass
+            
+    #update the interface with the currently selected item
+    def Refresh(self, event):
+        self.item = self.loadItem(self.items[self.list.GetSelection()])
+        self.nameBox.SetValue(self.item.name)
+        self.worthWheel.SetValue(self.item.buyPrice)
+        
+        if isinstance(self.item, Loot):
+            self.itemType.SetValue(2)
+            self.showLoot(None)
+        elif isinstance(self.item, Usable) or isinstance(self.item, Food):
+            self.itemType.SetValue(1)
+            self.showUsable(None)
+        else:
+            self.itemType.SetValue(0)
+            if isinstance(self.item, Weapon):
+                self.equipType.SetValue(0)
+                self.weapAttr.SetValues([self.item.str, self.item.mag])
+                if (self.item.type == "gun" or self.item.type == "bow"):
+                    self.projectile.SetValue(True)
+                    self.projSpec.SetFiringModes(self.item.firingMode)
+                    self.projSpec.SetProjType(self.item.type == "gun")
+                else:
+                    self.projectile.SetValue(False)
+                    self.weapSpec.SetTime(self.item.time)
+                    self.weapSpec.SetAttack(self.item.attack)
+                    
+                self.showWeapon(None)
+            else:
+                self.equipType.SetValue(1)
+                self.showArmor(None)
+            self.showEquip(None)
+
+    def Save(self, event):
+        name = self.nameBox.GetValue().lower()  #directory names are lower case
+        if os.path.exists(os.path.join("..", "data", "items", name)) and not self.item:
+            message = wx.MessageDialog(self.GetParent(), "An item with that name already exists", style = wx.OK|wx.CENTRE)
+            message.ShowModal()
+            message.Destroy()
+            return
+        elif os.path.exists(os.path.join("..", "data", "items", name)) and self.item:
+            message = wx.MessageDialog(self.GetParent(), "An item with that name already exists", style = wx.OK|wx.CENTRE)
+            message.ShowModal()
+            message.Destroy()
+            return
+        elif not os.path.exists(os.path.join("..", "data", "items", name)) and self.item:
+            os.rename(os.path.join("..", "data", "items", self.item.name.lower()), os.path.join("..", "data", "items", name))
+            self.items.remove(self.item.name.lower())
+        else:
+            os.mkdir(os.path.join("..", "data", "items", name))
+        Configuration(os.path.join("..", "data", "items", name, "item.ini")).save()
+        itemini = Configuration(os.path.join("..", "data", "items", name, "item.ini"))
+        itemini.item.__setattr__("worth", self.worthWheel.GetValue())
+        type = self.itemType.GetValue()
+        if type == 0:   #equipment
+            type = self.equipType.GetValue()
+            if type == 0:   #weapon
+                #save attributes
+                attr = self.weapAttr.GetValues()
+                itemini.weapon.__setattr__("str", attr[0])
+                itemini.weapon.__setattr__("mag", attr[1])
+                if self.projectile.GetValue():
+                    if self.projSpec.GetProjType():
+                        itemini.weapon.__setattr__("type", "gun")
+                    else:
+                        itemini.weapon.__setattr__("type", "bow")
+                    itemini.weapon.__setattr__("firingmode", "".join("|", self.projSpec.GetFiringModes()))
+                else:
+                    itemini.weapon.__setattr__("combotimer", self.weapSpec.getTime())
+                    itemini.weapon.__setattr__("attack", "".join(" ", self.weapSpec.GetAttack()))
+            elif type == 1: #armor
+                #save attributes
+                attr = self.armrAttr.GetValues()
+                itemini.armor.__setattr__("def", attr[0])
+                itemini.armor.__setattr__("res", attr[1])
+                itemini.armor.__setattr__("spd", attr[2])
+                itemini.armor.__setattr__("evd", attr[3])
+        elif type == 1: #usable
+            itemini.usable.__setattr__("function", "None")
+        elif type == 2: #loot
+            itemini.loot.__setattr__("worth", self.worthWheel.GetValue())
+        itemini.save()
+        self.items.append(name)
+        self.updateList()
+        self.list.SetSelection(len(self.items)-1)
+        self.item = self.loadItem(self.items[self.list.GetSelection()])
  
 class ItemTypePanel(wx.Panel):
     def __init__(self, parent):
@@ -159,6 +278,25 @@ class ItemTypePanel(wx.Panel):
         self.Bind(wx.EVT_RADIOBUTTON, self.GetParent().showUsable, id=self.useType.GetId())
         self.Bind(wx.EVT_RADIOBUTTON, self.GetParent().showLoot, id=self.lootType.GetId())
 
+    def Clear(self):
+        self.equipType.SetValue(True)
+        
+    def GetValue(self):
+        if self.equipType.GetValue():
+            return 0
+        elif self.useType.GetValue():
+            return 1
+        else:
+            return 2
+            
+    def SetValue(self, val):
+        if val == 0:
+            self.equipType.SetValue(True)
+        elif val == 1:
+            self.useType.SetValue(True)
+        else:
+            self.lootType.SetValue(True)
+            
 class EquipTypePanel(wx.Panel):
     def __init__(self, parent):
         super(EquipTypePanel, self).__init__(parent, pos = (180, 168), size = (130, 90))
@@ -174,6 +312,18 @@ class EquipTypePanel(wx.Panel):
         self.Bind(wx.EVT_RADIOBUTTON, self.GetParent().showWeapon, id=self.weaponType.GetId())
         self.Bind(wx.EVT_RADIOBUTTON, self.GetParent().showArmor, id=self.armorType.GetId())
 
+    def Clear(self):
+        self.weaponType.SetValue(True)
+        
+    def SetValue(self, val):
+        if val == 0:
+            self.weaponType.SetValue(True)
+        else:
+            self.armorType.SetValue(True)
+            
+    def GetValue(self, val):
+        return int(self.armorType.GetValue())
+        
 class ProjectilePanel(wx.Panel):
     def __init__(self, parent):
         super(ProjectilePanel, self).__init__(parent, pos = (180, 258), size = (130, 60))
@@ -186,9 +336,15 @@ class ProjectilePanel(wx.Panel):
         self.projectCheck = wx.CheckBox(self, 6, 'Projectile', (10, 16), size = (100, 28))
 
         self.Bind(wx.EVT_CHECKBOX, self.GetParent().showWeaponSpecials, id=self.projectCheck.GetId())
-           
+      
+    def Clear(self):
+        self.projectCheck.SetValue(False)
+        
     def GetValue(self):
         return self.projectCheck.GetValue()
+        
+    def SetValue(self, val):
+        self.projectCheck.SetValue(val)
         
 class WeaponAttrPanel(wx.Panel):
     def __init__(self, parent):
@@ -206,6 +362,17 @@ class WeaponAttrPanel(wx.Panel):
         wx.StaticText(self, -1, "Magic Power", (10, 50))
         self.magVal = wx.SpinCtrl(self, -1, '', (120, 46), size = (100, 24)) 
 
+    def Clear(self):
+        self.strVal.SetValue(0)
+        self.magVal.SetValue(0)
+        
+    def SetValues(self, values):
+        self.strVal.SetValue(values[0])
+        self.magVal.SetValue(values[1])
+        
+    def GetValues(self):
+        return [self.strVal.GetValue(), self.magVal.GetValue()]
+        
 class ArmorAttrPanel(wx.Panel):
     def __init__(self, parent):
         super(ArmorAttrPanel, self).__init__(parent, pos = (368, 48), size = (250,150))
@@ -228,6 +395,16 @@ class ArmorAttrPanel(wx.Panel):
         wx.StaticText(self, -1, "Evasion", (10, 110))
         self.evdVal = wx.SpinCtrl(self, -1, '', (120, 106), size = (100, 24)) 
 
+    def Clear(self):
+        self.defVal.SetValue(0)
+        self.resVal.SetValue(0)
+        self.spdVal.SetValue(0)
+        self.evdVal.SetValue(0)
+        
+    def GetValues(self):
+        return [self.defVal.GetValue(), self.resVal.GetValue(), self.spdVal.GetValue(), self.evdVal.GetValue()]
+        
+    
 class FiringModePanel(wx.Panel):
     def __init__(self, parent):
         super(FiringModePanel, self).__init__(parent, pos = (368, 146), size = (250,110))
@@ -271,8 +448,37 @@ class FiringModePanel(wx.Panel):
         self.burstCheck.SetValue(False)
         self.autoCheck.SetValue(False)
         
-    def SetValues(self, itemini):
-        pass
+    #set the projectile type
+    def SetProjType(self, val):
+        if val == 0:
+            self.bowType.SetValue(True)
+            self.enableBow(None)
+        else:
+            self.gunType.SetValue(True)
+            self.enableGun(None)
+          
+    def GetProjType(self):
+        if self.bowType.GetValue():
+            return 0
+        else:
+            return 1
+            
+    #set the firing modes
+    def SetFiringModes(self, values):
+        self.doubleCheck.SetValue("double" in values)
+        self.burstCheck.SetValue("burst" in values)
+        self.autoCheck.SetValue("auto" in values)
+        
+    def GetFiringModes(self):
+        values = []
+        if self.doubleCheck.GetValue():
+            values.append("double")
+        if self.burstCheck.GetValue():    
+            values.append("burst")
+        if self.autoCheck.GetValue():     
+            values.append("auto")
+        return values
+        
     
 class ComboPanel(wx.Panel):
     def __init__(self, parent):
@@ -287,13 +493,65 @@ class ComboPanel(wx.Panel):
         #attack input buttons
         for i in range(7):
             setattr(self, "attack%i" % (i+1), wx.Button(self, -1, "%i" % (i+1), (10 + 32*i, 20), size = (28, 28)))
+            self.Bind(wx.EVT_BUTTON, self.GetKey, id = getattr(self, "attack%i" % (i+1)).GetId())
         #timer amount
         wx.StaticText(self, -1, "Time: ", pos = (50, 64))
-        self.time = wx.SpinCtrl(self, -1, '', pos = (90, 58), size = (100, 28))
+        self.time = wx.SpinCtrl(self, -1, '', pos = (90, 58), size = (100, 28), min = 0, max = 3000)
 
+    def GetKey(self, event):
+        message = ButtonConfig(self, event.GetEventObject())
+        message.ShowModal()
+        message.Destroy()
+        
     def Clear(self):
         self.time.SetValue(0)
         
-    def SetValues(self, itemini):
+    def SetTime(self, time):
+        self.time.SetValue(time)
+        
+    def GetTime(self):
+        return self.time.GetValue()
+        
+    def SetAttack(self, values):
         pass
         
+    def GetAttack(self):
+        values = []
+        for i in range(7):
+            val = getattr(self, "attack%i" % (i+1)).GetLabel()
+            if val in ["A", "B", "C", "D", "Up", "Dn", "Lt", "Rt"]:
+                values.append(val)
+        return values
+        
+        
+class ButtonConfig(wx.Dialog):
+    def __init__(self, parent, button):
+        super(ButtonConfig, self).__init__(parent, -1, "Select a Key", size = (260,48))
+        
+        self.InitUI()
+        self.Centre()
+        self.SetFocus()
+        self.button = button
+
+    def InitUI(self):
+        self.buttonA = wx.Button(self, -1, "A", pos = (10,10), size = (28,28))
+        self.buttonB = wx.Button(self, -1, "B", pos = (40,10), size = (28,28))
+        self.buttonC = wx.Button(self, -1, "C", pos = (70,10), size = (28,28))
+        self.buttonD = wx.Button(self, -1, "D", pos = (100,10), size = (28,28))
+        self.buttonUp = wx.Button(self, -1, "Up", pos = (130,10), size = (28,28))
+        self.buttonDn = wx.Button(self, -1, "Dn", pos = (160,10), size = (28,28))
+        self.buttonLt = wx.Button(self, -1, "Lt", pos = (190,10), size = (28,28))
+        self.buttonRt = wx.Button(self, -1, "Rt", pos = (220,10), size = (28,28))
+        
+        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonA.GetId())
+        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonB.GetId())
+        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonC.GetId())
+        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonD.GetId())
+        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonUp.GetId())
+        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonDn.GetId())
+        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonLt.GetId())
+        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonRt.GetId())
+        
+    def GetKey(self, event):
+        self.button.SetLabel(event.GetEventObject().GetLabel())
+        self.Close()
