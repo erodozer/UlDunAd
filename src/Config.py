@@ -59,13 +59,13 @@ class Section:
             raise AttributeError, 'No section "%s".' % self.name
         if self.parser.has_option(self.name, name):
             if type == int:
-              return self.parser.getint(self.name, name)
+                return self.parser.getint(self.name, name)
             elif type == float:
-              return self.parser.getfloat(self.name, name)
+                return self.parser.getfloat(self.name, name)
             elif type == bool:
-              return self.parser.getboolean(self.name, name)
+                return self.parser.getboolean(self.name, name)
             else:
-              return self.parser.get(self.name, name)
+                return self.parser.get(self.name, name)
         else:
             print 'No option "%s" in section "%s".' % (name, self.name)
             return type(default)
