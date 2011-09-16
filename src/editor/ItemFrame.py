@@ -2,6 +2,7 @@ import os
 import wx
 from Item import *
 from Data import listPath
+from Input import *
 
 #Tab controlling the creation of new items
 class ItemFrame(wx.Panel):
@@ -176,6 +177,7 @@ class ItemFrame(wx.Panel):
             
     #update the interface with the currently selected item
     def Refresh(self, event):
+        self.Clear()
         self.item = self.loadItem(self.items[self.list.GetSelection()])
         self.nameBox.SetValue(self.item.name)
         self.worthWheel.SetValue(self.item.buyPrice)
@@ -241,7 +243,7 @@ class ItemFrame(wx.Panel):
                         itemini.weapon.__setattr__("type", "bow")
                     itemini.weapon.__setattr__("firingmode", "".join("|", self.projSpec.GetFiringModes()))
                 else:
-                    itemini.weapon.__setattr__("combotimer", self.weapSpec.getTime())
+                    itemini.weapon.__setattr__("combotimer", self.weapSpec.GetTime())
                     itemini.weapon.__setattr__("attack", "".join(" ", self.weapSpec.GetAttack()))
             elif type == 1: #armor
                 #save attributes
@@ -321,7 +323,7 @@ class EquipTypePanel(wx.Panel):
         else:
             self.armorType.SetValue(True)
             
-    def GetValue(self, val):
+    def GetValue(self):
         return int(self.armorType.GetValue())
         
 class ProjectilePanel(wx.Panel):
@@ -484,6 +486,9 @@ class ComboPanel(wx.Panel):
     def __init__(self, parent):
         super(ComboPanel, self).__init__(parent, pos = (368, 146), size = (250,110))
         
+        self.buttons = {Input.AButton : "A", Input.BButton : "B", Input.CButton : "C",
+                        Input.DButton : "D", Input.UpButton : "Up", Input.DnButton: "Dn",
+                        Input.LtButton : "Lt", Input.RtButton : "Rt"}
         self.InitUI()
 
     def InitUI(self):
@@ -494,6 +499,7 @@ class ComboPanel(wx.Panel):
         for i in range(7):
             setattr(self, "attack%i" % (i+1), wx.Button(self, -1, "%i" % (i+1), (10 + 32*i, 20), size = (28, 28)))
             self.Bind(wx.EVT_BUTTON, self.GetKey, id = getattr(self, "attack%i" % (i+1)).GetId())
+        
         #timer amount
         wx.StaticText(self, -1, "Time: ", pos = (50, 64))
         self.time = wx.SpinCtrl(self, -1, '', pos = (90, 58), size = (100, 28), min = 0, max = 3000)
@@ -505,6 +511,8 @@ class ComboPanel(wx.Panel):
         
     def Clear(self):
         self.time.SetValue(0)
+        for i in range(7):
+            getattr(self, "attack%s" % (i+1)).SetLabel("%i" % (i+1))
         
     def SetTime(self, time):
         self.time.SetValue(time)
@@ -513,8 +521,9 @@ class ComboPanel(wx.Panel):
         return self.time.GetValue()
         
     def SetAttack(self, values):
-        pass
-        
+        for i in range(min(7, len(values))):
+            getattr(self, "attack%s" % (i+1)).SetLabel(self.buttons[values[i]])
+                    
     def GetAttack(self):
         values = []
         for i in range(7):
@@ -528,30 +537,18 @@ class ButtonConfig(wx.Dialog):
     def __init__(self, parent, button):
         super(ButtonConfig, self).__init__(parent, -1, "Select a Key", size = (260,48))
         
+        self.buttons = ("A", "B", "C", "D", "Up", "Dn", "Lt", "Rt")
         self.InitUI()
         self.Centre()
         self.SetFocus()
         self.button = button
 
     def InitUI(self):
-        self.buttonA = wx.Button(self, -1, "A", pos = (10,10), size = (28,28))
-        self.buttonB = wx.Button(self, -1, "B", pos = (40,10), size = (28,28))
-        self.buttonC = wx.Button(self, -1, "C", pos = (70,10), size = (28,28))
-        self.buttonD = wx.Button(self, -1, "D", pos = (100,10), size = (28,28))
-        self.buttonUp = wx.Button(self, -1, "Up", pos = (130,10), size = (28,28))
-        self.buttonDn = wx.Button(self, -1, "Dn", pos = (160,10), size = (28,28))
-        self.buttonLt = wx.Button(self, -1, "Lt", pos = (190,10), size = (28,28))
-        self.buttonRt = wx.Button(self, -1, "Rt", pos = (220,10), size = (28,28))
-        
-        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonA.GetId())
-        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonB.GetId())
-        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonC.GetId())
-        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonD.GetId())
-        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonUp.GetId())
-        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonDn.GetId())
-        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonLt.GetId())
-        self.Bind(wx.EVT_BUTTON, self.GetKey, id = self.buttonRt.GetId())
+        for i, key in enumerate(self.buttons):
+            setattr(self, "button%s" % key, wx.Button(self, -1, key, pos = (10+30*i,10), size = (28,28)))
+            self.Bind(wx.EVT_BUTTON, self.GetKey, id = getattr(self, "button%s" % key).GetId())
         
     def GetKey(self, event):
         self.button.SetLabel(event.GetEventObject().GetLabel())
         self.Close()
+
