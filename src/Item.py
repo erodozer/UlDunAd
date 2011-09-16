@@ -10,6 +10,11 @@ _sellRate = .33     #rate at which items sell by
 class Item(object):
     def __init__(self, name):
           
+        self.name = name
+        
+        if name == "None" or "":
+             return None
+            
         self.sprite = ImgObj(Texture(os.path.join("items", name, "item.png")))
         self.itemini = Configuration(os.path.join("..", "data", "items", name, "item.ini"))
         
@@ -23,6 +28,9 @@ class Item(object):
 class Weapon(Item):
     def __init__(self, name):
         super(Weapon, self).__init__(name)
+        
+        if self.name == "None" or "":
+             return None
         
         self.type = self.itemini.weapon.__getattr__("type")
             
@@ -71,6 +79,9 @@ class Armor(Item):
     def __init__(self, name):
         super(Armor, self).__init__(name)
         
+        if self.name == "None" or "":
+             return None
+        
         self.defn = self.itemini.armor.__getattr__("def", int, 0)
         self.spd  = self.itemini.armor.__getattr__("spd", int, 0)
         self.evd  = self.itemini.armor.__getattr__("evd", int, 0)
@@ -81,12 +92,20 @@ class Armor(Item):
 class Usable(Item):
     def __init__(self, name):
         super(Usable, self).__init__(name)
+        
+        if self.name == "None" or "":
+             return None
+        
         self.function = eval(self.itemini.usable.__getattr__("function"))
             
 #foods can function like usable items but only from the inventory
 class Food(Item):
     def __init__(self, name):
         super(Food, self).__init__(name)
+        
+        if self.name == "None" or "":
+             return None
+        
         self.function = eval(self.itemini.food.__getattr__("function"))
             
 #loot are items found in dungeons or are drops from specific monsters
@@ -96,6 +115,9 @@ class Food(Item):
 class Loot(Item):
     def __init__(self, name):
         super(Loot, self).__init__(name)
+        
+        if self.name == "None" or "":
+             return None
         
         self.buyPrice = self.itemini.loot.__getattr__("worth", int, 0)
         self.sellPrice = self.buyPrice
