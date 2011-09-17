@@ -16,9 +16,9 @@ class ButtonObj(ImgObj):
             self.texture = Texture("button.png")
             
         if fontStyle:
-            self.font = FontObj(fontStyle)
+            self.font = fontStyle
         else:
-            self.font = FontObj("default.ttf", 24)
+            self.font = FontObj("default.ttf", 16)
         self.font.setText(text)
             
         #attributes
@@ -59,14 +59,20 @@ class ButtonObj(ImgObj):
         
     def setAlignment(self, align = None, textalign = None):
         if align:
-            ImgObj.setAlignment(self, align)
+            super(ButtonObj, self).setAlignment(self, align)
         if textalign:
             self.font.setAlignment(textalign)
         
     def draw(self):
         
         super(ButtonObj, self).draw()
-        self.font.setPosition(self.position[0], self.position[1])
+        if self.font.alignment == LEFT:
+            self.font.setPosition(self.position[0] - self.width/2 + 4, self.position[1])
+        elif self.font.alignment == RIGHT:
+            self.font.setPosition(self.position[0] + self.width/2 - 4, self.position[1])
+        else:
+            self.font.setPosition(self.position[0], self.position[1])
+            
         self.font.draw()
         
         
