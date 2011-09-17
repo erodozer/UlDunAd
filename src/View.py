@@ -17,6 +17,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 
 from math import *
+import random
 
 import WorldScenes
 
@@ -60,20 +61,14 @@ class ParticleTest(Scene):
         self.particle = [ImgObj(Texture(os.path.join(scenepath, "smoke.png"))),
                          ImgObj(Texture(os.path.join(scenepath, "star.png")))]
         
-        particles = []
-        for i in range(100):
-            pathA = lambda t: random.randint(0, 30)*sin(t*2*pi)
-            pathB = lambda t: t*random.randint(0,2)
-            scale = lambda t: random.randint(1,10)/10.0
-            particles.append(Particle(self.particle[i%2], pathX = pathA, pathY = pathB, velocity = random.randint(0,2), spin = random.randint(0,35), scale = scale))
-        self.particleSystem = ParticleSystem(particles, clock = self.engine.clock)
+        self.particleSystem = ParticleSystem(self.particle[0], random.randint(-90, 90), self.engine.clock, (-10, -10))
 
     #anything that is 2d should be rendered during this process
     def render(self, visibility):
         self.particleSystem.draw()
         if len(Input.clicks) > 0:
             print Input.clicks[-1]
-            self.particleSystem.reset(start = Input.clicks[-1])
+            self.particleSystem.reset(pos = Input.clicks[-1])
 
 #here's a little test scene to show how a scene may function
 class TestScene(Scene):
