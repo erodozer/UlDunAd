@@ -38,7 +38,7 @@ class MenuObj:
         #the texture used for the buttons and the buttons themselves
         if buttonStyle == None:
             buttonStyle = self.engine.data.defaultButton  
-        self.buttons  = [ButtonObj(n) for n in self.commands]
+        self.buttons  = [ButtonObj(n, style = buttonStyle) for n in self.commands]
                    
         #where on the screen should the menu be displayed
         #  verticle is positioned from the top
