@@ -18,6 +18,20 @@ import Input
 
 from MenuObj import MenuObj
 
+
+class MapMenu(MenuObj):
+    #renders the menu
+    def render(self, visibility = 1.0):
+                
+        for i, button in enumerate(self.buttons):
+            if i == self.index:
+                button.setActive(True)
+            else:
+                button.setActive(False)
+            button.setAlignment(textalign = "left")
+            button.draw()
+    
+    
 class Maplist(Scene):
     def __init__(self, engine):
         self.engine = engine
@@ -29,7 +43,6 @@ class Maplist(Scene):
         self.background.setPosition(self.engine.w/2, self.engine.h/2)
         
         self.window = WinObj(Texture(os.path.join(scenepath, "window.png")), self.engine.w/4, 0)
-        self.menuButton = ImgObj(Texture(os.path.join(scenepath, "menubutton.png")), boundable = True)
         self.font   = FontObj("default.ttf")
 
         self.towns = self.engine.listPath("places", value = "town.ini", flag = "folderDeepSearch")
@@ -42,7 +55,7 @@ class Maplist(Scene):
         for i in range(self.startIndex, self.endIndex):
             commands.append(self.maps[i])
         commands.append("Down")
-        self.menu   = MenuObj(self, commands, position = (100, 400))
+        self.menu   = MapMenu(self, commands, position = (120, self.engine.h-48), buttonStyle = Texture(os.path.join(scenepath, "button.png")))
         
         self.fadeIn     = True  #are the windows transitioning in or out
 
@@ -52,9 +65,11 @@ class Maplist(Scene):
         self.exists = False
         self.selectedMap = None
 
+        self.helpButtons = [[Input.CButton, "Enter Main Menu"],
+                            [Input.DButton, "Start random battle"]]
+        
     def buttonClicked(self, image):
-        if image == self.menuButton:
-            self.engine.viewport.changeScene("MenuSystem")
+        self.menu.buttonClicked(image)
         
     def keyPressed(self, key, char):    
         #opens up the menu
@@ -121,7 +136,6 @@ class Maplist(Scene):
         w, h = self.engine.w, self.engine.h
 
         self.background.draw()
-        self.engine.drawImage(self.menuButton, position = (w*.9, h*.1))
         self.menu.render()
         
         self.engine.drawText(self.font, "%s:%i" % (self.engine.family.name, len(self.engine.family.members)),
