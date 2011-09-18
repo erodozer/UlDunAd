@@ -59,7 +59,7 @@ class ButtonObj(ImgObj):
         
     def setAlignment(self, align = None, textalign = None):
         if align:
-            super(ButtonObj, self).setAlignment(self, align)
+            super(ButtonObj, self).setAlignment(align)
         if textalign:
             self.font.setAlignment(textalign)
         
@@ -72,7 +72,6 @@ class ButtonObj(ImgObj):
             self.font.setPosition(self.position[0] + self.width/2 - 4, self.position[1])
         else:
             self.font.setPosition(self.position[0], self.position[1])
-            
         self.font.draw()
         
         
